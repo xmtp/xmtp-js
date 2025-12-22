@@ -10,7 +10,6 @@ import {
   type Identifier,
   type Message,
 } from "@xmtp/wasm-bindings";
-import { v4 } from "uuid";
 import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
@@ -31,6 +30,7 @@ import { getInboxIdForIdentifier } from "@/utils/inboxId";
 import { inboxStateFromInboxIds as utilsInboxStateFromInboxIds } from "@/utils/inboxState";
 import { revokeInstallations as utilsRevokeInstallations } from "@/utils/installations";
 import { toSafeSigner, type SafeSigner, type Signer } from "@/utils/signer";
+import { uuid } from "@/utils/uuid";
 
 /**
  * Client for interacting with the XMTP network
@@ -246,7 +246,7 @@ export class Client<
    */
   async unsafe_createInboxSignatureText() {
     return this.sendMessage("client.createInboxSignatureText", {
-      signatureRequestId: v4(),
+      signatureRequestId: uuid(),
     });
   }
 
@@ -274,7 +274,7 @@ export class Client<
 
     return this.sendMessage("client.addAccountSignatureText", {
       newIdentifier,
-      signatureRequestId: v4(),
+      signatureRequestId: uuid(),
     });
   }
 
@@ -293,7 +293,7 @@ export class Client<
   async unsafe_removeAccountSignatureText(identifier: Identifier) {
     return this.sendMessage("client.removeAccountSignatureText", {
       identifier,
-      signatureRequestId: v4(),
+      signatureRequestId: uuid(),
     });
   }
 
@@ -311,7 +311,7 @@ export class Client<
    */
   async unsafe_revokeAllOtherInstallationsSignatureText() {
     return this.sendMessage("client.revokeAllOtherInstallationsSignatureText", {
-      signatureRequestId: v4(),
+      signatureRequestId: uuid(),
     });
   }
 
@@ -331,7 +331,7 @@ export class Client<
   async unsafe_revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
     return this.sendMessage("client.revokeInstallationsSignatureText", {
       installationIds,
-      signatureRequestId: v4(),
+      signatureRequestId: uuid(),
     });
   }
 
@@ -351,7 +351,7 @@ export class Client<
   async unsafe_changeRecoveryIdentifierSignatureText(identifier: Identifier) {
     return this.sendMessage("client.changeRecoveryIdentifierSignatureText", {
       identifier,
-      signatureRequestId: v4(),
+      signatureRequestId: uuid(),
     });
   }
 
