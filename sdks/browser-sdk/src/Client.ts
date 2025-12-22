@@ -20,7 +20,6 @@ import type {
   ExtractCodecContentTypes,
   XmtpEnv,
 } from "@/types/options";
-import { Utils } from "@/Utils";
 import {
   AccountAlreadyAssociatedError,
   CodecNotFoundError,
@@ -28,6 +27,9 @@ import {
   InvalidGroupMembershipChangeError,
   SignerUnavailableError,
 } from "@/utils/errors";
+import { getInboxIdForIdentifier } from "@/utils/inboxId";
+import { inboxStateFromInboxIds as utilsInboxStateFromInboxIds } from "@/utils/inboxState";
+import { revokeInstallations as utilsRevokeInstallations } from "@/utils/installations";
 import { toSafeSigner, type SafeSigner, type Signer } from "@/utils/signer";
 
 /**
@@ -552,18 +554,14 @@ export class Client<
     installationIds: Uint8Array[],
     env?: XmtpEnv,
     gatewayHost?: string,
-    enableLogging?: boolean,
   ) {
-    const utils = new Utils(enableLogging);
-    await utils.init();
-    await utils.revokeInstallations(
+    await utilsRevokeInstallations(
       signer,
       inboxId,
       installationIds,
       env,
       gatewayHost,
     );
-    utils.close();
   }
 
   /**
@@ -576,18 +574,9 @@ export class Client<
   static async inboxStateFromInboxIds(
     inboxIds: string[],
     env?: XmtpEnv,
-    enableLogging?: boolean,
     gatewayHost?: string,
   ) {
-    const utils = new Utils(enableLogging);
-    await utils.init();
-    const result = await utils.inboxStateFromInboxIds(
-      inboxIds,
-      env,
-      gatewayHost,
-    );
-    utils.close();
-    return result;
+    return utilsInboxStateFromInboxIds(inboxIds, env, gatewayHost);
   }
 
   /**
@@ -643,15 +632,13 @@ export class Client<
    */
   static async canMessage(identifiers: Identifier[], env?: XmtpEnv) {
     const canMessageMap = new Map<string, boolean>();
-    const utils = new Utils();
     for (const identifier of identifiers) {
-      const inboxId = await utils.getInboxIdForIdentifier(identifier, env);
+      const inboxId = await getInboxIdForIdentifier(identifier, env);
       canMessageMap.set(
         identifier.identifier.toLowerCase(),
         inboxId !== undefined,
       );
     }
-    utils.close();
     return canMessageMap;
   }
 

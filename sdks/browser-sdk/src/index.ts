@@ -5,7 +5,12 @@ export { Dm } from "./Dm";
 export { Group } from "./Group";
 export type { MessageDeliveryStatus, MessageKind } from "./DecodedMessage";
 export { DecodedMessage } from "./DecodedMessage";
-export { Utils } from "./Utils";
+export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";
+export {
+  revokeInstallations,
+  revokeInstallationsSignatureText,
+} from "./utils/installations";
+export { inboxStateFromInboxIds } from "./utils/inboxState";
 export { ApiUrls, HistorySyncUrls } from "./constants";
 export type * from "./types/options";
 export * from "./utils/conversions";
@@ -16,13 +21,12 @@ export type {
   IdentifierKind,
   UserPreference,
 } from "@xmtp/wasm-bindings";
-export {
+export type {
   Consent,
   ConsentEntityType,
   ConsentState,
   ContentType,
   ContentTypeId,
-  ConversationListItem,
   ConversationType,
   CreateDMOptions,
   CreateGroupOptions,
@@ -47,10 +51,12 @@ export {
   PermissionPolicy,
   PermissionPolicySet,
   PermissionUpdateType,
-  SignatureRequestHandle,
   SortDirection,
 } from "@xmtp/wasm-bindings";
-export type { Signer, SafeSigner, EOASigner, SCWSigner } from "./utils/signer";
-export { toSafeSigner } from "./utils/signer";
+export {
+  ConversationListItem,
+  SignatureRequestHandle,
+} from "@xmtp/wasm-bindings";
+export type { Signer, EOASigner, SCWSigner } from "./utils/signer";
 export * from "./utils/errors";
 export type * from "./utils/streams";
