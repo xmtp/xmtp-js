@@ -1,5 +1,5 @@
-import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
+import { uuid } from "@/utils/uuid";
 import { createRegisteredClient, createSigner, sleep } from "@test/helpers";
 
 describe("Conversations", () => {
@@ -335,7 +335,7 @@ describe("Conversations", () => {
     const { signer: signer2 } = createSigner();
     const client = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     await createRegisteredClient(signer2);
 

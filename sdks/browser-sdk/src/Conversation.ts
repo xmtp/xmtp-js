@@ -14,7 +14,6 @@ import {
   type WalletSendCalls,
   type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
-import { v4 } from "uuid";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import type { SafeConversation } from "@/utils/conversions";
@@ -24,6 +23,7 @@ import {
   type StreamCallback,
   type StreamOptions,
 } from "@/utils/streams";
+import { uuid } from "@/utils/uuid";
 
 /**
  * Represents a conversation
@@ -473,7 +473,7 @@ export class Conversation<ContentTypes = unknown> {
       callback: StreamCallback<XmtpDecodedMessage>,
       onFail: () => void,
     ) => {
-      const streamId = v4();
+      const streamId = uuid();
       if (!options?.disableSync) {
         // sync the conversation
         await this.sync();

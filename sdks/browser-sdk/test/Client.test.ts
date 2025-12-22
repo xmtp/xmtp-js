@@ -1,7 +1,7 @@
-import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
 import { SignerUnavailableError } from "@/utils/errors";
+import { uuid } from "@/utils/uuid";
 import {
   buildClient,
   createClient,
@@ -175,10 +175,10 @@ describe("Client", () => {
 
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client3 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
     const inboxState = await client3.preferences.inboxState(true);
@@ -201,10 +201,10 @@ describe("Client", () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client3 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
     const inboxState = await client3.preferences.inboxState(true);
@@ -231,31 +231,31 @@ describe("Client", () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client3 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client4 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client5 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client6 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client7 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client8 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client9 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client10 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
     const inboxState = await client3.preferences.inboxState(true);
@@ -275,7 +275,7 @@ describe("Client", () => {
 
     await expect(
       createRegisteredClient(signer, {
-        dbPath: `./test-${v4()}.db3`,
+        dbPath: `./test-${uuid()}.db3`,
       }),
     ).rejects.toThrow();
 
@@ -287,7 +287,7 @@ describe("Client", () => {
     expect(inboxState2.installations[0].id).toBe(client3.installationId);
 
     const client11 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
     const inboxState3 = await client11.preferences.inboxState(true);
@@ -327,10 +327,10 @@ describe("Client", () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client3 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
     const inboxState = await client3.preferences.inboxState(true);
@@ -416,7 +416,7 @@ describe("Client", () => {
     // ensure that a client can be created with the original signer
     const client2 = await createRegisteredClient(signer, {
       // must use a different db path to avoid errors
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     expect(client2.inboxId).toBe(transferClient.inboxId);
   });

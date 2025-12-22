@@ -1,4 +1,3 @@
-import { v4 } from "uuid";
 import type {
   ActionErrorData,
   ActionName,
@@ -12,6 +11,7 @@ import type {
   StreamActionErrorData,
 } from "@/types/actions/streams";
 import type { StreamOptions } from "@/utils/streams";
+import { uuid } from "@/utils/uuid";
 
 const handleError = (event: ErrorEvent) => {
   console.error(event.message);
@@ -60,7 +60,7 @@ export class ClientWorkerClass {
     action: A,
     data: ExtractActionData<ClientWorkerAction, A>,
   ) {
-    const promiseId = v4();
+    const promiseId = uuid();
     this.#worker.postMessage({
       action,
       id: promiseId,

@@ -1,5 +1,5 @@
-import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
+import { uuid } from "@/utils/uuid";
 import {
   createClient,
   createRegisteredClient,
@@ -173,11 +173,11 @@ describe("Preferences", () => {
     await sleep(2000);
 
     const client2 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
     const client3 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
     await client3.conversations.syncAll();
