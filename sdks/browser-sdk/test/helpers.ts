@@ -1,10 +1,8 @@
-import {
-  ContentTypeId,
-  type ContentCodec,
-  type EncodedContent,
+import type {
+  ContentCodec,
+  EncodedContent,
 } from "@xmtp/content-type-primitives";
-import type { Identifier } from "@xmtp/wasm-bindings";
-import { v4 } from "uuid";
+import type { ContentTypeId, Identifier } from "@xmtp/wasm-bindings";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -26,7 +24,6 @@ export const createUser = () => {
       chain: sepolia,
       transport: http(),
     }),
-    uuid: v4(),
   };
 };
 
@@ -35,9 +32,10 @@ export const createIdentifier = (user: User): Identifier => ({
   identifierKind: "Ethereum",
 });
 
-export const createSigner = (user: User): Signer => {
+export const createSigner = () => {
+  const user = createUser();
   const identifier = createIdentifier(user);
-  return {
+  const signer: Signer = {
     type: "EOA",
     getIdentifier: () => identifier,
     signMessage: async (message: string) => {
@@ -46,6 +44,12 @@ export const createSigner = (user: User): Signer => {
       });
       return toBytes(signature);
     },
+  };
+  return {
+    address: user.account.address.toLowerCase(),
+    identifier,
+    signer,
+    user,
   };
 };
 
@@ -104,19 +108,17 @@ export const createRegisteredClient = async <
   });
 };
 
-export const ContentTypeTest = new ContentTypeId({
+export const ContentTypeTest: ContentTypeId = {
   authorityId: "xmtp.org",
   typeId: "test",
   versionMajor: 1,
   versionMinor: 0,
-});
+};
 
 export class TestCodec implements ContentCodec {
-  get contentType(): ContentTypeId {
-    return ContentTypeTest;
-  }
+  contentType = ContentTypeTest;
 
-  encode(content: Record<string, string>) {
+  encode(content: Record<string, string>): EncodedContent {
     return {
       type: this.contentType,
       parameters: {},

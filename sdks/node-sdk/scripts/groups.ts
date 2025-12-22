@@ -8,7 +8,7 @@ export const createRegisteredClient = async (
   user: User,
   dbPath?: string | null,
 ) => {
-  return Client.create(createSigner(user), {
+  return Client.create(createSigner().signer, {
     env: "local",
     dbPath,
   });

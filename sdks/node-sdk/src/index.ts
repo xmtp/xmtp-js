@@ -4,10 +4,12 @@ export type {
   NetworkOptions,
   StorageOptions,
   XmtpEnv,
+  Reply,
+  BuiltInContentTypes,
+  ExtractCodecContentTypes,
 } from "./types";
 export { ApiUrls, HistorySyncUrls } from "./constants";
 export { Client } from "./Client";
-export type { ExtractCodecContentTypes } from "./Client";
 export { Conversation } from "./Conversation";
 export { Conversations } from "./Conversations";
 export { Dm } from "./Dm";
@@ -15,6 +17,8 @@ export { Group } from "./Group";
 export { DecodedMessage } from "./DecodedMessage";
 export type { AsyncStreamProxy } from "./AsyncStream";
 export type {
+  Actions,
+  Attachment,
   Consent,
   ContentType,
   ContentTypeId,
@@ -22,20 +26,29 @@ export type {
   CreateDmOptions,
   CreateGroupOptions,
   EncodedContent,
-  HmacKey,
   GroupSyncSummary,
+  GroupUpdated,
+  HmacKey,
   Identifier,
   InboxState,
   Installation,
+  Intent,
   KeyPackageStatus,
+  LeaveRequest,
   Lifetime,
   ListConversationsOptions,
   ListMessagesOptions,
   LogOptions,
   Message,
   MessageDisappearingSettings,
+  MultiRemoteAttachment,
   PermissionPolicySet,
+  Reaction,
+  ReadReceipt,
+  RemoteAttachment,
+  TransactionReference,
   UserPreferenceUpdate,
+  WalletSendCalls,
 } from "@xmtp/node-bindings";
 export {
   ConsentEntityType,

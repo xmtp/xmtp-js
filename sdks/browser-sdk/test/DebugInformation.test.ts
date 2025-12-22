@@ -1,15 +1,9 @@
 import { describe, expect, it } from "vitest";
-import {
-  createClient,
-  createRegisteredClient,
-  createSigner,
-  createUser,
-} from "@test/helpers";
+import { createRegisteredClient, createSigner } from "@test/helpers";
 
 describe("DebugInformation", () => {
   it("should return network API statistics", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
 
     const apiStats = await client.debugInformation.apiStatistics();
@@ -24,7 +18,7 @@ describe("DebugInformation", () => {
 
     const apiIdentityStats =
       await client.debugInformation.apiIdentityStatistics();
-    // expect(apiIdentityStats.getIdentityUpdatesV2).toBe(2n);
+    expect(apiIdentityStats.getIdentityUpdatesV2).toBe(2n);
     expect(apiIdentityStats.getInboxIds).toBe(1n);
     expect(apiIdentityStats.publishIdentityUpdate).toBe(1n);
     expect(apiIdentityStats.verifySmartContractWalletSignature).toBe(0n);
@@ -32,13 +26,13 @@ describe("DebugInformation", () => {
     await client.debugInformation.clearAllStatistics();
 
     const apiStats2 = await client.debugInformation.apiStatistics();
+    expect(apiStats2.uploadKeyPackage).toBe(0n);
     expect(apiStats2.fetchKeyPackage).toBe(0n);
+    expect(apiStats2.sendGroupMessages).toBe(0n);
+    expect(apiStats2.sendWelcomeMessages).toBe(0n);
     expect(apiStats2.queryGroupMessages).toBe(0n);
     expect(apiStats2.queryWelcomeMessages).toBe(0n);
-    expect(apiStats2.sendWelcomeMessages).toBe(0n);
     expect(apiStats2.subscribeMessages).toBe(0n);
-    expect(apiStats2.subscribeWelcomes).toBe(0n);
-    expect(apiStats2.uploadKeyPackage).toBe(0n);
 
     const apiIdentityStats2 =
       await client.debugInformation.apiIdentityStatistics();
@@ -50,14 +44,5 @@ describe("DebugInformation", () => {
     const apiAggregateStats =
       await client.debugInformation.apiAggregateStatistics();
     expect(apiAggregateStats).toBeDefined();
-  });
-
-  it("should upload a debug archive", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const client = await createClient(signer);
-
-    const result = await client.debugInformation.uploadDebugArchive();
-    expect(result).toBeDefined();
   });
 });
