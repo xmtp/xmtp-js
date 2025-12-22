@@ -4516,10 +4516,8 @@ __metadata:
     "@vitest/browser-playwright": "npm:^4.0.16"
     "@vitest/coverage-v8": "npm:^4.0.16"
     "@web/rollup-plugin-copy": "npm:^0.5.1"
-    "@xmtp/content-type-group-updated": "npm:^2.0.2"
-    "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/wasm-bindings": "npm:1.6.8"
+    "@xmtp/content-type-primitives": "npm:^3.0.0-rc1"
+    "@xmtp/wasm-bindings": "npm:1.7.0-rc3"
     playwright: "npm:^1.57.0"
     rollup: "npm:^4.54.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -4617,7 +4615,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:^3.0.0-rc1, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
@@ -4881,10 +4879,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.6.8":
-  version: 1.6.8
-  resolution: "@xmtp/wasm-bindings@npm:1.6.8"
-  checksum: 10/7eaf331943b2e51b58bc715011c2568d08a317f3ada972c12a826e5b2cc4c5e9612d3d5746e724f87ca61b669a3a89a4c20806717f025a66ab8bd1cd92e4a8c5
+"@xmtp/wasm-bindings@npm:1.7.0-rc3":
+  version: 1.7.0-rc3
+  resolution: "@xmtp/wasm-bindings@npm:1.7.0-rc3"
+  checksum: 10/724344e7154b8e2013bc2590cee27ff8c6b568be549765aa79ccc548c0509303343fda36639e7d22d83ee22c1b0d04a8b9895df4060206e96110876038c5d355
   languageName: node
   linkType: hard
 

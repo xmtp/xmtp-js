@@ -1,5 +1,4 @@
 export { Client } from "./Client";
-export type { ExtractCodecContentTypes } from "./Client";
 export { Conversations } from "./Conversations";
 export { Conversation } from "./Conversation";
 export { Dm } from "./Dm";

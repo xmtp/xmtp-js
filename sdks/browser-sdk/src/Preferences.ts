@@ -1,6 +1,9 @@
-import type { ConsentEntityType, UserPreference } from "@xmtp/wasm-bindings";
+import type {
+  Consent,
+  ConsentEntityType,
+  UserPreference,
+} from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
-import type { SafeConsent } from "@/utils/conversions";
 import {
   createStream,
   type StreamCallback,
@@ -76,7 +79,7 @@ export class Preferences<ContentTypes = unknown> {
    * @param records - Array of consent records to update
    * @returns Promise that resolves when consent states are updated
    */
-  async setConsentStates(records: SafeConsent[]) {
+  async setConsentStates(records: Consent[]) {
     return this.#client.sendMessage("preferences.setConsentStates", {
       records,
     });
@@ -102,9 +105,9 @@ export class Preferences<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @returns Stream instance for consent updates
    */
-  async streamConsent(options?: StreamOptions<SafeConsent[]>) {
+  async streamConsent(options?: StreamOptions<Consent[]>) {
     const stream = async (
-      callback: StreamCallback<SafeConsent[]>,
+      callback: StreamCallback<Consent[]>,
       onFail: () => void,
     ) => {
       const streamId = v4();
@@ -115,14 +118,10 @@ export class Preferences<ContentTypes = unknown> {
         streamId,
       });
       // handle stream messages
-      return this.#client.handleStreamMessage<SafeConsent[]>(
-        streamId,
-        callback,
-        {
-          ...options,
-          onFail,
-        },
-      );
+      return this.#client.handleStreamMessage<Consent[]>(streamId, callback, {
+        ...options,
+        onFail,
+      });
     };
 
     return createStream(stream, undefined, options);

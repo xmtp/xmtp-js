@@ -1,20 +1,18 @@
-import {
+import type {
+  ConsentState,
   ConversationType,
-  type ConsentState,
-  type Identifier,
+  CreateDMOptions,
+  CreateGroupOptions,
+  Identifier,
+  ListConversationsOptions,
+  DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
-import type {
-  SafeConversation,
-  SafeCreateDmOptions,
-  SafeCreateGroupOptions,
-  SafeListConversationsOptions,
-  SafeMessage,
-} from "@/utils/conversions";
+import type { SafeConversation } from "@/utils/conversions";
 import {
   createStream,
   type StreamCallback,
@@ -134,7 +132,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional filtering and pagination options
    * @returns Promise that resolves with an array of conversations
    */
-  async list(options?: SafeListConversationsOptions) {
+  async list(options?: ListConversationsOptions) {
     const conversations = await this.#client.sendMessage("conversations.list", {
       options,
     });
@@ -160,7 +158,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with an array of groups
    */
   async listGroups(
-    options?: Omit<SafeListConversationsOptions, "conversation_type">,
+    options?: Omit<ListConversationsOptions, "conversationType">,
   ) {
     const conversations = await this.#client.sendMessage(
       "conversations.listGroups",
@@ -180,9 +178,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional filtering and pagination options
    * @returns Promise that resolves with an array of DMs
    */
-  async listDms(
-    options?: Omit<SafeListConversationsOptions, "conversation_type">,
-  ) {
+  async listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
     const conversations = await this.#client.sendMessage(
       "conversations.listDms",
       {
@@ -201,7 +197,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional group creation options
    * @returns Promise that resolves with the new group
    */
-  async newGroupOptimistic(options?: SafeCreateGroupOptions) {
+  async newGroupOptimistic(options?: CreateGroupOptions) {
     const conversation = await this.#client.sendMessage(
       "conversations.newGroupOptimistic",
       {
@@ -221,7 +217,7 @@ export class Conversations<ContentTypes = unknown> {
    */
   async newGroupWithIdentifiers(
     identifiers: Identifier[],
-    options?: SafeCreateGroupOptions,
+    options?: CreateGroupOptions,
   ) {
     const conversation = await this.#client.sendMessage(
       "conversations.newGroupWithIdentifiers",
@@ -241,7 +237,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional group creation options
    * @returns Promise that resolves with the new group
    */
-  async newGroup(inboxIds: string[], options?: SafeCreateGroupOptions) {
+  async newGroup(inboxIds: string[], options?: CreateGroupOptions) {
     const conversation = await this.#client.sendMessage(
       "conversations.newGroup",
       {
@@ -260,10 +256,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional DM creation options
    * @returns Promise that resolves with the new DM
    */
-  async newDmWithIdentifier(
-    identifier: Identifier,
-    options?: SafeCreateDmOptions,
-  ) {
+  async newDmWithIdentifier(identifier: Identifier, options?: CreateDMOptions) {
     const conversation = await this.#client.sendMessage(
       "conversations.newDmWithIdentifier",
       {
@@ -282,7 +275,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional DM creation options
    * @returns Promise that resolves with the new DM
    */
-  async newDm(inboxId: string, options?: SafeCreateDmOptions) {
+  async newDm(inboxId: string, options?: CreateDMOptions) {
     const conversation = await this.#client.sendMessage("conversations.newDm", {
       inboxId,
       options,
@@ -360,7 +353,7 @@ export class Conversations<ContentTypes = unknown> {
   ) {
     return this.stream({
       ...options,
-      conversationType: ConversationType.Group,
+      conversationType: "group",
     });
   }
 
@@ -373,7 +366,7 @@ export class Conversations<ContentTypes = unknown> {
   async streamDms(options?: StreamOptions<SafeConversation, Dm<ContentTypes>>) {
     return this.stream({
       ...options,
-      conversationType: ConversationType.Dm,
+      conversationType: "dm",
     });
   }
 
@@ -386,13 +379,16 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new messages
    */
   async streamAllMessages(
-    options?: StreamOptions<SafeMessage, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<
+      XmtpDecodedMessage,
+      DecodedMessage<ContentTypes>
+    > & {
       conversationType?: ConversationType;
       consentStates?: ConsentState[];
     },
   ) {
     const stream = async (
-      callback: StreamCallback<SafeMessage>,
+      callback: StreamCallback<XmtpDecodedMessage>,
       onFail: () => void,
     ) => {
       const streamId = v4();
@@ -408,14 +404,14 @@ export class Conversations<ContentTypes = unknown> {
       });
       // handle stream messages
       return this.#client.handleStreamMessage<
-        SafeMessage,
+        XmtpDecodedMessage,
         DecodedMessage<ContentTypes>
       >(streamId, callback, {
         ...options,
         onFail,
       });
     };
-    const convertMessage = (value: SafeMessage) => {
+    const convertMessage = (value: XmtpDecodedMessage) => {
       return new DecodedMessage(this.#client, value);
     };
 
@@ -430,13 +426,16 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new group messages
    */
   async streamAllGroupMessages(
-    options?: StreamOptions<SafeMessage, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<
+      XmtpDecodedMessage,
+      DecodedMessage<ContentTypes>
+    > & {
       consentStates?: ConsentState[];
     },
   ) {
     return this.streamAllMessages({
       ...options,
-      conversationType: ConversationType.Group,
+      conversationType: "group",
     });
   }
 
@@ -448,13 +447,16 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new DM messages
    */
   async streamAllDmMessages(
-    options?: StreamOptions<SafeMessage, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<
+      XmtpDecodedMessage,
+      DecodedMessage<ContentTypes>
+    > & {
       consentStates?: ConsentState[];
     },
   ) {
     return this.streamAllMessages({
       ...options,
-      conversationType: ConversationType.Dm,
+      conversationType: "dm",
     });
   }
 
