@@ -7,7 +7,6 @@ import type {
   ListConversationsOptions,
   DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
-import { v4 } from "uuid";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
@@ -18,6 +17,7 @@ import {
   type StreamCallback,
   type StreamOptions,
 } from "@/utils/streams";
+import { uuid } from "@/utils/uuid";
 
 /**
  * Manages conversations
@@ -313,7 +313,7 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<SafeConversation>,
       onFail: () => void,
     ) => {
-      const streamId = v4();
+      const streamId = uuid();
       if (!options?.disableSync) {
         // sync the conversation
         await this.sync();
@@ -391,7 +391,7 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<XmtpDecodedMessage>,
       onFail: () => void,
     ) => {
-      const streamId = v4();
+      const streamId = uuid();
       if (!options?.disableSync) {
         // sync the conversation
         await this.sync();
@@ -479,7 +479,7 @@ export class Conversations<ContentTypes = unknown> {
     >,
   ) {
     const stream = async (callback: StreamCallback<string>) => {
-      const streamId = v4();
+      const streamId = uuid();
       // start the stream
       await this.#client.sendMessage("conversations.streamMessageDeletions", {
         streamId,

@@ -3,12 +3,12 @@ import type {
   ConsentEntityType,
   UserPreference,
 } from "@xmtp/wasm-bindings";
-import { v4 } from "uuid";
 import {
   createStream,
   type StreamCallback,
   type StreamOptions,
 } from "@/utils/streams";
+import { uuid } from "@/utils/uuid";
 import type { Client } from "./Client";
 
 /**
@@ -110,7 +110,7 @@ export class Preferences<ContentTypes = unknown> {
       callback: StreamCallback<Consent[]>,
       onFail: () => void,
     ) => {
-      const streamId = v4();
+      const streamId = uuid();
       // sync the conversation
       await this.sync();
       // start the stream
@@ -138,7 +138,7 @@ export class Preferences<ContentTypes = unknown> {
       callback: StreamCallback<UserPreference[]>,
       onFail: () => void,
     ) => {
-      const streamId = v4();
+      const streamId = uuid();
       // sync the conversation
       await this.sync();
       // start the stream
