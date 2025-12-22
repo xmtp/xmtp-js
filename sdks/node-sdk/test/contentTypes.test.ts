@@ -2,8 +2,10 @@ import {
   actionsContentType,
   ActionStyle,
   attachmentContentType,
+  decryptAttachment,
   encodeAttachment,
   encodeText,
+  encryptAttachment,
   groupUpdatedContentType,
   intentContentType,
   markdownContentType,
@@ -280,6 +282,30 @@ describe("Content types", () => {
   });
 
   describe("RemoteAttachment", () => {
+    it("should encrypt and decrypt attachment content", () => {
+      const attachment: Attachment = {
+        filename: "test.txt",
+        mimeType: "text/plain",
+        content: new Uint8Array([1, 2, 3]),
+      };
+      const encryptedAttachment = encryptAttachment(attachment);
+      const remoteAttachment: RemoteAttachment = {
+        url: "https://example.com/test.txt",
+        contentDigest: encryptedAttachment.contentDigest,
+        secret: encryptedAttachment.secret,
+        salt: encryptedAttachment.salt,
+        nonce: encryptedAttachment.nonce,
+        scheme: "https",
+        contentLength: encryptedAttachment.contentLength,
+        filename: encryptedAttachment.filename,
+      };
+      const decryptedAttachment = decryptAttachment(
+        encryptedAttachment.payload,
+        remoteAttachment,
+      );
+      expect(decryptedAttachment).toEqual(attachment);
+    });
+
     it("should send and receive remote attachment content", async () => {
       const { signer: signer1 } = createSigner();
       const { signer: signer2 } = createSigner();
