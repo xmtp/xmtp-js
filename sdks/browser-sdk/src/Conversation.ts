@@ -1,16 +1,24 @@
-import type { ContentTypeId } from "@xmtp/content-type-primitives";
-import { ContentTypeText } from "@xmtp/content-type-text";
-import type { ConsentState } from "@xmtp/wasm-bindings";
+import {
+  type Actions,
+  type Attachment,
+  type ConsentState,
+  type EncodedContent,
+  type Intent,
+  type ListMessagesOptions,
+  type MultiRemoteAttachment,
+  type Reaction,
+  type RemoteAttachment,
+  type Reply,
+  type SendMessageOpts,
+  type TransactionReference,
+  type WalletSendCalls,
+  type DecodedMessage as XmtpDecodedMessage,
+} from "@xmtp/wasm-bindings";
 import { v4 } from "uuid";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
-import type {
-  SafeConversation,
-  SafeListMessagesOptions,
-  SafeMessage,
-} from "@/utils/conversions";
+import type { SafeConversation } from "@/utils/conversions";
 import { nsToDate } from "@/utils/date";
-import { MissingContentTypeError } from "@/utils/errors";
 import {
   createStream,
   type StreamCallback,
@@ -132,32 +140,6 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   /**
-   * Prepares a message to be published
-   *
-   * @param content - The content to send
-   * @param contentType - Optional content type of the message content
-   * @returns Promise that resolves with the message ID
-   * @throws {MissingContentTypeError} if content type is required but not provided
-   */
-  async sendOptimistic(content: ContentTypes, contentType?: ContentTypeId) {
-    if (typeof content !== "string" && !contentType) {
-      throw new MissingContentTypeError();
-    }
-
-    const { encodedContent: safeEncodedContent, sendOptions } =
-      typeof content === "string"
-        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
-        : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.prepareForSend(content, contentType!);
-
-    return this.#client.sendMessage("conversation.sendOptimistic", {
-      id: this.#id,
-      content: safeEncodedContent,
-      sendOptions,
-    });
-  }
-
-  /**
    * Publishes a new message
    *
    * @param content - The content to send
@@ -165,21 +147,201 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the message ID after it has been sent
    * @throws {MissingContentTypeError} if content type is required but not provided
    */
-  async send(content: ContentTypes, contentType?: ContentTypeId) {
-    if (typeof content !== "string" && !contentType) {
-      throw new MissingContentTypeError();
-    }
-
-    const { encodedContent: safeEncodedContent, sendOptions } =
-      typeof content === "string"
-        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
-        : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.prepareForSend(content, contentType!);
-
+  async send(content: EncodedContent, options?: SendMessageOpts) {
     return this.#client.sendMessage("conversation.send", {
       id: this.#id,
-      content: safeEncodedContent,
-      sendOptions,
+      content,
+      options,
+    });
+  }
+
+  /**
+   * Sends a text message
+   *
+   * @param text - The text to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendText(text: string, optimistic?: boolean) {
+    return this.#client.sendMessage("conversation.sendText", {
+      id: this.#id,
+      text,
+      optimistic,
+    });
+  }
+
+  /**
+   * Sends a markdown message
+   *
+   * @param markdown - The markdown to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendMarkdown(markdown: string, optimistic?: boolean) {
+    return this.#client.sendMessage("conversation.sendMarkdown", {
+      id: this.#id,
+      markdown,
+      optimistic,
+    });
+  }
+
+  /**
+   * Sends a reaction message
+   *
+   * @param reaction - The reaction to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendReaction(reaction: Reaction, optimistic?: boolean) {
+    return this.#client.sendMessage("conversation.sendReaction", {
+      id: this.#id,
+      reaction,
+      optimistic,
+    });
+  }
+
+  /**
+   * Sends a read receipt message
+   *
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendReadReceipt(optimistic?: boolean) {
+    return this.#client.sendMessage("conversation.sendReadReceipt", {
+      id: this.#id,
+      optimistic,
+    });
+  }
+
+  /**
+   * Sends a reply message
+   *
+   * @param reply - The reply to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendReply(reply: Reply, optimistic?: boolean) {
+    return this.#client.sendMessage("conversation.sendReply", {
+      id: this.#id,
+      reply,
+      optimistic,
+    });
+  }
+
+  /**
+   * Sends a transaction reference message
+   *
+   * @param transactionReference - The transaction reference to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendTransactionReference(
+    transactionReference: TransactionReference,
+    optimistic?: boolean,
+  ) {
+    return this.#client.sendMessage("conversation.sendTransactionReference", {
+      id: this.#id,
+      transactionReference,
+      optimistic,
+    });
+  }
+
+  /**
+   * Sends a wallet send calls message
+   *
+   * @param walletSendCalls - The wallet send calls to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendWalletSendCalls(
+    walletSendCalls: WalletSendCalls,
+    optimistic?: boolean,
+  ) {
+    return this.#client.sendMessage("conversation.sendWalletSendCalls", {
+      id: this.#id,
+      walletSendCalls,
+      optimistic,
+    });
+  }
+
+  /**
+   * Sends an actions message
+   *
+   * @param actions - The actions to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendActions(actions: Actions, optimistic?: boolean) {
+    return this.#client.sendMessage("conversation.sendActions", {
+      id: this.#id,
+      actions,
+      optimistic,
+    });
+  }
+
+  /**
+   * Sends an intent message
+   *
+   * @param intent - The intent to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendIntent(intent: Intent, optimistic?: boolean) {
+    return this.#client.sendMessage("conversation.sendIntent", {
+      id: this.#id,
+      intent,
+      optimistic,
+    });
+  }
+
+  /**
+   * Sends an attachment message
+   *
+   * @param attachment - The attachment to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendAttachment(attachment: Attachment, optimistic?: boolean) {
+    return this.#client.sendMessage("conversation.sendAttachment", {
+      id: this.#id,
+      attachment,
+      optimistic,
+    });
+  }
+
+  /**
+   * Sends a multi remote attachment message
+   *
+   * @param multiRemoteAttachment - The multi remote attachment to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendMultiRemoteAttachment(
+    multiRemoteAttachment: MultiRemoteAttachment,
+    optimistic?: boolean,
+  ) {
+    return this.#client.sendMessage("conversation.sendMultiRemoteAttachment", {
+      id: this.#id,
+      multiRemoteAttachment,
+      optimistic,
+    });
+  }
+
+  /**
+   * Sends a remote attachment message
+   *
+   * @param remoteAttachment - The remote attachment to send
+   * @param optimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendRemoteAttachment(
+    remoteAttachment: RemoteAttachment,
+    optimistic?: boolean,
+  ) {
+    return this.#client.sendMessage("conversation.sendRemoteAttachment", {
+      id: this.#id,
+      remoteAttachment,
+      optimistic,
     });
   }
 
@@ -189,7 +351,7 @@ export class Conversation<ContentTypes = unknown> {
    * @param options - Optional filtering and pagination options
    * @returns Promise that resolves with an array of decoded messages
    */
-  async messages(options?: SafeListMessagesOptions) {
+  async messages(options?: ListMessagesOptions) {
     const messages = await this.#client.sendMessage("conversation.messages", {
       id: this.#id,
       options,
@@ -205,7 +367,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the count of messages
    */
   async countMessages(
-    options?: Omit<SafeListMessagesOptions, "limit" | "direction">,
+    options?: Omit<ListMessagesOptions, "limit" | "direction">,
   ) {
     const count = await this.#client.sendMessage("conversation.countMessages", {
       id: this.#id,
@@ -305,10 +467,10 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Stream instance for new messages
    */
   async stream(
-    options?: StreamOptions<SafeMessage, DecodedMessage<ContentTypes>>,
+    options?: StreamOptions<XmtpDecodedMessage, DecodedMessage<ContentTypes>>,
   ) {
     const stream = async (
-      callback: StreamCallback<SafeMessage>,
+      callback: StreamCallback<XmtpDecodedMessage>,
       onFail: () => void,
     ) => {
       const streamId = v4();
@@ -323,14 +485,14 @@ export class Conversation<ContentTypes = unknown> {
       });
       // handle stream messages
       return this.#client.handleStreamMessage<
-        SafeMessage,
+        XmtpDecodedMessage,
         DecodedMessage<ContentTypes>
       >(streamId, callback, {
         ...options,
         onFail,
       });
     };
-    const convertMessage = (value: SafeMessage) => {
+    const convertMessage = (value: XmtpDecodedMessage) => {
       return new DecodedMessage(this.#client, value);
     };
 
@@ -361,6 +523,17 @@ export class Conversation<ContentTypes = unknown> {
    */
   async debugInfo() {
     return this.#client.sendMessage("conversation.debugInfo", {
+      id: this.#id,
+    });
+  }
+
+  /**
+   * Retrieves the last read times for this conversation
+   *
+   * @returns Promise that resolves with the last read times
+   */
+  async lastReadTimes() {
+    return this.#client.sendMessage("conversation.lastReadTimes", {
       id: this.#id,
     });
   }

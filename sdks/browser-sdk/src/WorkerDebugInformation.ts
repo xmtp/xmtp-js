@@ -1,6 +1,4 @@
 import type { Client } from "@xmtp/wasm-bindings";
-import { HistorySyncUrls } from "@/constants";
-import type { ClientOptions } from "@/types/options";
 
 /**
  * Debug information helpers for the client
@@ -9,11 +7,9 @@ import type { ClientOptions } from "@/types/options";
  */
 export class WorkerDebugInformation {
   #client: Client;
-  #options?: ClientOptions;
 
-  constructor(client: Client, options?: ClientOptions) {
+  constructor(client: Client) {
     this.#client = client;
-    this.#options = options;
   }
 
   apiStatistics() {
@@ -30,12 +26,5 @@ export class WorkerDebugInformation {
 
   clearAllStatistics() {
     this.#client.clearAllStatistics();
-  }
-
-  uploadDebugArchive(serverUrl?: string) {
-    const env = this.#options?.env || "dev";
-    const historySyncUrl =
-      this.#options?.historySyncUrl || HistorySyncUrls[env];
-    return this.#client.uploadDebugArchive(serverUrl || historySyncUrl);
   }
 }

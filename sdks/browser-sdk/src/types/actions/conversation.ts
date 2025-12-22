@@ -1,14 +1,26 @@
-import type { ConsentState } from "@xmtp/wasm-bindings";
 import type {
+  Actions,
+  Attachment,
+  ConsentState,
+  ConversationDebugInfo,
+  DecodedMessage,
+  EncodedContent,
+  GroupMember,
+  Intent,
+  ListMessagesOptions,
+  MessageDisappearingSettings,
+  MultiRemoteAttachment,
+  Reaction,
+  RemoteAttachment,
+  Reply,
+  SendMessageOpts,
+  TransactionReference,
+  WalletSendCalls,
+} from "@xmtp/wasm-bindings";
+import type {
+  HmacKeys,
+  LastReadTimes,
   SafeConversation,
-  SafeConversationDebugInfo,
-  SafeEncodedContent,
-  SafeGroupMember,
-  SafeHmacKey,
-  SafeListMessagesOptions,
-  SafeMessage,
-  SafeMessageDisappearingSettings,
-  SafeSendMessageOpts,
 } from "@/utils/conversions";
 
 export type ConversationAction =
@@ -26,8 +38,8 @@ export type ConversationAction =
       result: string;
       data: {
         id: string;
-        content: SafeEncodedContent;
-        sendOptions: SafeSendMessageOpts;
+        content: EncodedContent;
+        options?: SendMessageOpts;
       };
     }
   | {
@@ -36,8 +48,8 @@ export type ConversationAction =
       result: string;
       data: {
         id: string;
-        content: SafeEncodedContent;
-        sendOptions: SafeSendMessageOpts;
+        content: EncodedContent;
+        sendOptions: SendMessageOpts;
       };
     }
   | {
@@ -51,10 +63,10 @@ export type ConversationAction =
   | {
       action: "conversation.messages";
       id: string;
-      result: SafeMessage[];
+      result: DecodedMessage[];
       data: {
         id: string;
-        options?: SafeListMessagesOptions;
+        options?: ListMessagesOptions;
       };
     }
   | {
@@ -63,13 +75,13 @@ export type ConversationAction =
       result: bigint;
       data: {
         id: string;
-        options?: Omit<SafeListMessagesOptions, "limit" | "direction">;
+        options?: Omit<ListMessagesOptions, "limit" | "direction">;
       };
     }
   | {
       action: "conversation.members";
       id: string;
-      result: SafeGroupMember[];
+      result: GroupMember[];
       data: {
         id: string;
       };
@@ -77,7 +89,7 @@ export type ConversationAction =
   | {
       action: "conversation.messageDisappearingSettings";
       id: string;
-      result: SafeMessageDisappearingSettings | undefined;
+      result: MessageDisappearingSettings | undefined;
       data: {
         id: string;
       };
@@ -86,7 +98,7 @@ export type ConversationAction =
       action: "conversation.updateMessageDisappearingSettings";
       id: string;
       result: undefined;
-      data: SafeMessageDisappearingSettings & {
+      data: MessageDisappearingSettings & {
         id: string;
       };
     }
@@ -126,7 +138,7 @@ export type ConversationAction =
   | {
       action: "conversation.getHmacKeys";
       id: string;
-      result: Map<string, SafeHmacKey[]>;
+      result: HmacKeys;
       data: {
         id: string;
       };
@@ -134,7 +146,7 @@ export type ConversationAction =
   | {
       action: "conversation.debugInfo";
       id: string;
-      result: SafeConversationDebugInfo;
+      result: ConversationDebugInfo;
       data: {
         id: string;
       };
@@ -159,7 +171,7 @@ export type ConversationAction =
   | {
       action: "conversation.lastMessage";
       id: string;
-      result: SafeMessage | undefined;
+      result: DecodedMessage | undefined;
       data: {
         id: string;
       };
@@ -170,5 +182,132 @@ export type ConversationAction =
       result: boolean;
       data: {
         id: string;
+      };
+    }
+  | {
+      action: "conversation.lastReadTimes";
+      id: string;
+      result: LastReadTimes;
+      data: {
+        id: string;
+      };
+    }
+  | {
+      action: "conversation.sendText";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        text: string;
+        optimistic?: boolean;
+      };
+    }
+  | {
+      action: "conversation.sendMarkdown";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        markdown: string;
+        optimistic?: boolean;
+      };
+    }
+  | {
+      action: "conversation.sendReaction";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        reaction: Reaction;
+        optimistic?: boolean;
+      };
+    }
+  | {
+      action: "conversation.sendReadReceipt";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        optimistic?: boolean;
+      };
+    }
+  | {
+      action: "conversation.sendReply";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        reply: Reply;
+        optimistic?: boolean;
+      };
+    }
+  | {
+      action: "conversation.sendTransactionReference";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        transactionReference: TransactionReference;
+        optimistic?: boolean;
+      };
+    }
+  | {
+      action: "conversation.sendWalletSendCalls";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        walletSendCalls: WalletSendCalls;
+        optimistic?: boolean;
+      };
+    }
+  | {
+      action: "conversation.sendActions";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        actions: Actions;
+        optimistic?: boolean;
+      };
+    }
+  | {
+      action: "conversation.sendIntent";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        intent: Intent;
+        optimistic?: boolean;
+      };
+    }
+  | {
+      action: "conversation.sendAttachment";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        attachment: Attachment;
+        optimistic?: boolean;
+      };
+    }
+  | {
+      action: "conversation.sendMultiRemoteAttachment";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        multiRemoteAttachment: MultiRemoteAttachment;
+        optimistic?: boolean;
+      };
+    }
+  | {
+      action: "conversation.sendRemoteAttachment";
+      id: string;
+      result: string;
+      data: {
+        id: string;
+        remoteAttachment: RemoteAttachment;
+        optimistic?: boolean;
       };
     };

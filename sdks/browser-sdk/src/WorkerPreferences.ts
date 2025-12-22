@@ -5,7 +5,6 @@ import {
   type Conversations,
   type UserPreference,
 } from "@xmtp/wasm-bindings";
-import { fromSafeConsent, type SafeConsent } from "@/utils/conversions";
 import type { StreamCallback } from "@/utils/streams";
 
 export class WorkerPreferences {
@@ -39,8 +38,8 @@ export class WorkerPreferences {
     return this.#client.getLatestInboxState(inboxId);
   }
 
-  async setConsentStates(records: SafeConsent[]) {
-    return this.#client.setConsentStates(records.map(fromSafeConsent));
+  async setConsentStates(records: Consent[]) {
+    return this.#client.setConsentStates(records);
   }
 
   async getConsentState(entityType: ConsentEntityType, entity: string) {

@@ -2,8 +2,8 @@ import {
   createClient as createWasmClient,
   generateInboxId,
   getInboxIdForIdentifier,
-  LogOptions,
   type Identifier,
+  type LogOptions,
 } from "@xmtp/wasm-bindings";
 import { ApiUrls, HistorySyncUrls } from "@/constants";
 import type { ClientOptions } from "@/types/options";
@@ -46,15 +46,18 @@ export const createClient = async (
     historySyncUrl,
     deviceSyncWorkerMode,
     isLogging
-      ? new LogOptions(
-          options.structuredLogging ?? false,
-          options.performanceLogging ?? false,
-          options.loggingLevel,
-        )
+      ? ({
+          structuredLogging: options.structuredLogging ?? false,
+          performanceLogging: options.performanceLogging ?? false,
+          loggingLevel: options.loggingLevel,
+        } as LogOptions)
       : undefined,
-    undefined,
-    options?.debugEventsEnabled,
+    undefined, // allowOffline
     options?.appVersion,
     options?.gatewayHost,
+    undefined, // nonce
+    undefined, // authCallback
+    undefined, // authHandle
+    undefined, // clientMode
   );
 };

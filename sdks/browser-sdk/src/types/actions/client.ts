@@ -1,6 +1,5 @@
-import type { Identifier } from "@xmtp/wasm-bindings";
+import type { Identifier, KeyPackageStatus } from "@xmtp/wasm-bindings";
 import type { ClientOptions } from "@/types/options";
-import type { SafeKeyPackageStatus } from "@/utils/conversions";
 import type { SafeSigner } from "@/utils/signer";
 
 export type ClientAction =
@@ -8,9 +7,11 @@ export type ClientAction =
       action: "client.init";
       id: string;
       result: {
+        appVersion: string;
         inboxId: string;
         installationId: string;
         installationIdBytes: Uint8Array;
+        libxmtpVersion: string;
       };
       data: {
         identifier: Identifier;
@@ -206,20 +207,8 @@ export type ClientAction =
   | {
       action: "client.getKeyPackageStatusesForInstallationIds";
       id: string;
-      result: Map<string, SafeKeyPackageStatus>;
+      result: Map<string, KeyPackageStatus>;
       data: {
         installationIds: string[];
       };
-    }
-  | {
-      action: "client.libxmtpVersion";
-      id: string;
-      result: string;
-      data: undefined;
-    }
-  | {
-      action: "client.appVersion";
-      id: string;
-      result: string;
-      data: undefined;
     };

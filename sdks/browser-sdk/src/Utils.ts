@@ -24,11 +24,13 @@ export class Utils extends UtilsWorkerClass {
    * Generates an inbox ID for a given identifier
    *
    * @param identifier - The identifier to generate an inbox ID for
+   * @param nonce - Optional nonce to use for generating the inbox ID
    * @returns Promise that resolves with the generated inbox ID
    */
-  async generateInboxId(identifier: Identifier) {
+  async generateInboxId(identifier: Identifier, nonce?: bigint) {
     return this.sendMessage("utils.generateInboxId", {
       identifier,
+      nonce,
     });
   }
 

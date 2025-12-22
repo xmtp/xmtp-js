@@ -18,11 +18,11 @@ export class WorkerClient {
   #debugInformation: WorkerDebugInformation;
   #preferences: WorkerPreferences;
 
-  constructor(client: Client, options?: ClientOptions) {
+  constructor(client: Client) {
     this.#client = client;
     const conversations = client.conversations();
     this.#conversations = new WorkerConversations(this, conversations);
-    this.#debugInformation = new WorkerDebugInformation(client, options);
+    this.#debugInformation = new WorkerDebugInformation(client);
     this.#preferences = new WorkerPreferences(client, conversations);
   }
 
@@ -31,7 +31,7 @@ export class WorkerClient {
     options?: Omit<ClientOptions, "codecs">,
   ) {
     const client = await createClient(identifier, options);
-    return new WorkerClient(client, options);
+    return new WorkerClient(client);
   }
 
   get libxmtpVersion() {

@@ -1,16 +1,16 @@
-import type { SafeApiStats, SafeIdentityStats } from "@/utils/conversions";
+import type { ApiStats, IdentityStats } from "@xmtp/wasm-bindings";
 
 export type DebugInformationAction =
   | {
       action: "debugInformation.apiStatistics";
       id: string;
-      result: SafeApiStats;
+      result: ApiStats;
       data: undefined;
     }
   | {
       action: "debugInformation.apiIdentityStatistics";
       id: string;
-      result: SafeIdentityStats;
+      result: IdentityStats;
       data: undefined;
     }
   | {
@@ -24,12 +24,4 @@ export type DebugInformationAction =
       id: string;
       result: undefined;
       data: undefined;
-    }
-  | {
-      action: "debugInformation.uploadDebugArchive";
-      id: string;
-      result: string;
-      data: {
-        serverUrl?: string;
-      };
     };

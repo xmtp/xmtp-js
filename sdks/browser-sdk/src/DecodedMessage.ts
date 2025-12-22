@@ -1,29 +1,86 @@
-import type { ContentTypeId } from "@xmtp/content-type-primitives";
-import { DeliveryStatus, GroupMessageKind } from "@xmtp/wasm-bindings";
+import type { EncodedContent } from "@xmtp/content-type-primitives";
+import type {
+  ContentTypeId,
+  DecodedMessageContent,
+  Reaction,
+  DecodedMessage as XmtpDecodedMessage,
+} from "@xmtp/wasm-bindings";
 import type { Client } from "@/Client";
-import { fromSafeContentTypeId, type SafeMessage } from "@/utils/conversions";
+import { nsToDate } from "@/utils/date";
 
 export type MessageKind = "application" | "membership_change";
 export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
 
+const getContentFromDecodedMessageContent = <T = unknown>(
+  content: DecodedMessageContent,
+): T => {
+  switch (content.type) {
+    case "text": {
+      return content.content as T;
+    }
+    case "markdown": {
+      return content.content as T;
+    }
+    case "reply": {
+      return content.content as T;
+    }
+    case "reaction": {
+      return content.content as T;
+    }
+    case "attachment": {
+      return content.content as T;
+    }
+    case "remoteAttachment": {
+      return content.content as T;
+    }
+    case "multiRemoteAttachment": {
+      return content.content as T;
+    }
+    case "transactionReference": {
+      return content.content as T;
+    }
+    case "groupUpdated": {
+      return content.content as T;
+    }
+    case "readReceipt": {
+      return content.content as T;
+    }
+    case "leaveRequest": {
+      return content.content as T;
+    }
+    case "walletSendCalls": {
+      return content.content as T;
+    }
+    case "intent": {
+      return content.content as T;
+    }
+    case "actions": {
+      return content.content as T;
+    }
+    case "custom": {
+      return content.content as T;
+    }
+  }
+  return null as T;
+};
+
 /**
  * Represents a decoded XMTP message
  *
- * This class transforms network messages into a structured format with
- * content decoding.
- *
  * @class
- * @property {any} content - The decoded content of the message
+ * @property {unknown} content - The decoded content of the message
  * @property {ContentTypeId} contentType - The content type of the message content
  * @property {string} conversationId - Unique identifier for the conversation
  * @property {MessageDeliveryStatus} deliveryStatus - Current delivery status of the message ("unpublished" | "published" | "failed")
+ * @property {bigint} [expiresAtNs] - Timestamp when the message will expire (in nanoseconds)
+ * @property {Date} [expiresAt] - Timestamp when the message will expire
  * @property {string} [fallback] - Optional fallback text for the message
- * @property {number} [compression] - Optional compression level applied to the message
  * @property {string} id - Unique identifier for the message
  * @property {MessageKind} kind - Type of message ("application" | "membership_change")
- * @property {Map<string, string>} parameters - Additional parameters associated with the message
- * @property {SafeMessage["content"]} encodedContent - Raw encoded content of the message
+ * @property {bigint} numReplies - Number of replies to the message
+ * @property {DecodedMessage<Reaction>[]} reactions - Reactions to the message
  * @property {string} senderInboxId - Identifier for the sender's inbox
+ * @property {Date} sentAt - Timestamp when the message was sent
  * @property {bigint} sentAtNs - Timestamp when the message was sent (in nanoseconds)
  */
 export class DecodedMessage<ContentTypes = unknown> {
@@ -32,58 +89,101 @@ export class DecodedMessage<ContentTypes = unknown> {
   contentType: ContentTypeId;
   conversationId: string;
   deliveryStatus: MessageDeliveryStatus;
+  expiresAtNs?: bigint;
+  expiresAt?: Date;
   fallback?: string;
-  compression?: number;
   id: string;
   kind: MessageKind;
-  parameters: Map<string, string>;
-  encodedContent: SafeMessage["content"];
+  numReplies: bigint;
+  reactions: DecodedMessage<Reaction>[];
   senderInboxId: string;
+  sentAt: Date;
   sentAtNs: bigint;
 
-  constructor(client: Client<ContentTypes>, message: SafeMessage) {
+  constructor(client: Client<ContentTypes>, message: XmtpDecodedMessage) {
     this.#client = client;
     this.id = message.id;
+    this.expiresAtNs = message.expiresAtNs;
+    this.expiresAt = message.expiresAtNs
+      ? nsToDate(message.expiresAtNs)
+      : undefined;
     this.sentAtNs = message.sentAtNs;
-    this.conversationId = message.convoId;
+    this.sentAt = nsToDate(message.sentAtNs);
+    this.conversationId = message.conversationId;
     this.senderInboxId = message.senderInboxId;
-    this.encodedContent = message.content;
+    this.contentType = {
+      authorityId: message.contentType.authorityId,
+      typeId: message.contentType.typeId,
+      versionMajor: message.contentType.versionMajor,
+      versionMinor: message.contentType.versionMinor,
+    };
+    this.fallback = message.fallback ?? undefined;
 
     switch (message.kind) {
-      case GroupMessageKind.Application:
+      case "application":
         this.kind = "application";
         break;
-      case GroupMessageKind.MembershipChange:
+      case "membershipchange":
         this.kind = "membership_change";
         break;
       // no default
     }
 
     switch (message.deliveryStatus) {
-      case DeliveryStatus.Unpublished:
+      case "unpublished":
         this.deliveryStatus = "unpublished";
         break;
-      case DeliveryStatus.Published:
+      case "published":
         this.deliveryStatus = "published";
         break;
-      case DeliveryStatus.Failed:
+      case "failed":
         this.deliveryStatus = "failed";
         break;
       // no default
     }
 
-    this.contentType = fromSafeContentTypeId(message.content.type);
-    this.parameters = new Map(Object.entries(message.content.parameters));
-    this.fallback = message.content.fallback;
-    this.compression = message.content.compression;
+    this.numReplies = message.numReplies;
+    this.reactions = message.reactions.map(
+      (reaction) =>
+        new DecodedMessage<Reaction>(
+          this.#client as Client<Reaction>,
+          reaction,
+        ),
+    );
 
-    try {
-      this.content = this.#client.decodeContent<ContentTypes>(
-        message,
-        this.contentType,
-      );
-    } catch {
-      this.content = undefined;
+    this.content =
+      getContentFromDecodedMessageContent<ContentTypes>(message.content) ??
+      undefined;
+
+    switch (message.content.type) {
+      case "reply": {
+        const reply = message.content.content;
+        this.content = {
+          referenceId: reply.referenceId,
+          content: getContentFromDecodedMessageContent<ContentTypes>(
+            reply.content,
+          ),
+          inReplyTo: reply.inReplyTo
+            ? new DecodedMessage<ContentTypes>(this.#client, reply.inReplyTo)
+            : null,
+        } as ContentTypes;
+        break;
+      }
+      case "custom": {
+        const customContent = message.content.content;
+        const codec = this.#client.codecFor<ContentTypes>(this.contentType);
+        if (codec) {
+          const encodedContent: EncodedContent = {
+            type: this.contentType,
+            parameters: customContent.parameters ?? {},
+            fallback: customContent.fallback,
+            compression: customContent.compression,
+            content: customContent.content,
+          };
+          this.content = codec.decode(encodedContent);
+        }
+        break;
+      }
     }
   }
 }
