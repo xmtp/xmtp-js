@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ConsentEntityType, ConsentState } from "@/types/enums";
 import { uuid } from "@/utils/uuid";
 import {
   createClient,
@@ -77,28 +78,37 @@ describe("Preferences", () => {
     expect(group2).not.toBeNull();
 
     expect(
-      await client2.preferences.getConsentState("groupId", group2!.id),
-    ).toBe("unknown");
+      await client2.preferences.getConsentState(
+        ConsentEntityType.GroupId,
+        group2!.id,
+      ),
+    ).toBe(ConsentState.Unknown);
 
     await client2.preferences.setConsentStates([
       {
-        entityType: "groupId",
+        entityType: ConsentEntityType.GroupId,
         entity: group2!.id,
-        state: "allowed",
+        state: ConsentState.Allowed,
       },
     ]);
 
     expect(
-      await client2.preferences.getConsentState("groupId", group2!.id),
-    ).toBe("allowed");
+      await client2.preferences.getConsentState(
+        ConsentEntityType.GroupId,
+        group2!.id,
+      ),
+    ).toBe(ConsentState.Allowed);
 
-    expect(await group2!.consentState()).toBe("allowed");
+    expect(await group2!.consentState()).toBe(ConsentState.Allowed);
 
-    await group2!.updateConsentState("denied");
+    await group2!.updateConsentState(ConsentState.Denied);
 
     expect(
-      await client2.preferences.getConsentState("groupId", group2!.id),
-    ).toBe("denied");
+      await client2.preferences.getConsentState(
+        ConsentEntityType.GroupId,
+        group2!.id,
+      ),
+    ).toBe(ConsentState.Denied);
   });
 
   it("should stream consent updates", async () => {
@@ -110,14 +120,14 @@ describe("Preferences", () => {
     const stream = await client.preferences.streamConsent();
 
     await sleep(1000);
-    await group.updateConsentState("denied");
+    await group.updateConsentState(ConsentState.Denied);
 
     await sleep(1000);
     await client.preferences.setConsentStates([
       {
         entity: group.id,
-        entityType: "groupId",
-        state: "allowed",
+        entityType: ConsentEntityType.GroupId,
+        state: ConsentState.Allowed,
       },
     ]);
 
@@ -125,13 +135,13 @@ describe("Preferences", () => {
     await client.preferences.setConsentStates([
       {
         entity: group.id,
-        entityType: "groupId",
-        state: "denied",
+        entityType: ConsentEntityType.GroupId,
+        state: ConsentState.Denied,
       },
       {
         entity: client2.inboxId!,
-        entityType: "inboxId",
-        state: "allowed",
+        entityType: ConsentEntityType.InboxId,
+        state: ConsentState.Allowed,
       },
     ]);
 
@@ -144,22 +154,22 @@ describe("Preferences", () => {
       count++;
       if (count === 1) {
         expect(updates.length).toBe(1);
-        expect(updates[0].state).toBe("denied");
+        expect(updates[0].state).toBe(ConsentState.Denied);
         expect(updates[0].entity).toBe(group.id);
-        expect(updates[0].entityType).toBe("groupId");
+        expect(updates[0].entityType).toBe(ConsentEntityType.GroupId);
       } else if (count === 2) {
         expect(updates.length).toBe(1);
-        expect(updates[0].state).toBe("allowed");
+        expect(updates[0].state).toBe(ConsentState.Allowed);
         expect(updates[0].entity).toBe(group.id);
-        expect(updates[0].entityType).toBe("groupId");
+        expect(updates[0].entityType).toBe(ConsentEntityType.GroupId);
       } else if (count === 3) {
         expect(updates.length).toBe(2);
-        expect(updates[0].state).toBe("denied");
+        expect(updates[0].state).toBe(ConsentState.Denied);
         expect(updates[0].entity).toBe(group.id);
-        expect(updates[0].entityType).toBe("groupId");
-        expect(updates[1].state).toBe("allowed");
+        expect(updates[0].entityType).toBe(ConsentEntityType.GroupId);
+        expect(updates[1].state).toBe(ConsentState.Allowed);
         expect(updates[1].entity).toBe(client2.inboxId);
-        expect(updates[1].entityType).toBe("inboxId");
+        expect(updates[1].entityType).toBe(ConsentEntityType.InboxId);
       }
     }
     expect(count).toBe(3);

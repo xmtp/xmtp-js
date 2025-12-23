@@ -1,7 +1,6 @@
 import {
   type Actions,
   type Attachment,
-  type ConsentState,
   type EncodedContent,
   type Intent,
   type ListMessagesOptions,
@@ -16,6 +15,7 @@ import {
 } from "@xmtp/wasm-bindings";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
+import type { ConsentState } from "@/types/enums";
 import type { SafeConversation } from "@/utils/conversions";
 import { nsToDate } from "@/utils/date";
 import {
@@ -381,10 +381,10 @@ export class Conversation<ContentTypes = unknown> {
    *
    * @returns Promise that resolves with the current consent state
    */
-  async consentState() {
+  async consentState(): Promise<ConsentState> {
     return this.#client.sendMessage("conversation.consentState", {
       id: this.#id,
-    });
+    }) as Promise<ConsentState>;
   }
 
   /**

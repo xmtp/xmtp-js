@@ -1,6 +1,4 @@
 import type {
-  ConsentState,
-  ConversationType,
   CreateDMOptions,
   CreateGroupOptions,
   Identifier,
@@ -11,6 +9,7 @@ import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
+import { ConversationType, type ConsentState } from "@/types/enums";
 import type { SafeConversation } from "@/utils/conversions";
 import {
   createStream,
@@ -73,9 +72,14 @@ export class Conversations<ContentTypes = unknown> {
       },
     );
     if (data) {
-      return data.metadata.conversationType === "group"
-        ? new Group(this.#client, data.id, data)
-        : new Dm(this.#client, data.id, data);
+      switch (data.metadata.conversationType as ConversationType) {
+        case ConversationType.Group:
+          return new Group(this.#client, data.id, data);
+        case ConversationType.Dm:
+          return new Dm(this.#client, data.id, data);
+        default:
+          return undefined;
+      }
     }
     return undefined;
   }
@@ -139,10 +143,10 @@ export class Conversations<ContentTypes = unknown> {
 
     return conversations
       .map((conversation) => {
-        switch (conversation.metadata.conversationType) {
-          case "dm":
+        switch (conversation.metadata.conversationType as ConversationType) {
+          case ConversationType.Dm:
             return new Dm(this.#client, conversation.id, conversation);
-          case "group":
+          case ConversationType.Group:
             return new Group(this.#client, conversation.id, conversation);
           default:
             return undefined;
@@ -334,9 +338,16 @@ export class Conversations<ContentTypes = unknown> {
       );
     };
     const convertConversation = (value: SafeConversation) => {
-      return value.metadata.conversationType === "group"
-        ? (new Group(this.#client, value.id, value) as T)
-        : (new Dm(this.#client, value.id, value) as T);
+      switch (value.metadata.conversationType as ConversationType) {
+        case ConversationType.Group:
+          return new Group(this.#client, value.id, value) as T;
+        case ConversationType.Dm:
+          return new Dm(this.#client, value.id, value) as T;
+        default:
+          throw new Error(
+            `Unknown conversation type: ${value.metadata.conversationType}`,
+          );
+      }
     };
 
     return createStream(stream, convertConversation, options);
@@ -353,7 +364,7 @@ export class Conversations<ContentTypes = unknown> {
   ) {
     return this.stream({
       ...options,
-      conversationType: "group",
+      conversationType: ConversationType.Group,
     });
   }
 
@@ -366,7 +377,7 @@ export class Conversations<ContentTypes = unknown> {
   async streamDms(options?: StreamOptions<SafeConversation, Dm<ContentTypes>>) {
     return this.stream({
       ...options,
-      conversationType: "dm",
+      conversationType: ConversationType.Dm,
     });
   }
 
@@ -435,7 +446,7 @@ export class Conversations<ContentTypes = unknown> {
   ) {
     return this.streamAllMessages({
       ...options,
-      conversationType: "group",
+      conversationType: ConversationType.Group,
     });
   }
 
@@ -456,7 +467,7 @@ export class Conversations<ContentTypes = unknown> {
   ) {
     return this.streamAllMessages({
       ...options,
-      conversationType: "dm",
+      conversationType: ConversationType.Dm,
     });
   }
 

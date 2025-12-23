@@ -7,6 +7,7 @@ import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { Client } from "@/Client";
+import { IdentifierKind } from "@/types/enums";
 import type { ClientOptions } from "@/types/options";
 import type { Signer } from "@/utils/signer";
 
@@ -29,7 +30,7 @@ export const createUser = () => {
 
 export const createIdentifier = (user: User): Identifier => ({
   identifier: user.account.address.toLowerCase(),
-  identifierKind: "Ethereum",
+  identifierKind: IdentifierKind.Ethereum,
 });
 
 export const createSigner = () => {
