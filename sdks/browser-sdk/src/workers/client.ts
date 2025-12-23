@@ -70,9 +70,9 @@ self.onmessage = async (
 ) => {
   const { action, id, data } = event.data;
 
-  // if (enableLogging) {
-  console.log("client worker received event data", event.data);
-  // }
+  if (enableLogging) {
+    console.log("client worker received event data", event.data);
+  }
 
   // initialize WASM module
   await init();
