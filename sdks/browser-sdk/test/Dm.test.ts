@@ -1,5 +1,15 @@
-import type { MessageDisappearingSettings } from "@xmtp/wasm-bindings";
+import type {
+  GroupUpdated,
+  MessageDisappearingSettings,
+} from "@xmtp/wasm-bindings";
 import { describe, expect, it } from "vitest";
+import type { DecodedMessage } from "@/DecodedMessage";
+import {
+  ConsentState,
+  ContentType,
+  ConversationType,
+  MetadataFieldName,
+} from "@/types/enums";
 import { createRegisteredClient, createSigner, sleep } from "@test/helpers";
 
 describe("Dm", () => {
@@ -27,10 +37,10 @@ describe("Dm", () => {
     expect(memberInboxIds).toContain(client1.inboxId);
     expect(memberInboxIds).toContain(client2.inboxId);
 
-    expect(dm.metadata?.conversationType).toBe("dm");
+    expect(dm.metadata?.conversationType).toBe(ConversationType.Dm);
     expect(dm.metadata?.creatorInboxId).toBe(client1.inboxId);
 
-    expect(await dm.consentState()).toBe("allowed");
+    expect(await dm.consentState()).toBe(ConsentState.Allowed);
 
     const dms = await client1.conversations.listDms();
     expect(dms.length).toBe(1);
@@ -176,14 +186,14 @@ describe("Dm", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     const dm = await client1.conversations.newDm(client2.inboxId!);
-    expect(await dm.consentState()).toBe("allowed");
+    expect(await dm.consentState()).toBe(ConsentState.Allowed);
 
     await client2.conversations.sync();
     const dm2 = (await client2.conversations.listDms())[0];
     expect(dm2).toBeDefined();
-    expect(await dm2.consentState()).toBe("unknown");
+    expect(await dm2.consentState()).toBe(ConsentState.Unknown);
     await dm2.sendText("gm!");
-    expect(await dm2.consentState()).toBe("allowed");
+    expect(await dm2.consentState()).toBe(ConsentState.Allowed);
   });
 
   it("should handle disappearing messages", async () => {
@@ -277,6 +287,28 @@ describe("Dm", () => {
     });
     expect(await dm2.isMessageDisappearingEnabled()).toBe(false);
 
+    // check for metadata field changes
+    const messages = await dm2.messages();
+    const fieldChange1 = messages[1] as DecodedMessage<GroupUpdated>;
+    expect(fieldChange1.content?.metadataFieldChanges).toBeDefined();
+    expect(fieldChange1.content?.metadataFieldChanges.length).toBe(1);
+    expect(fieldChange1.content?.metadataFieldChanges[0].fieldName).toBe(
+      MetadataFieldName.MessageDisappearFromNs,
+    );
+    expect(fieldChange1.content?.metadataFieldChanges[0].oldValue).toBe("1");
+    expect(fieldChange1.content?.metadataFieldChanges[0].newValue).toBe("0");
+
+    const fieldChange2 = messages[2] as DecodedMessage<GroupUpdated>;
+    expect(fieldChange2.content?.metadataFieldChanges).toBeDefined();
+    expect(fieldChange2.content?.metadataFieldChanges.length).toBe(1);
+    expect(fieldChange2.content?.metadataFieldChanges[0].fieldName).toBe(
+      MetadataFieldName.MessageDisappearInNs,
+    );
+    expect(fieldChange2.content?.metadataFieldChanges[0].oldValue).toBe(
+      "2000000000",
+    );
+    expect(fieldChange2.content?.metadataFieldChanges[0].newValue).toBe("0");
+
     // send messages to the group
     await dm2.sendText("gm");
     await dm2.sendText("gm2");
@@ -356,7 +388,7 @@ describe("Dm", () => {
     expect(messages.length).toBe(2);
 
     const filteredMessages = await dm.messages({
-      contentTypes: ["text"],
+      contentTypes: [ContentType.Text],
     });
     expect(filteredMessages.length).toBe(1);
   });
@@ -387,7 +419,7 @@ describe("Dm", () => {
     expect(
       await dm.countMessages({
         sentBeforeNs: timestamp1,
-        contentTypes: ["text"],
+        contentTypes: [ContentType.Text],
       }),
     ).toBe(1n);
     expect(
@@ -398,7 +430,7 @@ describe("Dm", () => {
     expect(
       await dm.countMessages({
         sentAfterNs: timestamp2,
-        contentTypes: ["text"],
+        contentTypes: [ContentType.Text],
       }),
     ).toBe(1n);
     expect(
@@ -411,7 +443,7 @@ describe("Dm", () => {
     // Content type filter
     expect(
       await dm.countMessages({
-        contentTypes: ["text"],
+        contentTypes: [ContentType.Text],
       }),
     ).toBe(3n);
   });

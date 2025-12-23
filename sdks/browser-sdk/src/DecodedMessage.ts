@@ -2,14 +2,13 @@ import type { EncodedContent } from "@xmtp/content-type-primitives";
 import type {
   ContentTypeId,
   DecodedMessageContent,
+  DeliveryStatus,
+  GroupMessageKind,
   Reaction,
   DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
 import type { Client } from "@/Client";
 import { nsToDate } from "@/utils/date";
-
-export type MessageKind = "application" | "membership_change";
-export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
 
 const getContentFromDecodedMessageContent = <T = unknown>(
   content: DecodedMessageContent,
@@ -71,12 +70,12 @@ const getContentFromDecodedMessageContent = <T = unknown>(
  * @property {unknown} content - The decoded content of the message
  * @property {ContentTypeId} contentType - The content type of the message content
  * @property {string} conversationId - Unique identifier for the conversation
- * @property {MessageDeliveryStatus} deliveryStatus - Current delivery status of the message ("unpublished" | "published" | "failed")
+ * @property {DeliveryStatus} deliveryStatus - Current delivery status of the message ("unpublished" | "published" | "failed")
  * @property {bigint} [expiresAtNs] - Timestamp when the message will expire (in nanoseconds)
  * @property {Date} [expiresAt] - Timestamp when the message will expire
  * @property {string} [fallback] - Optional fallback text for the message
  * @property {string} id - Unique identifier for the message
- * @property {MessageKind} kind - Type of message ("application" | "membership_change")
+ * @property {GroupMessageKind} kind - Type of message ("application" | "membership_change")
  * @property {bigint} numReplies - Number of replies to the message
  * @property {DecodedMessage<Reaction>[]} reactions - Reactions to the message
  * @property {string} senderInboxId - Identifier for the sender's inbox
@@ -88,12 +87,12 @@ export class DecodedMessage<ContentTypes = unknown> {
   content: ContentTypes | undefined;
   contentType: ContentTypeId;
   conversationId: string;
-  deliveryStatus: MessageDeliveryStatus;
+  deliveryStatus: DeliveryStatus;
   expiresAtNs?: bigint;
   expiresAt?: Date;
   fallback?: string;
   id: string;
-  kind: MessageKind;
+  kind: GroupMessageKind;
   numReplies: bigint;
   reactions: DecodedMessage<Reaction>[];
   senderInboxId: string;
@@ -119,28 +118,8 @@ export class DecodedMessage<ContentTypes = unknown> {
     };
     this.fallback = message.fallback ?? undefined;
 
-    switch (message.kind) {
-      case "application":
-        this.kind = "application";
-        break;
-      case "membershipchange":
-        this.kind = "membership_change";
-        break;
-      // no default
-    }
-
-    switch (message.deliveryStatus) {
-      case "unpublished":
-        this.deliveryStatus = "unpublished";
-        break;
-      case "published":
-        this.deliveryStatus = "published";
-        break;
-      case "failed":
-        this.deliveryStatus = "failed";
-        break;
-      // no default
-    }
+    this.kind = message.kind;
+    this.deliveryStatus = message.deliveryStatus;
 
     this.numReplies = message.numReplies;
     this.reactions = message.reactions.map(
