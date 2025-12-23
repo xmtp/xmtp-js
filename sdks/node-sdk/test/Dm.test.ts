@@ -1,9 +1,13 @@
 import {
   ConsentState,
   ContentType,
+  ConversationType,
+  MetadataFieldName,
+  type GroupUpdated,
   type MessageDisappearingSettings,
 } from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
+import type { DecodedMessage } from "@/DecodedMessage";
 import { createRegisteredClient, createSigner, sleep } from "@test/helpers";
 
 describe("Dm", () => {
@@ -32,7 +36,7 @@ describe("Dm", () => {
     expect(memberInboxIds).toContain(client2.inboxId);
 
     const metadata = await dm.metadata();
-    expect(metadata.conversationType).toBe("dm");
+    expect(metadata.conversationType).toBe(ConversationType.Dm);
     expect(metadata.creatorInboxId).toBe(client1.inboxId);
 
     expect(dm.consentState).toBe(ConsentState.Allowed);
@@ -191,7 +195,7 @@ describe("Dm", () => {
     expect(dm2.consentState).toBe(ConsentState.Allowed);
   });
 
-  it.only("should handle disappearing messages", async () => {
+  it("should handle disappearing messages", async () => {
     const { signer: signer1 } = createSigner();
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
@@ -282,18 +286,40 @@ describe("Dm", () => {
     });
     expect(dm2.isMessageDisappearingEnabled()).toBe(false);
 
+    // check for metadata field changes
+    const messages = await dm2.messages();
+    const fieldChange1 = messages[1] as DecodedMessage<GroupUpdated>;
+    expect(fieldChange1.content?.metadataFieldChanges).toBeDefined();
+    expect(fieldChange1.content?.metadataFieldChanges.length).toBe(1);
+    expect(fieldChange1.content?.metadataFieldChanges[0].fieldName).toBe(
+      MetadataFieldName.MessageDisappearFromNs,
+    );
+    expect(fieldChange1.content?.metadataFieldChanges[0].oldValue).toBe("1");
+    expect(fieldChange1.content?.metadataFieldChanges[0].newValue).toBe("0");
+
+    const fieldChange2 = messages[2] as DecodedMessage<GroupUpdated>;
+    expect(fieldChange2.content?.metadataFieldChanges).toBeDefined();
+    expect(fieldChange2.content?.metadataFieldChanges.length).toBe(1);
+    expect(fieldChange2.content?.metadataFieldChanges[0].fieldName).toBe(
+      MetadataFieldName.MessageDisappearInNs,
+    );
+    expect(fieldChange2.content?.metadataFieldChanges[0].oldValue).toBe(
+      "2000000000",
+    );
+    expect(fieldChange2.content?.metadataFieldChanges[0].newValue).toBe("0");
+
     // send messages to the group
     await dm2.sendText("gm");
     await dm2.sendText("gm2");
 
     // verify that the messages are sent
-    expect((await dm2.messages()).length).toBe(3);
+    expect((await dm2.messages()).length).toBe(5);
 
     // sync original group
     await dm.sync();
 
     // verify that the messages are not deleted
-    expect((await dm.messages()).length).toBe(3);
+    expect((await dm.messages()).length).toBe(5);
   });
 
   it("should return paused for version", async () => {
