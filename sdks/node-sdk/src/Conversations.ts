@@ -51,9 +51,14 @@ export class Conversations<ContentTypes = unknown> {
       // findGroupById will throw if group is not found
       const group = this.#conversations.findGroupById(id);
       const metadata = await group.groupMetadata();
-      return metadata.conversationType() === "group"
-        ? new Group<ContentTypes>(this.#client, group)
-        : new Dm<ContentTypes>(this.#client, group);
+      switch (metadata.conversationType()) {
+        case ConversationType.Group:
+          return new Group<ContentTypes>(this.#client, group);
+        case ConversationType.Dm:
+          return new Dm<ContentTypes>(this.#client, group);
+        default:
+          return undefined;
+      }
     } catch {
       return undefined;
     }
@@ -196,13 +201,13 @@ export class Conversations<ContentTypes = unknown> {
         const metadata = await item.conversation.groupMetadata();
         const conversationType = metadata.conversationType();
         switch (conversationType) {
-          case "dm":
+          case ConversationType.Dm:
             return new Dm<ContentTypes>(
               this.#client,
               item.conversation,
               item.isCommitLogForked,
             );
-          case "group":
+          case ConversationType.Group:
             return new Group<ContentTypes>(
               this.#client,
               item.conversation,
@@ -316,10 +321,10 @@ export class Conversations<ContentTypes = unknown> {
       const conversationType = metadata.conversationType();
       let conversation: Group<ContentTypes> | Dm<ContentTypes> | undefined;
       switch (conversationType) {
-        case "dm":
+        case ConversationType.Dm:
           conversation = new Dm<ContentTypes>(this.#client, value);
           break;
-        case "group":
+        case ConversationType.Group:
           conversation = new Group<ContentTypes>(this.#client, value);
           break;
       }

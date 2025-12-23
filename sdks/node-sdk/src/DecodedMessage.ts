@@ -1,18 +1,15 @@
 import {
   DecodedMessageContentType,
-  DeliveryStatus,
-  GroupMessageKind,
   type ContentTypeId,
   type DecodedMessageContent,
+  type DeliveryStatus,
   type EnrichedReply,
+  type GroupMessageKind,
   type Reaction,
   type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
 import { nsToDate } from "@/utils/date";
-
-export type MessageKind = "application" | "membership_change";
-export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
 
 const getContentFromDecodedMessageContent = <T = unknown>(
   content: DecodedMessageContent,
@@ -91,12 +88,12 @@ export class DecodedMessage<ContentTypes = unknown> {
   content: ContentTypes | undefined;
   contentType: ContentTypeId;
   conversationId: string;
-  deliveryStatus: MessageDeliveryStatus;
+  deliveryStatus: DeliveryStatus;
   expiresAtNs?: number;
   expiresAt?: Date;
   fallback?: string;
   id: string;
-  kind: MessageKind;
+  kind: GroupMessageKind;
   numReplies: number;
   reactions: DecodedMessage<Reaction>[];
   senderInboxId: string;
@@ -116,29 +113,8 @@ export class DecodedMessage<ContentTypes = unknown> {
     this.senderInboxId = message.senderInboxId;
     this.contentType = message.contentType;
     this.fallback = message.fallback ?? undefined;
-
-    switch (message.kind) {
-      case GroupMessageKind.Application:
-        this.kind = "application";
-        break;
-      case GroupMessageKind.MembershipChange:
-        this.kind = "membership_change";
-        break;
-      // no default
-    }
-
-    switch (message.deliveryStatus) {
-      case DeliveryStatus.Unpublished:
-        this.deliveryStatus = "unpublished";
-        break;
-      case DeliveryStatus.Published:
-        this.deliveryStatus = "published";
-        break;
-      case DeliveryStatus.Failed:
-        this.deliveryStatus = "failed";
-        break;
-      // no default
-    }
+    this.kind = message.kind;
+    this.deliveryStatus = message.deliveryStatus;
 
     this.numReplies = message.numReplies;
     this.reactions = message.reactions.map(
