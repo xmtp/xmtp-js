@@ -2,8 +2,11 @@ import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import {
   ConsentState,
   ContentType,
+  ConversationType,
+  DeliveryStatus,
   GroupPermissionsOptions,
   MetadataField,
+  MetadataFieldName,
   PermissionPolicy,
   PermissionUpdateType,
   type MessageDisappearingSettings,
@@ -32,14 +35,14 @@ describe("Group", () => {
     expect(group.name).toBe("");
     expect(group.permissions.policyType).toBe(GroupPermissionsOptions.Default);
     expect(group.permissions.policySet).toEqual({
-      addMemberPolicy: 0,
-      removeMemberPolicy: 2,
-      addAdminPolicy: 3,
-      removeAdminPolicy: 3,
-      updateGroupNamePolicy: 0,
-      updateGroupDescriptionPolicy: 0,
-      updateGroupImageUrlSquarePolicy: 0,
-      updateMessageDisappearingPolicy: 2,
+      addMemberPolicy: PermissionPolicy.Allow,
+      removeMemberPolicy: PermissionPolicy.Admin,
+      addAdminPolicy: PermissionPolicy.SuperAdmin,
+      removeAdminPolicy: PermissionPolicy.SuperAdmin,
+      updateGroupNamePolicy: PermissionPolicy.Allow,
+      updateGroupDescriptionPolicy: PermissionPolicy.Allow,
+      updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
+      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
     });
     expect(group.addedByInboxId).toBe(client1.inboxId);
     expect((await group.messages()).length).toBe(1);
@@ -50,7 +53,7 @@ describe("Group", () => {
     expect(memberInboxIds).toContain(client1.inboxId);
     expect(memberInboxIds).toContain(client2.inboxId);
     expect(await group.metadata()).toEqual({
-      conversationType: "group",
+      conversationType: ConversationType.Group,
       creatorInboxId: client1.inboxId,
     });
 
@@ -89,14 +92,14 @@ describe("Group", () => {
     expect(group.name).toBe("");
     expect(group.permissions.policyType).toBe(GroupPermissionsOptions.Default);
     expect(group.permissions.policySet).toEqual({
-      addMemberPolicy: 0,
-      removeMemberPolicy: 2,
-      addAdminPolicy: 3,
-      removeAdminPolicy: 3,
-      updateGroupNamePolicy: 0,
-      updateGroupDescriptionPolicy: 0,
-      updateGroupImageUrlSquarePolicy: 0,
-      updateMessageDisappearingPolicy: 2,
+      addMemberPolicy: PermissionPolicy.Allow,
+      removeMemberPolicy: PermissionPolicy.Admin,
+      addAdminPolicy: PermissionPolicy.SuperAdmin,
+      removeAdminPolicy: PermissionPolicy.SuperAdmin,
+      updateGroupNamePolicy: PermissionPolicy.Allow,
+      updateGroupDescriptionPolicy: PermissionPolicy.Allow,
+      updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
+      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
     });
     expect(group.addedByInboxId).toBe(client1.inboxId);
     expect((await group.messages()).length).toBe(1);
@@ -107,7 +110,7 @@ describe("Group", () => {
     expect(memberInboxIds).toContain(client1.inboxId);
     expect(memberInboxIds).toContain(client2.inboxId);
     expect(await group.metadata()).toEqual({
-      conversationType: "group",
+      conversationType: ConversationType.Group,
       creatorInboxId: client1.inboxId,
     });
 
@@ -145,14 +148,14 @@ describe("Group", () => {
     const messages = await group.messages();
     expect(messages.length).toBe(1);
     expect(messages[0].content).toBe(text);
-    expect(messages[0].deliveryStatus).toBe("unpublished");
+    expect(messages[0].deliveryStatus).toBe(DeliveryStatus.Unpublished);
 
     await group.publishMessages();
 
     const messages2 = await group.messages();
     expect(messages2.length).toBe(1);
     expect(messages2[0].content).toBe(text);
-    expect(messages2[0].deliveryStatus).toBe("published");
+    expect(messages2[0].deliveryStatus).toBe(DeliveryStatus.Published);
   });
 
   it("should optimistically create a group with members", async () => {
@@ -177,7 +180,7 @@ describe("Group", () => {
     const messages = await group.messages();
     expect(messages.length).toBe(1);
     expect(messages[0].content).toBe(text);
-    expect(messages[0].deliveryStatus).toBe("unpublished");
+    expect(messages[0].deliveryStatus).toBe(DeliveryStatus.Unpublished);
 
     await group.addMembers([client2.inboxId]);
 
@@ -190,8 +193,8 @@ describe("Group", () => {
     const messages3 = await group.messages();
     expect(messages3.length).toBe(2);
     expect(messages3[0].content).toBe(text);
-    expect(messages3[0].deliveryStatus).toBe("published");
-    expect(messages3[1].deliveryStatus).toBe("published");
+    expect(messages3[0].deliveryStatus).toBe(DeliveryStatus.Published);
+    expect(messages3[1].deliveryStatus).toBe(DeliveryStatus.Published);
   });
 
   it("should create a group with options", async () => {
@@ -250,14 +253,14 @@ describe("Group", () => {
     );
 
     expect(groupWithPermissions.permissions.policySet).toEqual({
-      addMemberPolicy: 2,
-      removeMemberPolicy: 2,
-      addAdminPolicy: 3,
-      removeAdminPolicy: 3,
-      updateGroupNamePolicy: 2,
-      updateGroupDescriptionPolicy: 2,
-      updateGroupImageUrlSquarePolicy: 2,
-      updateMessageDisappearingPolicy: 2,
+      addMemberPolicy: PermissionPolicy.Admin,
+      removeMemberPolicy: PermissionPolicy.Admin,
+      addAdminPolicy: PermissionPolicy.SuperAdmin,
+      removeAdminPolicy: PermissionPolicy.SuperAdmin,
+      updateGroupNamePolicy: PermissionPolicy.Admin,
+      updateGroupDescriptionPolicy: PermissionPolicy.Admin,
+      updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
+      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
     });
   });
 
@@ -269,14 +272,14 @@ describe("Group", () => {
     const group = await client1.conversations.newGroup([client2.inboxId], {
       permissions: GroupPermissionsOptions.CustomPolicy,
       customPermissionPolicySet: {
-        addAdminPolicy: 1,
-        addMemberPolicy: 0,
-        removeAdminPolicy: 1,
-        removeMemberPolicy: 1,
-        updateGroupNamePolicy: 1,
-        updateGroupDescriptionPolicy: 1,
-        updateGroupImageUrlSquarePolicy: 1,
-        updateMessageDisappearingPolicy: 2,
+        addAdminPolicy: PermissionPolicy.Deny,
+        addMemberPolicy: PermissionPolicy.Allow,
+        removeAdminPolicy: PermissionPolicy.Deny,
+        removeMemberPolicy: PermissionPolicy.Deny,
+        updateGroupNamePolicy: PermissionPolicy.Deny,
+        updateGroupDescriptionPolicy: PermissionPolicy.Deny,
+        updateGroupImageUrlSquarePolicy: PermissionPolicy.Deny,
+        updateMessageDisappearingPolicy: PermissionPolicy.Admin,
       },
     });
     expect(group).toBeDefined();
@@ -284,14 +287,14 @@ describe("Group", () => {
       GroupPermissionsOptions.CustomPolicy,
     );
     expect(group.permissions.policySet).toEqual({
-      addAdminPolicy: 1,
-      addMemberPolicy: 0,
-      removeAdminPolicy: 1,
-      removeMemberPolicy: 1,
-      updateGroupNamePolicy: 1,
-      updateGroupDescriptionPolicy: 1,
-      updateGroupImageUrlSquarePolicy: 1,
-      updateMessageDisappearingPolicy: 2,
+      addAdminPolicy: PermissionPolicy.Deny,
+      addMemberPolicy: PermissionPolicy.Allow,
+      removeAdminPolicy: PermissionPolicy.Deny,
+      removeMemberPolicy: PermissionPolicy.Deny,
+      updateGroupNamePolicy: PermissionPolicy.Deny,
+      updateGroupDescriptionPolicy: PermissionPolicy.Deny,
+      updateGroupImageUrlSquarePolicy: PermissionPolicy.Deny,
+      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
     });
   });
 
@@ -662,14 +665,14 @@ describe("Group", () => {
     const group = await client1.conversations.newGroup([client2.inboxId]);
 
     expect(group.permissions.policySet).toEqual({
-      addMemberPolicy: 0,
-      removeMemberPolicy: 2,
-      addAdminPolicy: 3,
-      removeAdminPolicy: 3,
-      updateGroupNamePolicy: 0,
-      updateGroupDescriptionPolicy: 0,
-      updateGroupImageUrlSquarePolicy: 0,
-      updateMessageDisappearingPolicy: 2,
+      addMemberPolicy: PermissionPolicy.Allow,
+      removeMemberPolicy: PermissionPolicy.Admin,
+      addAdminPolicy: PermissionPolicy.SuperAdmin,
+      removeAdminPolicy: PermissionPolicy.SuperAdmin,
+      updateGroupNamePolicy: PermissionPolicy.Allow,
+      updateGroupDescriptionPolicy: PermissionPolicy.Allow,
+      updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
+      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
     });
 
     await group.updatePermission(
@@ -707,18 +710,18 @@ describe("Group", () => {
     await group.updatePermission(
       PermissionUpdateType.UpdateMetadata,
       PermissionPolicy.Admin,
-      MetadataField.ImageUrlSquare,
+      MetadataField.GroupImageUrlSquare,
     );
 
     expect(group.permissions.policySet).toEqual({
-      addMemberPolicy: 2,
-      removeMemberPolicy: 3,
-      addAdminPolicy: 2,
-      removeAdminPolicy: 2,
-      updateGroupNamePolicy: 2,
-      updateGroupDescriptionPolicy: 2,
-      updateGroupImageUrlSquarePolicy: 2,
-      updateMessageDisappearingPolicy: 2,
+      addMemberPolicy: PermissionPolicy.Admin,
+      removeMemberPolicy: PermissionPolicy.SuperAdmin,
+      addAdminPolicy: PermissionPolicy.Admin,
+      removeAdminPolicy: PermissionPolicy.Admin,
+      updateGroupNamePolicy: PermissionPolicy.Admin,
+      updateGroupDescriptionPolicy: PermissionPolicy.Admin,
+      updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
+      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
     });
   });
 
@@ -811,6 +814,28 @@ describe("Group", () => {
       inNs: 0,
     });
     expect(group2.isMessageDisappearingEnabled()).toBe(false);
+
+    // check for metadata field changes
+    const messages = await group2.messages();
+    const fieldChange1 = messages[1] as DecodedMessage<GroupUpdated>;
+    expect(fieldChange1.content?.metadataFieldChanges).toBeDefined();
+    expect(fieldChange1.content?.metadataFieldChanges.length).toBe(1);
+    expect(fieldChange1.content?.metadataFieldChanges[0].fieldName).toBe(
+      MetadataFieldName.MessageDisappearFromNs,
+    );
+    expect(fieldChange1.content?.metadataFieldChanges[0].oldValue).toBe("1");
+    expect(fieldChange1.content?.metadataFieldChanges[0].newValue).toBe("0");
+
+    const fieldChange2 = messages[2] as DecodedMessage<GroupUpdated>;
+    expect(fieldChange2.content?.metadataFieldChanges).toBeDefined();
+    expect(fieldChange2.content?.metadataFieldChanges.length).toBe(1);
+    expect(fieldChange2.content?.metadataFieldChanges[0].fieldName).toBe(
+      MetadataFieldName.MessageDisappearInNs,
+    );
+    expect(fieldChange2.content?.metadataFieldChanges[0].oldValue).toBe(
+      "2000000000",
+    );
+    expect(fieldChange2.content?.metadataFieldChanges[0].newValue).toBe("0");
 
     // send messages to the group
     await group2.sendText("gm");
