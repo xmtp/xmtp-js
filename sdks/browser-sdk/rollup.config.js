@@ -43,16 +43,6 @@ export default defineConfig([
     external,
   },
   {
-    input: "src/workers/utils.ts",
-    output: {
-      file: "dist/workers/utils.js",
-      format: "es",
-      sourcemap: true,
-    },
-    plugins,
-    external,
-  },
-  {
     input: "src/index.ts",
     output: {
       file: "dist/index.d.ts",
