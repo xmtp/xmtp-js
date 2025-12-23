@@ -1,9 +1,9 @@
+import type { Identifier } from "@xmtp/wasm-bindings";
 import type {
-  Identifier,
   MetadataField,
   PermissionPolicy,
   PermissionUpdateType,
-} from "@xmtp/wasm-bindings";
+} from "@/types/enums";
 import type { SafeConversation } from "@/utils/conversions";
 
 export type GroupAction =

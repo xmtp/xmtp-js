@@ -113,11 +113,7 @@ export class WorkerConversation {
   }
 
   async metadata() {
-    const metadata = await this.#group.groupMetadata();
-    return {
-      creatorInboxId: metadata.creatorInboxId,
-      conversationType: metadata.conversationType,
-    };
+    return this.#group.groupMetadata();
   }
 
   async members() {

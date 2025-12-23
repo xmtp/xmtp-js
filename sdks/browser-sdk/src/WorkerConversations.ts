@@ -3,7 +3,6 @@ import type {
   Conversation,
   ConversationListItem,
   Conversations,
-  ConversationType,
   CreateDMOptions,
   CreateGroupOptions,
   DecodedMessage,
@@ -11,6 +10,7 @@ import type {
   ListConversationsOptions,
   Message,
 } from "@xmtp/wasm-bindings";
+import { ConversationType } from "@/types/enums";
 import { type HmacKeys } from "@/utils/conversions";
 import type { StreamCallback } from "@/utils/streams";
 import type { WorkerClient } from "@/WorkerClient";
@@ -76,7 +76,7 @@ export class WorkerConversations {
   listGroups(options?: Omit<ListConversationsOptions, "conversationType">) {
     const groups = this.#conversations.list({
       ...(options ?? {}),
-      conversationType: "group",
+      conversationType: ConversationType.Group,
     }) as ConversationListItem[];
     return groups.map(
       (item) =>
@@ -91,7 +91,7 @@ export class WorkerConversations {
   listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
     const groups = this.#conversations.list({
       ...(options ?? {}),
-      conversationType: "dm",
+      conversationType: ConversationType.Dm,
     }) as ConversationListItem[];
     return groups.map(
       (item) =>
@@ -159,11 +159,11 @@ export class WorkerConversations {
   }
 
   streamGroups(callback: StreamCallback<Conversation>, onFail: () => void) {
-    return this.stream(callback, onFail, "group" as ConversationType);
+    return this.stream(callback, onFail, ConversationType.Group);
   }
 
   streamDms(callback: StreamCallback<Conversation>, onFail: () => void) {
-    return this.stream(callback, onFail, "dm" as ConversationType);
+    return this.stream(callback, onFail, ConversationType.Dm);
   }
 
   streamAllMessages(

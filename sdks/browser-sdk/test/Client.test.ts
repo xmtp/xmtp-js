@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
+import { IdentifierKind } from "@/types/enums";
 import { SignerUnavailableError } from "@/utils/errors";
 import { uuid } from "@/utils/uuid";
 import {
@@ -17,7 +18,7 @@ describe("Client", () => {
     const client = await createClient(signer);
     expect(client.accountIdentifier).toEqual({
       identifier: address,
-      identifierKind: "Ethereum",
+      identifierKind: IdentifierKind.Ethereum,
     });
     expect(await client.isRegistered()).toBe(false);
     expect(client.inboxId).toBeDefined();
