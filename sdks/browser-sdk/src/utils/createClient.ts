@@ -15,8 +15,9 @@ export const createClient = async (
   const env = options?.env || "dev";
   const host = options?.apiUrl || ApiUrls[env];
   const gatewayHost = options?.gatewayHost ?? null;
+  const isSecure = host.startsWith("https");
   const inboxId =
-    (await getInboxIdForIdentifier(host, gatewayHost, identifier)) ||
+    (await getInboxIdForIdentifier(host, gatewayHost, isSecure, identifier)) ||
     generateInboxId(identifier);
   const dbPath =
     options?.dbPath === undefined

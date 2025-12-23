@@ -18,21 +18,15 @@ describe("generateInboxId", () => {
 
 describe("getInboxIdForIdentifier", () => {
   it("should return `undefined` inbox ID for unregistered address", async () => {
-    const { signer } = createSigner();
-    const inboxId = await getInboxIdForIdentifier(
-      await signer.getIdentifier(),
-      "local",
-    );
+    const { identifier } = createSigner();
+    const inboxId = await getInboxIdForIdentifier(identifier, "local");
     expect(inboxId).toBeUndefined();
   });
 
   it("should return inbox ID for registered address", async () => {
-    const { signer } = createSigner();
+    const { signer, identifier } = createSigner();
     const client = await createRegisteredClient(signer);
-    const inboxId = await getInboxIdForIdentifier(
-      await signer.getIdentifier(),
-      "local",
-    );
+    const inboxId = await getInboxIdForIdentifier(identifier, "local");
     expect(inboxId).toBe(client.inboxId);
   });
 });
