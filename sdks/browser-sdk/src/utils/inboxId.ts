@@ -38,5 +38,11 @@ export const getInboxIdForIdentifier = async (
 ): Promise<string | undefined> => {
   await initPromise;
   const host = env ? ApiUrls[env] : ApiUrls.dev;
-  return wasmGetInboxIdForIdentifier(host, gatewayHost ?? null, identifier);
+  const isSecure = host.startsWith("https");
+  return wasmGetInboxIdForIdentifier(
+    host,
+    gatewayHost ?? null,
+    isSecure,
+    identifier,
+  );
 };
