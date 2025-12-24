@@ -439,7 +439,7 @@ export class Client<
     }
 
     // check for existing inbox id
-    const existingInboxId = await this.findInboxIdByIdentifier(
+    const existingInboxId = await this.getInboxIdByIdentifier(
       await newAccountSigner.getIdentifier(),
     );
 
@@ -648,8 +648,8 @@ export class Client<
    * @param identifier - The identifier to look up
    * @returns The inbox ID, if found
    */
-  async findInboxIdByIdentifier(identifier: Identifier) {
-    return this.sendMessage("client.findInboxIdByIdentifier", { identifier });
+  async getInboxIdByIdentifier(identifier: Identifier) {
+    return this.sendMessage("client.getInboxIdByIdentifier", { identifier });
   }
 
   /**

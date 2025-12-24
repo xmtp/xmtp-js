@@ -143,7 +143,7 @@ export class WorkerClient {
     await this.#client.registerIdentity(signatureRequest);
   }
 
-  async findInboxIdByIdentifier(identifier: Identifier) {
+  async getInboxIdByIdentifier(identifier: Identifier) {
     return this.#client.findInboxIdByIdentifier(identifier);
   }
 
