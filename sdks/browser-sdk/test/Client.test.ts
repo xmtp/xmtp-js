@@ -101,7 +101,7 @@ describe("Client", () => {
   it("should get an inbox ID from an address", async () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
-    const inboxId = await client.findInboxIdByIdentifier(
+    const inboxId = await client.getInboxIdByIdentifier(
       await signer.getIdentifier(),
     );
     expect(inboxId).toBe(client.inboxId);
