@@ -170,7 +170,7 @@ export type ClientAction =
       };
     }
   | {
-      action: "client.findInboxIdByIdentifier";
+      action: "client.getInboxIdByIdentifier";
       id: string;
       result: string | undefined;
       data: {

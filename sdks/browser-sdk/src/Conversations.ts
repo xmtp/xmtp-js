@@ -123,7 +123,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the DM, if found
    */
   async getDmByIdentifier(identifier: Identifier) {
-    const inboxId = await this.#client.findInboxIdByIdentifier(identifier);
+    const inboxId = await this.#client.getInboxIdByIdentifier(identifier);
     if (!inboxId) {
       return undefined;
     }

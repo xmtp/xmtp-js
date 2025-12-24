@@ -297,8 +297,8 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "client.findInboxIdByIdentifier": {
-        const result = await client.findInboxIdByIdentifier(data.identifier);
+      case "client.getInboxIdByIdentifier": {
+        const result = await client.getInboxIdByIdentifier(data.identifier);
         postMessage({ id, action, result });
         break;
       }
