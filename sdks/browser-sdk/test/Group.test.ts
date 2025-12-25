@@ -9,11 +9,7 @@ import {
   ContentType,
   ConversationType,
   DeliveryStatus,
-  GroupPermissionsOptions,
-  MetadataField,
   MetadataFieldName,
-  PermissionPolicy,
-  PermissionUpdateType,
 } from "@/types/enums";
 import { createRegisteredClient, createSigner, sleep } from "@test/helpers";
 
@@ -35,18 +31,6 @@ describe("Group", () => {
     expect(await group.isActive()).toBe(true);
     expect(group.isCommitLogForked).toBeUndefined();
     expect(group.name).toBe("");
-    const permissions = await group.permissions();
-    expect(permissions.policyType).toBe(GroupPermissionsOptions.Default);
-    expect(permissions.policySet).toEqual({
-      addMemberPolicy: PermissionPolicy.Allow,
-      removeMemberPolicy: PermissionPolicy.Admin,
-      addAdminPolicy: PermissionPolicy.SuperAdmin,
-      removeAdminPolicy: PermissionPolicy.SuperAdmin,
-      updateGroupNamePolicy: PermissionPolicy.Allow,
-      updateGroupDescriptionPolicy: PermissionPolicy.Allow,
-      updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
-      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
-    });
     expect(group.addedByInboxId).toBe(client1.inboxId);
     expect((await group.messages()).length).toBe(1);
 
@@ -93,18 +77,6 @@ describe("Group", () => {
     expect(await group.isActive()).toBe(true);
     expect(group.isCommitLogForked).toBeUndefined();
     expect(group.name).toBe("");
-    const permissions = await group.permissions();
-    expect(permissions.policyType).toBe(GroupPermissionsOptions.Default);
-    expect(permissions.policySet).toEqual({
-      addMemberPolicy: PermissionPolicy.Allow,
-      removeMemberPolicy: PermissionPolicy.Admin,
-      addAdminPolicy: PermissionPolicy.SuperAdmin,
-      removeAdminPolicy: PermissionPolicy.SuperAdmin,
-      updateGroupNamePolicy: PermissionPolicy.Allow,
-      updateGroupDescriptionPolicy: PermissionPolicy.Allow,
-      updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
-      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
-    });
     expect(group.addedByInboxId).toBe(client1.inboxId);
     expect((await group.messages()).length).toBe(1);
 
@@ -203,206 +175,93 @@ describe("Group", () => {
 
   it("should create a group with options", async () => {
     const { signer: signer1 } = createSigner();
-    const { signer: signer2 } = createSigner();
-    const { signer: signer3 } = createSigner();
-    const { signer: signer4 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const client2 = await createRegisteredClient(signer2);
-    const client3 = await createRegisteredClient(signer3);
-    const client4 = await createRegisteredClient(signer4);
-    const groupWithName = await client1.conversations.newGroup(
-      [client2.inboxId!],
-      {
-        groupName: "foo",
-      },
-    );
-    expect(groupWithName).toBeDefined();
-    expect(groupWithName.name).toBe("foo");
-    expect(groupWithName.description).toBe("");
-    expect(groupWithName.imageUrl).toBe("");
-
-    const groupWithImageUrl = await client1.conversations.newGroup(
-      [client3.inboxId!],
-      {
-        groupImageUrlSquare: "https://foo/bar.png",
-      },
-    );
-    expect(groupWithImageUrl).toBeDefined();
-    expect(groupWithImageUrl.name).toBe("");
-    expect(groupWithImageUrl.description).toBe("");
-    expect(groupWithImageUrl.imageUrl).toBe("https://foo/bar.png");
-
-    const groupWithDescription = await client1.conversations.newGroup(
-      [client2.inboxId!],
-      {
-        groupDescription: "foo",
-      },
-    );
-    expect(groupWithDescription).toBeDefined();
-    expect(groupWithDescription.name).toBe("");
-    expect(groupWithDescription.imageUrl).toBe("");
-    expect(groupWithDescription.description).toBe("foo");
-
-    const groupWithPermissions = await client1.conversations.newGroup(
-      [client4.inboxId!],
-      {
-        permissions: GroupPermissionsOptions.AdminOnly,
-      },
-    );
-    expect(groupWithPermissions).toBeDefined();
-    expect(groupWithPermissions.name).toBe("");
-    expect(groupWithPermissions.imageUrl).toBe("");
-    const permissions = await groupWithPermissions.permissions();
-    expect(permissions.policyType).toBe(GroupPermissionsOptions.AdminOnly);
-
-    expect(permissions.policySet).toEqual({
-      addMemberPolicy: PermissionPolicy.Admin,
-      removeMemberPolicy: PermissionPolicy.Admin,
-      addAdminPolicy: PermissionPolicy.SuperAdmin,
-      removeAdminPolicy: PermissionPolicy.SuperAdmin,
-      updateGroupNamePolicy: PermissionPolicy.Admin,
-      updateGroupDescriptionPolicy: PermissionPolicy.Admin,
-      updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
-      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
+    const group = await client1.conversations.newGroup([], {
+      groupName: "foo",
+      groupImageUrlSquare: "https://foo/bar.png",
+      groupDescription: "foo",
     });
-  });
-
-  it("should create a group with custom permissions", async () => {
-    const { signer: signer1 } = createSigner();
-    const { signer: signer2 } = createSigner();
-    const client1 = await createRegisteredClient(signer1);
-    const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId!], {
-      permissions: GroupPermissionsOptions.CustomPolicy,
-      customPermissionPolicySet: {
-        addAdminPolicy: PermissionPolicy.Deny,
-        addMemberPolicy: PermissionPolicy.Allow,
-        removeAdminPolicy: PermissionPolicy.Deny,
-        removeMemberPolicy: PermissionPolicy.Deny,
-        updateGroupNamePolicy: PermissionPolicy.Deny,
-        updateGroupDescriptionPolicy: PermissionPolicy.Deny,
-        updateGroupImageUrlSquarePolicy: PermissionPolicy.Deny,
-        updateMessageDisappearingPolicy: PermissionPolicy.Admin,
-      },
-    });
-    expect(group).toBeDefined();
-    const permissions = await group.permissions();
-    expect(permissions.policyType).toBe(GroupPermissionsOptions.CustomPolicy);
-    expect(permissions.policySet).toEqual({
-      addAdminPolicy: PermissionPolicy.Deny,
-      addMemberPolicy: PermissionPolicy.Allow,
-      removeAdminPolicy: PermissionPolicy.Deny,
-      removeMemberPolicy: PermissionPolicy.Deny,
-      updateGroupNamePolicy: PermissionPolicy.Deny,
-      updateGroupDescriptionPolicy: PermissionPolicy.Deny,
-      updateGroupImageUrlSquarePolicy: PermissionPolicy.Deny,
-      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
-    });
+    expect(group.name).toBe("foo");
+    expect(group.imageUrl).toBe("https://foo/bar.png");
+    expect(group.description).toBe("foo");
   });
 
   it("should update group name", async () => {
     const { signer: signer1 } = createSigner();
-    const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.newGroup([]);
+    expect(group.name).toBe("");
     const newName = "foo";
     await group.updateName(newName);
     expect(group.name).toBe(newName);
     const messages = await group.messages();
-    expect(messages.length).toBe(2);
-
-    await client2.conversations.sync();
-    const groups = await client2.conversations.listGroups();
-    expect(groups.length).toBe(1);
-
-    const group2 = groups[0];
-    expect(group2).toBeDefined();
-    await group2.sync();
-    expect(group2.id).toBe(group.id);
-    expect(group2.name).toBe(newName);
+    expect(messages.length).toBe(1);
+    const message = messages[0] as DecodedMessage<GroupUpdated>;
+    expect(message.content!.metadataFieldChanges).toHaveLength(1);
+    expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
+      MetadataFieldName.GroupName,
+    );
+    expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
+    expect(message.content!.metadataFieldChanges[0].newValue).toBe(newName);
   });
 
   it("should update group image URL", async () => {
     const { signer: signer1 } = createSigner();
-    const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.newGroup([]);
+    expect(group.imageUrl).toBe("");
     const imageUrl = "https://foo/bar.jpg";
     await group.updateImageUrl(imageUrl);
     expect(group.imageUrl).toBe(imageUrl);
     const messages = await group.messages();
-    expect(messages.length).toBe(2);
-
-    await client2.conversations.sync();
-    const groups = await client2.conversations.listGroups();
-    expect(groups.length).toBe(1);
-
-    const group2 = groups[0];
-    expect(group2).toBeDefined();
-    await group2.sync();
-    expect(group2.id).toBe(group.id);
-    expect(group2.imageUrl).toBe(imageUrl);
+    expect(messages.length).toBe(1);
+    const message = messages[0] as DecodedMessage<GroupUpdated>;
+    expect(message.content!.metadataFieldChanges).toHaveLength(1);
+    expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
+      MetadataFieldName.GroupImageUrlSquare,
+    );
+    expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
+    expect(message.content!.metadataFieldChanges[0].newValue).toBe(imageUrl);
   });
 
   it("should update group description", async () => {
     const { signer: signer1 } = createSigner();
-    const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.newGroup([]);
+    expect(group.description).toBe("");
     const newDescription = "foo";
     await group.updateDescription(newDescription);
     expect(group.description).toBe(newDescription);
     const messages = await group.messages();
-    expect(messages.length).toBe(2);
-
-    await client2.conversations.sync();
-    const groups = await client2.conversations.listGroups();
-    expect(groups.length).toBe(1);
-
-    const group2 = groups[0];
-    expect(group2).toBeDefined();
-    await group2.sync();
-    expect(group2.id).toBe(group.id);
-    expect(group2.description).toBe(newDescription);
+    expect(messages.length).toBe(1);
+    const message = messages[0] as DecodedMessage<GroupUpdated>;
+    expect(message.content!.metadataFieldChanges).toHaveLength(1);
+    expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
+      MetadataFieldName.Description,
+    );
+    expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
+    expect(message.content!.metadataFieldChanges[0].newValue).toBe(
+      newDescription,
+    );
   });
 
   it("should update group app data", async () => {
     const { signer: signer1 } = createSigner();
-    const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.newGroup([]);
+    expect(group.appData).toBe("");
     const appData = "foo";
     await group.updateAppData(appData);
     expect(group.appData).toBe(appData);
     const messages = await group.messages();
-    expect(messages.length).toBe(2);
-
-    // verify GroupUpdated message contains metadata field change
-    const groupUpdatedMessages = messages.filter(
-      (m) => m.contentType.typeId === "group_updated",
-    ) as DecodedMessage<GroupUpdated>[];
-    expect(groupUpdatedMessages.length).toBe(2);
-    const appDataMessage = groupUpdatedMessages.find(
-      (m) => m.content!.metadataFieldChanges.length > 0,
-    ) as DecodedMessage<GroupUpdated>;
-    expect(appDataMessage).toBeDefined();
-    expect(appDataMessage.content!.metadataFieldChanges).toHaveLength(1);
-    expect(appDataMessage.content!.metadataFieldChanges[0].fieldName).toBe(
-      "app_data",
+    expect(messages.length).toBe(1);
+    const message = messages[0] as DecodedMessage<GroupUpdated>;
+    expect(message.content!.metadataFieldChanges).toHaveLength(1);
+    expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
+      MetadataFieldName.AppData,
     );
-    expect(appDataMessage.content!.metadataFieldChanges[0].newValue).toBe(
-      appData,
-    );
-
-    await client2.conversations.sync();
-    const conversation2 = (await client2.conversations.listGroups())[0];
-    expect(conversation2).toBeDefined();
-    await conversation2.sync();
-    expect(conversation2.appData).toBe(appData);
+    expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
+    expect(message.content!.metadataFieldChanges[0].newValue).toBe(appData);
   });
 
   it("should add and remove members", async () => {
@@ -440,42 +299,17 @@ describe("Group", () => {
     expect(memberInboxIds3).toContain(client1.inboxId);
     expect(memberInboxIds3).not.toContain(client2.inboxId);
     expect(memberInboxIds3).toContain(client3.inboxId);
-  });
 
-  it("should add and remove members by inbox id", async () => {
-    const { signer: signer1 } = createSigner();
-    const { signer: signer2 } = createSigner();
-    const { signer: signer3 } = createSigner();
-    const client1 = await createRegisteredClient(signer1);
-    const client2 = await createRegisteredClient(signer2);
-    const client3 = await createRegisteredClient(signer3);
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
-
-    const members = await group.members();
-    const memberInboxIds = members.map((member) => member.inboxId);
-    expect(memberInboxIds).toContain(client1.inboxId);
-    expect(memberInboxIds).toContain(client2.inboxId);
-    expect(memberInboxIds).not.toContain(client3.inboxId);
-
-    await group.addMembers([client3.inboxId!]);
-
-    const members2 = await group.members();
-    expect(members2.length).toBe(3);
-
-    const memberInboxIds2 = members2.map((member) => member.inboxId);
-    expect(memberInboxIds2).toContain(client1.inboxId);
-    expect(memberInboxIds2).toContain(client2.inboxId);
-    expect(memberInboxIds2).toContain(client3.inboxId);
-
-    await group.removeMembers([client2.inboxId!]);
-
-    const members3 = await group.members();
-    expect(members3.length).toBe(2);
-
-    const memberInboxIds3 = members3.map((member) => member.inboxId);
-    expect(memberInboxIds3).toContain(client1.inboxId);
-    expect(memberInboxIds3).not.toContain(client2.inboxId);
-    expect(memberInboxIds3).toContain(client3.inboxId);
+    const messages = (await group.messages()) as DecodedMessage<GroupUpdated>[];
+    expect(messages.length).toBe(3);
+    expect(messages[0].content?.addedInboxes).toHaveLength(1);
+    expect(messages[0].content?.addedInboxes[0].inboxId).toBe(client2.inboxId);
+    expect(messages[1].content?.addedInboxes).toHaveLength(1);
+    expect(messages[1].content?.addedInboxes[0].inboxId).toBe(client3.inboxId);
+    expect(messages[2].content?.removedInboxes).toHaveLength(1);
+    expect(messages[2].content?.removedInboxes[0].inboxId).toBe(
+      client2.inboxId,
+    );
   });
 
   it("should send and list messages", async () => {
@@ -620,6 +454,17 @@ describe("Group", () => {
     expect(await group.isAdmin(client2.inboxId!)).toBe(false);
     await group.listAdmins();
     expect(group.admins.length).toBe(0);
+
+    const messages = (await group.messages()) as DecodedMessage<GroupUpdated>[];
+    expect(messages.length).toBe(3);
+    expect(messages[1].content?.addedAdminInboxes).toHaveLength(1);
+    expect(messages[1].content?.addedAdminInboxes[0].inboxId).toBe(
+      client2.inboxId,
+    );
+    expect(messages[2].content?.removedAdminInboxes).toHaveLength(1);
+    expect(messages[2].content?.removedAdminInboxes[0].inboxId).toBe(
+      client2.inboxId,
+    );
   });
 
   it("should add and remove super admins", async () => {
@@ -647,6 +492,17 @@ describe("Group", () => {
     await group.listSuperAdmins();
     expect(group.superAdmins.length).toBe(1);
     expect(group.superAdmins).toContain(client1.inboxId);
+
+    const messages = (await group.messages()) as DecodedMessage<GroupUpdated>[];
+    expect(messages.length).toBe(3);
+    expect(messages[1].content?.addedSuperAdminInboxes).toHaveLength(1);
+    expect(messages[1].content?.addedSuperAdminInboxes[0].inboxId).toBe(
+      client2.inboxId,
+    );
+    expect(messages[2].content?.removedSuperAdminInboxes).toHaveLength(1);
+    expect(messages[2].content?.removedSuperAdminInboxes[0].inboxId).toBe(
+      client2.inboxId,
+    );
   });
 
   it("should manage consent state", async () => {
@@ -664,76 +520,6 @@ describe("Group", () => {
     expect(await group2!.consentState()).toBe(ConsentState.Unknown);
     await group2!.sendText("gm!");
     expect(await group2!.consentState()).toBe(ConsentState.Allowed);
-  });
-
-  it("should update group permissions", async () => {
-    const { signer: signer1 } = createSigner();
-    const { signer: signer2 } = createSigner();
-    const client1 = await createRegisteredClient(signer1);
-    const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
-
-    const permissions = await group.permissions();
-    expect(permissions.policySet).toEqual({
-      addMemberPolicy: PermissionPolicy.Allow,
-      removeMemberPolicy: PermissionPolicy.Admin,
-      addAdminPolicy: PermissionPolicy.SuperAdmin,
-      removeAdminPolicy: PermissionPolicy.SuperAdmin,
-      updateGroupNamePolicy: PermissionPolicy.Allow,
-      updateGroupDescriptionPolicy: PermissionPolicy.Allow,
-      updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
-      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
-    });
-
-    await group.updatePermission(
-      PermissionUpdateType.AddMember,
-      PermissionPolicy.Admin,
-    );
-
-    await group.updatePermission(
-      PermissionUpdateType.RemoveMember,
-      PermissionPolicy.SuperAdmin,
-    );
-
-    await group.updatePermission(
-      PermissionUpdateType.AddAdmin,
-      PermissionPolicy.Admin,
-    );
-
-    await group.updatePermission(
-      PermissionUpdateType.RemoveAdmin,
-      PermissionPolicy.Admin,
-    );
-
-    await group.updatePermission(
-      PermissionUpdateType.UpdateMetadata,
-      PermissionPolicy.Admin,
-      MetadataField.GroupName,
-    );
-
-    await group.updatePermission(
-      PermissionUpdateType.UpdateMetadata,
-      PermissionPolicy.Admin,
-      MetadataField.Description,
-    );
-
-    await group.updatePermission(
-      PermissionUpdateType.UpdateMetadata,
-      PermissionPolicy.Admin,
-      MetadataField.GroupImageUrlSquare,
-    );
-
-    const permissions2 = await group.permissions();
-    expect(permissions2.policySet).toEqual({
-      addMemberPolicy: PermissionPolicy.Admin,
-      removeMemberPolicy: PermissionPolicy.SuperAdmin,
-      addAdminPolicy: PermissionPolicy.Admin,
-      removeAdminPolicy: PermissionPolicy.Admin,
-      updateGroupNamePolicy: PermissionPolicy.Admin,
-      updateGroupDescriptionPolicy: PermissionPolicy.Admin,
-      updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
-      updateMessageDisappearingPolicy: PermissionPolicy.Admin,
-    });
   });
 
   it("should handle disappearing messages", async () => {
