@@ -1,25 +1,26 @@
 import {
-  actionsContentType,
   ActionStyle,
-  attachmentContentType,
+  contentTypeActions,
+  contentTypeAttachment,
+  contentTypeGroupUpdated,
+  contentTypeIntent,
+  contentTypeMarkdown,
+  contentTypeMultiRemoteAttachment,
+  contentTypeReaction,
+  contentTypeReadReceipt,
+  contentTypeRemoteAttachment,
+  contentTypeReply,
+  contentTypeText,
+  contentTypeTransactionReference,
+  contentTypeWalletSendCalls,
   decryptAttachment,
   encodeAttachment,
   encodeText,
   encryptAttachment,
-  groupUpdatedContentType,
-  intentContentType,
-  markdownContentType,
-  MetadataFieldName,
-  multiRemoteAttachmentContentType,
+  MetadataField,
+  metadataFieldName,
   ReactionAction,
-  reactionContentType,
   ReactionSchema,
-  readReceiptContentType,
-  remoteAttachmentContentType,
-  replyContentType,
-  textContentType,
-  transactionReferenceContentType,
-  walletSendCallsContentType,
   type Actions,
   type Attachment,
   type Intent,
@@ -45,12 +46,12 @@ describe("Content types", () => {
     const messages = await group.messages();
     const textMessage = messages[1];
     expect(textMessage.content).toBe("gm");
-    expect(textMessage.contentType).toEqual(textContentType());
+    expect(textMessage.contentType).toEqual(contentTypeText());
     expect(textMessage.fallback).toBeUndefined();
     const message = client1.conversations.getMessageById(messageId);
     expect(message).toBeDefined();
     expect(message?.content).toBe("gm");
-    expect(message?.contentType).toEqual(textContentType());
+    expect(message?.contentType).toEqual(contentTypeText());
   });
 
   it("should send and receive markdown content", async () => {
@@ -63,12 +64,12 @@ describe("Content types", () => {
     const messages = await group.messages();
     const markdownMessage = messages[1];
     expect(markdownMessage.content).toBe("# gm");
-    expect(markdownMessage.contentType).toEqual(markdownContentType());
+    expect(markdownMessage.contentType).toEqual(contentTypeMarkdown());
     expect(markdownMessage.fallback).toBeUndefined();
     const message = client1.conversations.getMessageById(messageId);
     expect(message).toBeDefined();
     expect(message?.content).toBe("# gm");
-    expect(message?.contentType).toEqual(markdownContentType());
+    expect(message?.contentType).toEqual(contentTypeMarkdown());
   });
 
   describe("Reaction", () => {
@@ -93,7 +94,7 @@ describe("Content types", () => {
       expect(textMessage.reactions.length).toBe(1);
       const decodedReaction = textMessage.reactions[0];
       expect(decodedReaction.id).toBe(reactionId);
-      expect(decodedReaction.contentType).toEqual(reactionContentType());
+      expect(decodedReaction.contentType).toEqual(contentTypeReaction());
       expect(decodedReaction.content).toEqual(reaction);
       expect(decodedReaction.senderInboxId).toBe(client1.inboxId);
       expect(decodedReaction.fallback).toBe(
@@ -102,7 +103,7 @@ describe("Content types", () => {
       const message = client1.conversations.getMessageById(reactionId);
       expect(message).toBeDefined();
       expect(message?.content).toEqual(reaction);
-      expect(message?.contentType).toEqual(reactionContentType());
+      expect(message?.contentType).toEqual(contentTypeReaction());
     });
 
     it("should send and receive reaction content with removed action", async () => {
@@ -125,7 +126,7 @@ describe("Content types", () => {
       expect(textMessage.reactions.length).toBe(1);
       const decodedReaction = textMessage.reactions[0];
       expect(decodedReaction.id).toBe(reactionId);
-      expect(decodedReaction.contentType).toEqual(reactionContentType());
+      expect(decodedReaction.contentType).toEqual(contentTypeReaction());
       expect(decodedReaction.content).toEqual(reaction);
       expect(decodedReaction.senderInboxId).toBe(client1.inboxId);
       expect(decodedReaction.fallback).toBe(
@@ -153,7 +154,7 @@ describe("Content types", () => {
       expect(textMessage.reactions.length).toBe(1);
       const decodedReaction = textMessage.reactions[0];
       expect(decodedReaction.id).toBe(reactionId);
-      expect(decodedReaction.contentType).toEqual(reactionContentType());
+      expect(decodedReaction.contentType).toEqual(contentTypeReaction());
       expect(decodedReaction.content).toEqual(reaction);
       expect(decodedReaction.senderInboxId).toBe(client1.inboxId);
       expect(decodedReaction.fallback).toBe(
@@ -181,7 +182,7 @@ describe("Content types", () => {
       expect(textMessage.reactions.length).toBe(1);
       const decodedReaction = textMessage.reactions[0];
       expect(decodedReaction.id).toBe(reactionId);
-      expect(decodedReaction.contentType).toEqual(reactionContentType());
+      expect(decodedReaction.contentType).toEqual(contentTypeReaction());
       expect(decodedReaction.content).toEqual(reaction);
       expect(decodedReaction.senderInboxId).toBe(client1.inboxId);
       expect(decodedReaction.fallback).toBe(
@@ -208,7 +209,7 @@ describe("Content types", () => {
 
       const messages = await group.messages();
       const replyMessage = messages[2];
-      expect(replyMessage.contentType).toEqual(replyContentType());
+      expect(replyMessage.contentType).toEqual(contentTypeReply());
       const replyContent = replyMessage.content as Reply<string>;
       expect(replyContent.referenceId).toBe(textMessageId);
       expect(replyContent.content).toBe("This is a text reply");
@@ -220,7 +221,7 @@ describe("Content types", () => {
       );
       const message = client1.conversations.getMessageById(replyId);
       expect(message).toBeDefined();
-      expect(message?.contentType).toEqual(replyContentType());
+      expect(message?.contentType).toEqual(contentTypeReply());
       const replyContent2 = message?.content as Reply<string>;
       expect(replyContent2.referenceId).toBe(textMessageId);
       expect(replyContent2.content).toBe("This is a text reply");
@@ -251,7 +252,7 @@ describe("Content types", () => {
 
       const messages = await group.messages();
       const replyMessage = messages[2];
-      expect(replyMessage.contentType).toEqual(replyContentType());
+      expect(replyMessage.contentType).toEqual(contentTypeReply());
       const replyContent = replyMessage.content as Reply<Attachment>;
       expect(replyContent.referenceId).toBe(textMessageId);
       expect(replyContent.content).toEqual(attachment);
@@ -278,14 +279,14 @@ describe("Content types", () => {
       const messages = await group.messages();
       const attachmentMessage = messages[1];
       expect(attachmentMessage.content).toEqual(attachment);
-      expect(attachmentMessage.contentType).toEqual(attachmentContentType());
+      expect(attachmentMessage.contentType).toEqual(contentTypeAttachment());
       expect(attachmentMessage.fallback).toBe(
         `Can't display ${attachment.filename}. This app doesn't support attachments.`,
       );
       const message = client1.conversations.getMessageById(attachmentId);
       expect(message).toBeDefined();
       expect(message?.content).toEqual(attachment);
-      expect(message?.contentType).toEqual(attachmentContentType());
+      expect(message?.contentType).toEqual(contentTypeAttachment());
     });
 
     it("should send and receive attachment content without filename", async () => {
@@ -302,7 +303,7 @@ describe("Content types", () => {
       const messages = await group.messages();
       const attachmentMessage = messages[1];
       expect(attachmentMessage.content).toEqual(attachment);
-      expect(attachmentMessage.contentType).toEqual(attachmentContentType());
+      expect(attachmentMessage.contentType).toEqual(contentTypeAttachment());
       expect(attachmentMessage.fallback).toBe(
         "Can't display this content. This app doesn't support attachments.",
       );
@@ -356,7 +357,7 @@ describe("Content types", () => {
       const remoteAttachmentMessage = messages[1];
       expect(remoteAttachmentMessage.content).toEqual(remoteAttachment);
       expect(remoteAttachmentMessage.contentType).toEqual(
-        remoteAttachmentContentType(),
+        contentTypeRemoteAttachment(),
       );
       expect(remoteAttachmentMessage.fallback).toBe(
         `Can't display ${remoteAttachment.filename}. This app doesn't support remote attachments.`,
@@ -364,7 +365,7 @@ describe("Content types", () => {
       const message = client1.conversations.getMessageById(remoteAttachmentId);
       expect(message).toBeDefined();
       expect(message?.content).toEqual(remoteAttachment);
-      expect(message?.contentType).toEqual(remoteAttachmentContentType());
+      expect(message?.contentType).toEqual(contentTypeRemoteAttachment());
     });
 
     it("should send and receive remote attachment content without filename", async () => {
@@ -386,7 +387,7 @@ describe("Content types", () => {
       const messages = await group.messages();
       const remoteAttachmentMessage = messages[1];
       expect(remoteAttachmentMessage.contentType).toEqual(
-        remoteAttachmentContentType(),
+        contentTypeRemoteAttachment(),
       );
       expect(remoteAttachmentMessage.content).toEqual(remoteAttachment);
       expect(remoteAttachmentMessage.fallback).toBe(
@@ -430,7 +431,7 @@ describe("Content types", () => {
     const multiRemoteAttachmentMessage = messages[1];
     expect(multiRemoteAttachmentMessage.content).toEqual(multiRemoteAttachment);
     expect(multiRemoteAttachmentMessage.contentType).toEqual(
-      multiRemoteAttachmentContentType(),
+      contentTypeMultiRemoteAttachment(),
     );
     expect(multiRemoteAttachmentMessage.fallback).toBe(
       "Can't display this content. This app doesn't support multiple remote attachments.",
@@ -449,7 +450,7 @@ describe("Content types", () => {
     expect(Object.keys(readTimes)).toContain(client1.inboxId);
     const message = client1.conversations.getMessageById(readReceiptId);
     expect(message).toBeDefined();
-    expect(message?.contentType).toEqual(readReceiptContentType());
+    expect(message?.contentType).toEqual(contentTypeReadReceipt());
     expect(message?.content).toEqual({});
   });
 
@@ -475,7 +476,7 @@ describe("Content types", () => {
         reference: "1234567890",
       });
       expect(transactionReferenceMessage.contentType).toEqual(
-        transactionReferenceContentType(),
+        contentTypeTransactionReference(),
       );
       expect(transactionReferenceMessage.fallback).toBe(
         `[Crypto transaction] Use a blockchain explorer to learn more using the transaction hash: 1234567890`,
@@ -485,7 +486,7 @@ describe("Content types", () => {
       );
       expect(message).toBeDefined();
       expect(message?.content).toEqual(transactionReference);
-      expect(message?.contentType).toEqual(transactionReferenceContentType());
+      expect(message?.contentType).toEqual(contentTypeTransactionReference());
     });
 
     it("should send and receive transaction reference content without namespace", async () => {
@@ -503,7 +504,7 @@ describe("Content types", () => {
       const transactionReferenceMessage = messages[1];
       expect(transactionReferenceMessage.content).toEqual(transactionReference);
       expect(transactionReferenceMessage.contentType).toEqual(
-        transactionReferenceContentType(),
+        contentTypeTransactionReference(),
       );
       expect(transactionReferenceMessage.fallback).toBe(
         `[Crypto transaction] Use a blockchain explorer to learn more using the transaction hash: 1234567890`,
@@ -525,7 +526,7 @@ describe("Content types", () => {
       const transactionReferenceMessage = messages[1];
       expect(transactionReferenceMessage.content).toEqual(transactionReference);
       expect(transactionReferenceMessage.contentType).toEqual(
-        transactionReferenceContentType(),
+        contentTypeTransactionReference(),
       );
       expect(transactionReferenceMessage.fallback).toBe("Crypto transaction");
     });
@@ -554,7 +555,7 @@ describe("Content types", () => {
       const transactionReferenceMessage = messages[1];
       expect(transactionReferenceMessage.content).toEqual(transactionReference);
       expect(transactionReferenceMessage.contentType).toEqual(
-        transactionReferenceContentType(),
+        contentTypeTransactionReference(),
       );
       expect(transactionReferenceMessage.fallback).toBe(
         `[Crypto transaction] Use a blockchain explorer to learn more using the transaction hash: 1234567890`,
@@ -588,7 +589,7 @@ describe("Content types", () => {
       const walletSendCallsMessage = messages[1];
       expect(walletSendCallsMessage.content).toEqual(walletSendCalls);
       expect(walletSendCallsMessage.contentType).toEqual(
-        walletSendCallsContentType(),
+        contentTypeWalletSendCalls(),
       );
       expect(walletSendCallsMessage.fallback).toBe(
         `[Transaction request generated]: ${JSON.stringify(walletSendCalls)}`,
@@ -596,7 +597,7 @@ describe("Content types", () => {
       const message = client1.conversations.getMessageById(walletSendCallsId);
       expect(message).toBeDefined();
       expect(message?.content).toEqual(walletSendCalls);
-      expect(message?.contentType).toEqual(walletSendCallsContentType());
+      expect(message?.contentType).toEqual(contentTypeWalletSendCalls());
     });
 
     it("should send and receive wallet send calls content with multiple calls", async () => {
@@ -628,7 +629,7 @@ describe("Content types", () => {
       const walletSendCallsMessage = messages[1];
       expect(walletSendCallsMessage.content).toEqual(walletSendCalls);
       expect(walletSendCallsMessage.contentType).toEqual(
-        walletSendCallsContentType(),
+        contentTypeWalletSendCalls(),
       );
       expect(walletSendCallsMessage.fallback).toBe(
         `[Transaction request generated]: ${JSON.stringify(walletSendCalls)}`,
@@ -667,7 +668,7 @@ describe("Content types", () => {
       const walletSendCallsMessage = messages[1];
       expect(walletSendCallsMessage.content).toEqual(walletSendCalls);
       expect(walletSendCallsMessage.contentType).toEqual(
-        walletSendCallsContentType(),
+        contentTypeWalletSendCalls(),
       );
       expect(walletSendCallsMessage.fallback).toBe(
         `[Transaction request generated]: ${JSON.stringify(walletSendCalls)}`,
@@ -758,7 +759,7 @@ describe("Content types", () => {
 
       const messages = await group.messages();
       const actionsMessage = messages[1];
-      expect(actionsMessage.contentType).toEqual(actionsContentType());
+      expect(actionsMessage.contentType).toEqual(contentTypeActions());
       const actionsContent = actionsMessage.content as Actions;
       expect(actionsContent).toEqual(actions);
       expect(actionsMessage.fallback).toBe(
@@ -767,7 +768,7 @@ describe("Content types", () => {
       const message = client1.conversations.getMessageById(actionsId);
       expect(message).toBeDefined();
       expect(message?.content).toEqual(actions);
-      expect(message?.contentType).toEqual(actionsContentType());
+      expect(message?.contentType).toEqual(contentTypeActions());
     });
 
     it("should send and receive actions with all styles", async () => {
@@ -804,7 +805,7 @@ describe("Content types", () => {
       const messages = await group.messages();
       const actionsMessage = messages[1];
       expect(actionsMessage.content).toEqual(actions);
-      expect(actionsMessage.contentType).toEqual(actionsContentType());
+      expect(actionsMessage.contentType).toEqual(contentTypeActions());
       expect(actionsMessage.fallback).toBe(
         `All styles\n\n[1] Primary\n[2] Secondary\n[3] Danger\n\nReply with the number to select`,
       );
@@ -838,7 +839,7 @@ describe("Content types", () => {
       const messages = await group.messages();
       const actionsMessage = messages[1];
       expect(actionsMessage.content).toEqual(actions);
-      expect(actionsMessage.contentType).toEqual(actionsContentType());
+      expect(actionsMessage.contentType).toEqual(contentTypeActions());
       expect(actionsMessage.fallback).toBe(
         `Expiring action\n\n[1] Option 1\n\nReply with the number to select`,
       );
@@ -869,7 +870,7 @@ describe("Content types", () => {
       const messages = await group.messages();
       const actionsMessage = messages[1];
       expect(actionsMessage.content).toEqual(actions);
-      expect(actionsMessage.contentType).toEqual(actionsContentType());
+      expect(actionsMessage.contentType).toEqual(contentTypeActions());
       expect(actionsMessage.fallback).toBe(
         `Action with image\n\n[1] Option 1\n\nReply with the number to select`,
       );
@@ -893,13 +894,13 @@ describe("Content types", () => {
 
       const messages = await group.messages();
       const intentMessage = messages[1];
-      expect(intentMessage.contentType).toEqual(intentContentType());
+      expect(intentMessage.contentType).toEqual(contentTypeIntent());
       expect(intentMessage.content).toEqual(intent);
       expect(intentMessage.fallback).toBe(`User selected action: opt-1`);
       const message = client1.conversations.getMessageById(intentId);
       expect(message).toBeDefined();
       expect(message?.content).toEqual(intent);
-      expect(message?.contentType).toEqual(intentContentType());
+      expect(message?.contentType).toEqual(contentTypeIntent());
     });
 
     it("should send and receive intent with metadata", async () => {
@@ -922,7 +923,7 @@ describe("Content types", () => {
 
       const messages = await group.messages();
       const intentMessage = messages[1];
-      expect(intentMessage.contentType).toEqual(intentContentType());
+      expect(intentMessage.contentType).toEqual(contentTypeIntent());
       expect(intentMessage.content).toEqual(intent);
       expect(intentMessage.fallback).toBe(`User selected action: opt-2`);
     });
@@ -948,10 +949,10 @@ describe("Content types", () => {
     expect(messages.length).toBe(10);
 
     for (const message of messages) {
-      expect(message.contentType).toEqual(groupUpdatedContentType());
+      expect(message.contentType).toEqual(contentTypeGroupUpdated());
       const groupUpdated = client1.conversations.getMessageById(message.id);
       expect(groupUpdated?.content).toEqual(message.content);
-      expect(groupUpdated?.contentType).toEqual(groupUpdatedContentType());
+      expect(groupUpdated?.contentType).toEqual(contentTypeGroupUpdated());
     }
 
     expect(messages[0].content).toEqual({
@@ -973,7 +974,7 @@ describe("Content types", () => {
       leftInboxes: [],
       metadataFieldChanges: [
         {
-          fieldName: MetadataFieldName.GroupName,
+          fieldName: metadataFieldName(MetadataField.GroupName),
           oldValue: "",
           newValue: "test",
         },
@@ -990,7 +991,7 @@ describe("Content types", () => {
       leftInboxes: [],
       metadataFieldChanges: [
         {
-          fieldName: MetadataFieldName.Description,
+          fieldName: metadataFieldName(MetadataField.Description),
           oldValue: "",
           newValue: "test",
         },
@@ -1007,7 +1008,7 @@ describe("Content types", () => {
       leftInboxes: [],
       metadataFieldChanges: [
         {
-          fieldName: MetadataFieldName.GroupImageUrlSquare,
+          fieldName: metadataFieldName(MetadataField.GroupImageUrlSquare),
           oldValue: "",
           newValue: "test",
         },
@@ -1024,7 +1025,7 @@ describe("Content types", () => {
       leftInboxes: [],
       metadataFieldChanges: [
         {
-          fieldName: MetadataFieldName.AppData,
+          fieldName: metadataFieldName(MetadataField.AppData),
           oldValue: "",
           newValue: "test",
         },

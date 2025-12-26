@@ -3,7 +3,8 @@ import {
   ContentType,
   ConversationType,
   DeliveryStatus,
-  MetadataFieldName,
+  MetadataField,
+  metadataFieldName,
   type GroupUpdated,
   type MessageDisappearingSettings,
 } from "@xmtp/node-bindings";
@@ -197,7 +198,7 @@ describe("Group", () => {
     const message = messages[0] as DecodedMessage<GroupUpdated>;
     expect(message.content!.metadataFieldChanges).toHaveLength(1);
     expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
-      MetadataFieldName.GroupName,
+      metadataFieldName(MetadataField.GroupName),
     );
     expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
     expect(message.content!.metadataFieldChanges[0].newValue).toBe(newName);
@@ -216,7 +217,7 @@ describe("Group", () => {
     const message = messages[0] as DecodedMessage<GroupUpdated>;
     expect(message.content!.metadataFieldChanges).toHaveLength(1);
     expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
-      MetadataFieldName.GroupImageUrlSquare,
+      metadataFieldName(MetadataField.GroupImageUrlSquare),
     );
     expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
     expect(message.content!.metadataFieldChanges[0].newValue).toBe(imageUrl);
@@ -235,7 +236,7 @@ describe("Group", () => {
     const message = messages[0] as DecodedMessage<GroupUpdated>;
     expect(message.content!.metadataFieldChanges).toHaveLength(1);
     expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
-      MetadataFieldName.Description,
+      metadataFieldName(MetadataField.Description),
     );
     expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
     expect(message.content!.metadataFieldChanges[0].newValue).toBe(
@@ -256,7 +257,7 @@ describe("Group", () => {
     const message = messages[0] as DecodedMessage<GroupUpdated>;
     expect(message.content!.metadataFieldChanges).toHaveLength(1);
     expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
-      MetadataFieldName.AppData,
+      metadataFieldName(MetadataField.AppData),
     );
     expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
     expect(message.content!.metadataFieldChanges[0].newValue).toBe(appData);
@@ -609,7 +610,7 @@ describe("Group", () => {
     expect(fieldChange1.content?.metadataFieldChanges).toBeDefined();
     expect(fieldChange1.content?.metadataFieldChanges.length).toBe(1);
     expect(fieldChange1.content?.metadataFieldChanges[0].fieldName).toBe(
-      MetadataFieldName.MessageDisappearFromNs,
+      metadataFieldName(MetadataField.MessageExpirationFromNs),
     );
     expect(fieldChange1.content?.metadataFieldChanges[0].oldValue).toBe("1");
     expect(fieldChange1.content?.metadataFieldChanges[0].newValue).toBe("0");
@@ -618,7 +619,7 @@ describe("Group", () => {
     expect(fieldChange2.content?.metadataFieldChanges).toBeDefined();
     expect(fieldChange2.content?.metadataFieldChanges.length).toBe(1);
     expect(fieldChange2.content?.metadataFieldChanges[0].fieldName).toBe(
-      MetadataFieldName.MessageDisappearInNs,
+      metadataFieldName(MetadataField.MessageExpirationInNs),
     );
     expect(fieldChange2.content?.metadataFieldChanges[0].oldValue).toBe(
       "2000000000",

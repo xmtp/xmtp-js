@@ -5,8 +5,9 @@ import {
   type EncodedContent as PrimitivesEncodedContent,
 } from "@xmtp/content-type-primitives";
 import {
+  contentTypeGroupUpdated,
   GroupMessageKind,
-  groupUpdatedContentType,
+  LogLevel,
   type ContentTypeId,
   type Identifier,
   type Message,
@@ -67,7 +68,8 @@ export class Client<
     });
     super(
       worker,
-      options?.loggingLevel !== undefined && options.loggingLevel !== "off",
+      options?.loggingLevel !== undefined &&
+        options.loggingLevel !== LogLevel.Off,
     );
     this.#options = options;
     this.#conversations = new Conversations(this);
@@ -752,7 +754,7 @@ export class Client<
 
     // throw an error if there's an invalid group membership change message
     if (
-      contentTypesAreEqual(contentType, groupUpdatedContentType()) &&
+      contentTypesAreEqual(contentType, contentTypeGroupUpdated()) &&
       message.kind !== GroupMessageKind.MembershipChange
     ) {
       throw new InvalidGroupMembershipChangeError(message.id);
