@@ -1,16 +1,16 @@
-import type {
-  ConsentState,
-  Conversation,
-  ConversationListItem,
-  Conversations,
-  CreateDMOptions,
-  CreateGroupOptions,
-  DecodedMessage,
-  Identifier,
-  ListConversationsOptions,
-  Message,
+import {
+  ConversationType,
+  type ConsentState,
+  type Conversation,
+  type ConversationListItem,
+  type Conversations,
+  type CreateDMOptions,
+  type CreateGroupOptions,
+  type DecodedMessage,
+  type Identifier,
+  type ListConversationsOptions,
+  type Message,
 } from "@xmtp/wasm-bindings";
-import { ConversationType } from "@/types/enums";
 import { type HmacKeys } from "@/utils/conversions";
 import type { StreamCallback } from "@/utils/streams";
 import type { WorkerClient } from "@/WorkerClient";

@@ -1,5 +1,9 @@
-import type { UserPreference } from "@xmtp/wasm-bindings";
-import type { Consent, ConsentEntityType, ConsentState } from "@/types/enums";
+import type {
+  Consent,
+  ConsentEntityType,
+  ConsentState,
+  UserPreference,
+} from "@xmtp/wasm-bindings";
 import {
   createStream,
   type StreamCallback,
@@ -96,7 +100,7 @@ export class Preferences<ContentTypes = unknown> {
     return this.#client.sendMessage("preferences.getConsentState", {
       entityType,
       entity,
-    }) as Promise<ConsentState>;
+    });
   }
 
   /**

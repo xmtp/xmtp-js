@@ -1,11 +1,11 @@
-import type { Identifier } from "@xmtp/wasm-bindings";
-import type { Client } from "@/Client";
-import { Conversation } from "@/Conversation";
 import type {
+  Identifier,
   MetadataField,
   PermissionPolicy,
   PermissionUpdateType,
-} from "@/types/enums";
+} from "@xmtp/wasm-bindings";
+import type { Client } from "@/Client";
+import { Conversation } from "@/Conversation";
 import type { SafeConversation } from "@/utils/conversions";
 
 /**
