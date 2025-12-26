@@ -1,11 +1,12 @@
 import type {
+  ConsentState,
+  ConversationType,
   CreateDMOptions,
   CreateGroupOptions,
   DecodedMessage,
   Identifier,
   ListConversationsOptions,
 } from "@xmtp/wasm-bindings";
-import type { ConsentState, ConversationType } from "@/types/enums";
 import type { HmacKeys, SafeConversation } from "@/utils/conversions";
 
 export type ConversationsAction =

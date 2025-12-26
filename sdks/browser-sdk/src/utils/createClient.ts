@@ -1,5 +1,6 @@
 import {
   createClient as createWasmClient,
+  DeviceSyncWorkerMode,
   generateInboxId,
   getInboxIdForIdentifier,
   type Identifier,
@@ -35,8 +36,8 @@ export const createClient = async (
       : options.historySyncUrl;
 
   const deviceSyncWorkerMode = options?.disableDeviceSync
-    ? "disabled"
-    : "enabled";
+    ? DeviceSyncWorkerMode.Disabled
+    : DeviceSyncWorkerMode.Enabled;
 
   return createWasmClient(
     host,

@@ -1,29 +1,30 @@
-import type {
-  Actions,
-  Attachment,
-  ConsentState,
-  Conversation,
-  ConversationDebugInfo,
-  DecodedMessage,
-  EncodedContent,
-  GroupMember,
-  HmacKey,
-  Identifier,
-  Intent,
-  ListMessagesOptions,
-  Message,
-  MessageDisappearingSettings,
-  MetadataField,
-  MultiRemoteAttachment,
-  PermissionPolicy,
-  PermissionUpdateType,
-  Reaction,
-  RemoteAttachment,
-  Reply,
-  SendMessageOpts,
+import {
+  GroupMembershipState,
   SortDirection,
-  TransactionReference,
-  WalletSendCalls,
+  type Actions,
+  type Attachment,
+  type ConsentState,
+  type Conversation,
+  type ConversationDebugInfo,
+  type DecodedMessage,
+  type EncodedContent,
+  type GroupMember,
+  type HmacKey,
+  type Identifier,
+  type Intent,
+  type ListMessagesOptions,
+  type Message,
+  type MessageDisappearingSettings,
+  type MetadataField,
+  type MultiRemoteAttachment,
+  type PermissionPolicy,
+  type PermissionUpdateType,
+  type Reaction,
+  type RemoteAttachment,
+  type Reply,
+  type SendMessageOpts,
+  type TransactionReference,
+  type WalletSendCalls,
 } from "@xmtp/wasm-bindings";
 import type { LastReadTimes } from "@/utils/conversions";
 import type { StreamCallback } from "@/utils/streams";
@@ -104,7 +105,7 @@ export class WorkerConversation {
   async lastMessage(): Promise<DecodedMessage | undefined> {
     const messages = await this.messages({
       limit: 1n,
-      direction: "descending" as SortDirection,
+      direction: SortDirection.Descending,
     });
     if (messages.length > 0) {
       return messages[0];
@@ -339,7 +340,7 @@ export class WorkerConversation {
   }
 
   get isPendingRemoval() {
-    return this.#group.membershipState() === "pendingRemove";
+    return this.#group.membershipState() === GroupMembershipState.PendingRemove;
   }
 
   async lastReadTimes() {

@@ -6,6 +6,7 @@ import type {
   GroupUpdated,
   Intent,
   LeaveRequest,
+  LogLevel,
   MultiRemoteAttachment,
   Reaction,
   ReadReceipt,
@@ -89,7 +90,7 @@ export type OtherOptions = {
   /**
    * Logging level
    */
-  loggingLevel?: "off" | "error" | "warn" | "info" | "debug" | "trace";
+  loggingLevel?: LogLevel;
   /**
    * Disable automatic registration when creating a client
    */

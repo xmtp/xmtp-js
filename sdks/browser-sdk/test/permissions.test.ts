@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest";
 import {
   GroupPermissionsOptions,
   MetadataField,
   PermissionPolicy,
   PermissionUpdateType,
-} from "@/types/enums";
+} from "@xmtp/wasm-bindings";
+import { describe, expect, it } from "vitest";
 import { createRegisteredClient, createSigner } from "@test/helpers";
 
 describe("Group permissions", () => {
