@@ -5,7 +5,6 @@ export * from "./utils/inboxId";
 export type * from "./utils/signer";
 export type * from "./utils/streams";
 export * from "./utils/validation";
-
 export type { AsyncStreamProxy } from "./AsyncStream";
 export { Client } from "./Client";
 export { Conversation } from "./Conversation";
@@ -13,7 +12,6 @@ export { Conversations } from "./Conversations";
 export { DecodedMessage } from "./DecodedMessage";
 export { Dm } from "./Dm";
 export { Group } from "./Group";
-
 export type {
   Action,
   Actions,
@@ -63,12 +61,22 @@ export type {
   WalletSendCalls,
 } from "@xmtp/node-bindings";
 export {
-  actionsContentType,
   ActionStyle,
-  attachmentContentType,
   ConsentEntityType,
   ConsentState,
   ContentType,
+  contentTypeActions,
+  contentTypeAttachment,
+  contentTypeGroupUpdated,
+  contentTypeIntent,
+  contentTypeLeaveRequest,
+  contentTypeMultiRemoteAttachment,
+  contentTypeReaction,
+  contentTypeReadReceipt,
+  contentTypeRemoteAttachment,
+  contentTypeReply,
+  contentTypeTransactionReference,
+  contentTypeWalletSendCalls,
   ConversationType,
   decryptAttachment,
   DeliveryStatus,
@@ -87,25 +95,15 @@ export {
   GroupMembershipState,
   GroupMessageKind,
   GroupPermissionsOptions,
-  groupUpdatedContentType,
   IdentifierKind,
-  intentContentType,
-  leaveRequestContentType,
   ListConversationsOrderBy,
   LogLevel,
   MessageSortBy,
   MetadataField,
-  multiRemoteAttachmentContentType,
   PermissionLevel,
   PermissionPolicy,
   PermissionUpdateType,
   ReactionAction,
-  reactionContentType,
   ReactionSchema,
-  readReceiptContentType,
-  remoteAttachmentContentType,
-  replyContentType,
   SortDirection,
-  transactionReferenceContentType,
-  walletSendCallsContentType,
 } from "@xmtp/node-bindings";
