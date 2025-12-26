@@ -1,6 +1,6 @@
+import { IdentifierKind } from "@xmtp/wasm-bindings";
 import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
-import { IdentifierKind } from "@/types/enums";
 import { SignerUnavailableError } from "@/utils/errors";
 import { uuid } from "@/utils/uuid";
 import {

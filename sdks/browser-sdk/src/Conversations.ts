@@ -1,15 +1,16 @@
-import type {
-  CreateDMOptions,
-  CreateGroupOptions,
-  Identifier,
-  ListConversationsOptions,
-  DecodedMessage as XmtpDecodedMessage,
+import {
+  ConversationType,
+  type ConsentState,
+  type CreateDMOptions,
+  type CreateGroupOptions,
+  type Identifier,
+  type ListConversationsOptions,
+  type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
 import type { Client } from "@/Client";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
-import { ConversationType, type ConsentState } from "@/types/enums";
 import type { SafeConversation } from "@/utils/conversions";
 import {
   createStream,
@@ -72,7 +73,7 @@ export class Conversations<ContentTypes = unknown> {
       },
     );
     if (data) {
-      switch (data.metadata.conversationType as ConversationType) {
+      switch (data.metadata.conversationType) {
         case ConversationType.Group:
           return new Group(this.#client, data.id, data);
         case ConversationType.Dm:
@@ -143,7 +144,7 @@ export class Conversations<ContentTypes = unknown> {
 
     return conversations
       .map((conversation) => {
-        switch (conversation.metadata.conversationType as ConversationType) {
+        switch (conversation.metadata.conversationType) {
           case ConversationType.Dm:
             return new Dm(this.#client, conversation.id, conversation);
           case ConversationType.Group:
@@ -338,7 +339,7 @@ export class Conversations<ContentTypes = unknown> {
       );
     };
     const convertConversation = (value: SafeConversation) => {
-      switch (value.metadata.conversationType as ConversationType) {
+      switch (value.metadata.conversationType) {
         case ConversationType.Group:
           return new Group(this.#client, value.id, value) as T;
         case ConversationType.Dm:

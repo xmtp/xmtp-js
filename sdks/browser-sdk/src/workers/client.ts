@@ -1,4 +1,5 @@
 import init, {
+  LogLevel,
   type Consent,
   type Conversation,
   type Message,
@@ -83,7 +84,7 @@ self.onmessage = async (
       maybeClient = await WorkerClient.create(data.identifier, data.options);
       enableLogging =
         data.options?.loggingLevel !== undefined &&
-        data.options.loggingLevel !== "off";
+        data.options.loggingLevel !== LogLevel.Off;
       postMessage({
         id,
         action,

@@ -5,6 +5,7 @@ import {
   type EncodedContent as PrimitivesEncodedContent,
 } from "@xmtp/content-type-primitives";
 import {
+  GroupMessageKind,
   groupUpdatedContentType,
   type ContentTypeId,
   type Identifier,
@@ -752,7 +753,7 @@ export class Client<
     // throw an error if there's an invalid group membership change message
     if (
       contentTypesAreEqual(contentType, groupUpdatedContentType()) &&
-      message.kind !== "membershipchange"
+      message.kind !== GroupMessageKind.MembershipChange
     ) {
       throw new InvalidGroupMembershipChangeError(message.id);
     }

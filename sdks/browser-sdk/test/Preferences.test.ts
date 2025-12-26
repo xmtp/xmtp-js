@@ -1,5 +1,5 @@
+import { ConsentEntityType, ConsentState } from "@xmtp/wasm-bindings";
 import { describe, expect, it } from "vitest";
-import { ConsentEntityType, ConsentState } from "@/types/enums";
 import { uuid } from "@/utils/uuid";
 import {
   createClient,

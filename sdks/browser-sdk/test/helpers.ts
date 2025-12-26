@@ -2,12 +2,15 @@ import type {
   ContentCodec,
   EncodedContent,
 } from "@xmtp/content-type-primitives";
-import type { ContentTypeId, Identifier } from "@xmtp/wasm-bindings";
+import {
+  IdentifierKind,
+  type ContentTypeId,
+  type Identifier,
+} from "@xmtp/wasm-bindings";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { Client } from "@/Client";
-import { IdentifierKind } from "@/types/enums";
 import type { ClientOptions } from "@/types/options";
 import type { Signer } from "@/utils/signer";
 

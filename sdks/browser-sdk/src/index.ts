@@ -10,23 +10,6 @@ export type * from "./types/options";
 export * from "./utils/conversions";
 export * from "./utils/contentTypes";
 export type { AsyncStreamProxy } from "./AsyncStream";
-export {
-  ConsentEntityType,
-  ConsentState,
-  ContentType,
-  ConversationType,
-  DeliveryStatus,
-  GroupMembershipState,
-  GroupMessageKind,
-  GroupPermissionsOptions,
-  IdentifierKind,
-  MetadataField,
-  PermissionLevel,
-  PermissionPolicy,
-  PermissionUpdateType,
-  SortDirection,
-} from "./types/enums";
-export type { Consent } from "./types/enums";
 export type {
   ContentTypeId,
   CreateDMOptions,
@@ -47,9 +30,24 @@ export type {
   MessageDisappearingSettings,
   UserPreference,
 } from "@xmtp/wasm-bindings";
+export type { Consent } from "@xmtp/wasm-bindings";
 export {
+  ConsentEntityType,
+  ConsentState,
+  ContentType,
   ConversationListItem,
+  ConversationType,
+  DeliveryStatus,
+  GroupMembershipState,
+  GroupMessageKind,
+  GroupPermissionsOptions,
+  IdentifierKind,
+  MetadataField,
+  PermissionLevel,
+  PermissionPolicy,
+  PermissionUpdateType,
   SignatureRequestHandle,
+  SortDirection,
 } from "@xmtp/wasm-bindings";
 export type { Signer, EOASigner, SCWSigner } from "./utils/signer";
 export * from "./utils/errors";

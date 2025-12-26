@@ -1,4 +1,7 @@
 import {
+  ActionStyle,
+  ReactionAction,
+  ReactionSchema,
   type Actions,
   type Attachment,
   type Intent,
@@ -80,9 +83,9 @@ describe("Content types", () => {
       const reaction: Reaction = {
         reference: textMessageId,
         referenceInboxId: client1.inboxId!,
-        action: "added",
+        action: ReactionAction.Added,
         content: "👍",
-        schema: "unicode",
+        schema: ReactionSchema.Unicode,
       };
       const reactionId = await group.sendReaction(reaction);
       expect(reactionId).toBeDefined();
@@ -113,9 +116,9 @@ describe("Content types", () => {
       const reaction: Reaction = {
         reference: textMessageId,
         referenceInboxId: client1.inboxId!,
-        action: "removed",
+        action: ReactionAction.Removed,
         content: "👍",
-        schema: "unicode",
+        schema: ReactionSchema.Unicode,
       };
       const reactionId = await group.sendReaction(reaction);
       const messages = await group.messages();
@@ -141,9 +144,9 @@ describe("Content types", () => {
       const reaction: Reaction = {
         reference: textMessageId,
         referenceInboxId: client1.inboxId!,
-        action: "added",
+        action: ReactionAction.Added,
         content: "custom_reaction",
-        schema: "custom",
+        schema: ReactionSchema.Custom,
       };
       const reactionId = await group.sendReaction(reaction);
       const messages = await group.messages();
@@ -169,9 +172,9 @@ describe("Content types", () => {
       const reaction: Reaction = {
         reference: textMessageId,
         referenceInboxId: client1.inboxId!,
-        action: "added",
+        action: ReactionAction.Added,
         content: ":grin:",
-        schema: "shortcode",
+        schema: ReactionSchema.Shortcode,
       };
       const reactionId = await group.sendReaction(reaction);
       const messages = await group.messages();
@@ -747,12 +750,12 @@ describe("Content types", () => {
           {
             id: "opt-1",
             label: "Option 1",
-            style: "primary",
+            style: ActionStyle.Primary,
           },
           {
             id: "opt-2",
             label: "Option 2",
-            style: "secondary",
+            style: ActionStyle.Secondary,
           },
         ],
       };
@@ -787,17 +790,17 @@ describe("Content types", () => {
           {
             id: "primary",
             label: "Primary",
-            style: "primary",
+            style: ActionStyle.Primary,
           },
           {
             id: "secondary",
             label: "Secondary",
-            style: "secondary",
+            style: ActionStyle.Secondary,
           },
           {
             id: "danger",
             label: "Danger",
-            style: "danger",
+            style: ActionStyle.Danger,
           },
         ],
       };
@@ -829,7 +832,7 @@ describe("Content types", () => {
           {
             id: "opt-1",
             label: "Option 1",
-            style: "primary",
+            style: ActionStyle.Primary,
             expiresAtNs: expiresAtNs,
           },
         ],
@@ -861,7 +864,7 @@ describe("Content types", () => {
           {
             id: "opt-1",
             label: "Option 1",
-            style: "primary",
+            style: ActionStyle.Primary,
             imageUrl: "https://example.com/image.png",
           },
         ],

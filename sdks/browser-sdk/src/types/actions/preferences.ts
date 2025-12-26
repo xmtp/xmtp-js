@@ -1,10 +1,10 @@
 import type {
   Consent,
+  ConsentEntityType,
   ConsentState,
   GroupSyncSummary,
   InboxState,
 } from "@xmtp/wasm-bindings";
-import type { ConsentEntityType } from "@/types/enums";
 
 export type PreferencesAction =
   | {
