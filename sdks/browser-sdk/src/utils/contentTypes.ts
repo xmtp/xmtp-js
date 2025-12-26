@@ -1,6 +1,17 @@
 import init, {
-  actionsContentType as wasmActionsContentType,
-  attachmentContentType as wasmAttachmentContentType,
+  contentTypeActions as wasmContentTypeActions,
+  contentTypeAttachment as wasmContentTypeAttachment,
+  contentTypeGroupUpdated as wasmContentTypeGroupUpdated,
+  contentTypeIntent as wasmContentTypeIntent,
+  contentTypeMarkdown as wasmContentTypeMarkdown,
+  contentTypeMultiRemoteAttachment as wasmContentTypeMultiRemoteAttachment,
+  contentTypeReaction as wasmContentTypeReaction,
+  contentTypeReadReceipt as wasmContentTypeReadReceipt,
+  contentTypeRemoteAttachment as wasmContentTypeRemoteAttachment,
+  contentTypeReply as wasmContentTypeReply,
+  contentTypeText as wasmContentTypeText,
+  contentTypeTransactionReference as wasmContentTypeTransactionReference,
+  contentTypeWalletSendCalls as wasmContentTypeWalletSendCalls,
   decryptAttachment as wasmDecryptAttachment,
   encodeActions as wasmEncodeActions,
   encodeAttachment as wasmEncodeAttachment,
@@ -14,17 +25,6 @@ import init, {
   encodeTransactionReference as wasmEncodeTransactionReference,
   encodeWalletSendCalls as wasmEncodeWalletSendCalls,
   encryptAttachment as wasmEncryptAttachment,
-  groupUpdatedContentType as wasmGroupUpdatedContentType,
-  intentContentType as wasmIntentContentType,
-  markdownContentType as wasmMarkdownContentType,
-  multiRemoteAttachmentContentType as wasmMultiRemoteAttachmentContentType,
-  reactionContentType as wasmReactionContentType,
-  readReceiptContentType as wasmReadReceiptContentType,
-  remoteAttachmentContentType as wasmRemoteAttachmentContentType,
-  replyContentType as wasmReplyContentType,
-  textContentType as wasmTextContentType,
-  transactionReferenceContentType as wasmTransactionReferenceContentType,
-  walletSendCallsContentType as wasmWalletSendCallsContentType,
 } from "@xmtp/wasm-bindings";
 
 const initPromise = init();
@@ -52,25 +52,25 @@ export const encodeTransactionReference = wrap(wasmEncodeTransactionReference);
 export const encodeWalletSendCalls = wrap(wasmEncodeWalletSendCalls);
 
 // content types
-export const actionsContentType = wrap(wasmActionsContentType);
-export const attachmentContentType = wrap(wasmAttachmentContentType);
-export const groupUpdatedContentType = wrap(wasmGroupUpdatedContentType);
-export const intentContentType = wrap(wasmIntentContentType);
-export const markdownContentType = wrap(wasmMarkdownContentType);
-export const multiRemoteAttachmentContentType = wrap(
-  wasmMultiRemoteAttachmentContentType,
+export const contentTypeActions = wrap(wasmContentTypeActions);
+export const contentTypeAttachment = wrap(wasmContentTypeAttachment);
+export const contentTypeGroupUpdated = wrap(wasmContentTypeGroupUpdated);
+export const contentTypeIntent = wrap(wasmContentTypeIntent);
+export const contentTypeMarkdown = wrap(wasmContentTypeMarkdown);
+export const contentTypeMultiRemoteAttachment = wrap(
+  wasmContentTypeMultiRemoteAttachment,
 );
-export const reactionContentType = wrap(wasmReactionContentType);
-export const readReceiptContentType = wrap(wasmReadReceiptContentType);
-export const remoteAttachmentContentType = wrap(
-  wasmRemoteAttachmentContentType,
+export const contentTypeReaction = wrap(wasmContentTypeReaction);
+export const contentTypeReadReceipt = wrap(wasmContentTypeReadReceipt);
+export const contentTypeRemoteAttachment = wrap(
+  wasmContentTypeRemoteAttachment,
 );
-export const replyContentType = wrap(wasmReplyContentType);
-export const textContentType = wrap(wasmTextContentType);
-export const transactionReferenceContentType = wrap(
-  wasmTransactionReferenceContentType,
+export const contentTypeReply = wrap(wasmContentTypeReply);
+export const contentTypeText = wrap(wasmContentTypeText);
+export const contentTypeTransactionReference = wrap(
+  wasmContentTypeTransactionReference,
 );
-export const walletSendCallsContentType = wrap(wasmWalletSendCallsContentType);
+export const contentTypeWalletSendCalls = wrap(wasmContentTypeWalletSendCalls);
 
 // remote attachment encryption
 export const encryptAttachment = wrap(wasmEncryptAttachment);

@@ -2,7 +2,8 @@ import {
   ConsentState,
   ContentType,
   ConversationType,
-  MetadataFieldName,
+  MetadataField,
+  metadataFieldName,
   type GroupUpdated,
   type MessageDisappearingSettings,
 } from "@xmtp/node-bindings";
@@ -292,7 +293,7 @@ describe("Dm", () => {
     expect(fieldChange1.content?.metadataFieldChanges).toBeDefined();
     expect(fieldChange1.content?.metadataFieldChanges.length).toBe(1);
     expect(fieldChange1.content?.metadataFieldChanges[0].fieldName).toBe(
-      MetadataFieldName.MessageDisappearFromNs,
+      metadataFieldName(MetadataField.MessageExpirationFromNs),
     );
     expect(fieldChange1.content?.metadataFieldChanges[0].oldValue).toBe("1");
     expect(fieldChange1.content?.metadataFieldChanges[0].newValue).toBe("0");
@@ -301,7 +302,7 @@ describe("Dm", () => {
     expect(fieldChange2.content?.metadataFieldChanges).toBeDefined();
     expect(fieldChange2.content?.metadataFieldChanges.length).toBe(1);
     expect(fieldChange2.content?.metadataFieldChanges[0].fieldName).toBe(
-      MetadataFieldName.MessageDisappearInNs,
+      metadataFieldName(MetadataField.MessageExpirationInNs),
     );
     expect(fieldChange2.content?.metadataFieldChanges[0].oldValue).toBe(
       "2000000000",
