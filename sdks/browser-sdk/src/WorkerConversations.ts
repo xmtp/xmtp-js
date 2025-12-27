@@ -4,7 +4,7 @@ import {
   type Conversation,
   type ConversationListItem,
   type Conversations,
-  type CreateDMOptions,
+  type CreateDmOptions,
   type CreateGroupOptions,
   type DecodedMessage,
   type Identifier,
@@ -124,12 +124,12 @@ export class WorkerConversations {
     return new WorkerConversation(this.#client, group);
   }
 
-  async newDmWithIdentifier(identifier: Identifier, options?: CreateDMOptions) {
+  async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
     const group = await this.#conversations.createDm(identifier, options);
     return new WorkerConversation(this.#client, group);
   }
 
-  async newDm(inboxId: string, options?: CreateDMOptions) {
+  async newDm(inboxId: string, options?: CreateDmOptions) {
     const group = await this.#conversations.createDmByInboxId(inboxId, options);
     return new WorkerConversation(this.#client, group);
   }

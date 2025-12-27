@@ -3,7 +3,7 @@ import {
   type Consent,
   type ConsentEntityType,
   type Conversations,
-  type UserPreference,
+  type UserPreferenceUpdate,
 } from "@xmtp/wasm-bindings";
 import type { StreamCallback } from "@/utils/streams";
 
@@ -64,10 +64,10 @@ export class WorkerPreferences {
   }
 
   streamPreferences(
-    callback: StreamCallback<UserPreference[]>,
+    callback: StreamCallback<UserPreferenceUpdate[]>,
     onFail: () => void,
   ) {
-    const on_user_preference_update = (preferences: UserPreference[]) => {
+    const on_user_preference_update = (preferences: UserPreferenceUpdate[]) => {
       callback(null, preferences);
     };
     const on_error = (error: Error | null) => {

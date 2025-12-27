@@ -2,7 +2,7 @@ import type {
   Consent,
   ConsentEntityType,
   ConsentState,
-  UserPreference,
+  UserPreferenceUpdate,
 } from "@xmtp/wasm-bindings";
 import {
   createStream,
@@ -137,9 +137,9 @@ export class Preferences<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @returns Stream instance for preference updates
    */
-  async streamPreferences(options?: StreamOptions<UserPreference[]>) {
+  async streamPreferences(options?: StreamOptions<UserPreferenceUpdate[]>) {
     const stream = async (
-      callback: StreamCallback<UserPreference[]>,
+      callback: StreamCallback<UserPreferenceUpdate[]>,
       onFail: () => void,
     ) => {
       const streamId = uuid();
@@ -150,7 +150,7 @@ export class Preferences<ContentTypes = unknown> {
         streamId,
       });
       // handle stream messages
-      return this.#client.handleStreamMessage<UserPreference[]>(
+      return this.#client.handleStreamMessage<UserPreferenceUpdate[]>(
         streamId,
         callback,
         {

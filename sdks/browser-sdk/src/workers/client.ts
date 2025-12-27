@@ -5,7 +5,7 @@ import init, {
   type Message,
   type SignatureRequestHandle,
   type StreamCloser,
-  type UserPreference,
+  type UserPreferenceUpdate,
 } from "@xmtp/wasm-bindings";
 import type {
   ActionErrorData,
@@ -443,7 +443,7 @@ self.onmessage = async (
       case "preferences.streamPreferences": {
         const streamCallback = (
           error: Error | null,
-          value: UserPreference[] | undefined,
+          value: UserPreferenceUpdate[] | undefined,
         ) => {
           if (error) {
             postStreamMessageError({
