@@ -1,7 +1,7 @@
 import type {
   ConsentState,
   ConversationType,
-  CreateDMOptions,
+  CreateDmOptions,
   CreateGroupOptions,
   DecodedMessage,
   Identifier,
@@ -90,7 +90,7 @@ export type ConversationsAction =
       result: SafeConversation;
       data: {
         identifier: Identifier;
-        options?: CreateDMOptions;
+        options?: CreateDmOptions;
       };
     }
   | {
@@ -99,7 +99,7 @@ export type ConversationsAction =
       result: SafeConversation;
       data: {
         inboxId: string;
-        options?: CreateDMOptions;
+        options?: CreateDmOptions;
       };
     }
   | {

@@ -1,7 +1,7 @@
 import type {
   Consent,
   DecodedMessage,
-  UserPreference,
+  UserPreferenceUpdate,
 } from "@xmtp/wasm-bindings";
 import type { SafeConversation } from "@/utils/conversions";
 
@@ -24,7 +24,7 @@ export type StreamAction =
   | {
       action: "stream.preferences";
       streamId: string;
-      result: UserPreference[] | undefined;
+      result: UserPreferenceUpdate[] | undefined;
     }
   | {
       action: "stream.messageDeleted";

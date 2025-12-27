@@ -18,7 +18,7 @@ export type {
   Consent,
   ConversationDebugInfo,
   ConversationListItem,
-  CreateDMOptions,
+  CreateDmOptions,
   CreateGroupOptions,
   Cursor,
   EncryptedAttachment,
@@ -54,7 +54,7 @@ export type {
   SignatureRequestHandle,
   TransactionMetadata,
   TransactionReference,
-  UserPreference,
+  UserPreferenceUpdate,
   WalletCall,
   WalletSendCalls,
 } from "@xmtp/wasm-bindings";

@@ -1,7 +1,7 @@
 import {
   ConversationType,
   type ConsentState,
-  type CreateDMOptions,
+  type CreateDmOptions,
   type CreateGroupOptions,
   type Identifier,
   type ListConversationsOptions,
@@ -261,7 +261,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional DM creation options
    * @returns Promise that resolves with the new DM
    */
-  async newDmWithIdentifier(identifier: Identifier, options?: CreateDMOptions) {
+  async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
     const conversation = await this.#client.sendMessage(
       "conversations.newDmWithIdentifier",
       {
@@ -280,7 +280,7 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional DM creation options
    * @returns Promise that resolves with the new DM
    */
-  async newDm(inboxId: string, options?: CreateDMOptions) {
+  async newDm(inboxId: string, options?: CreateDmOptions) {
     const conversation = await this.#client.sendMessage("conversations.newDm", {
       inboxId,
       options,
