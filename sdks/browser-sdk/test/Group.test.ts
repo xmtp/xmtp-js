@@ -10,6 +10,7 @@ import {
 } from "@xmtp/wasm-bindings";
 import { describe, expect, it } from "vitest";
 import type { DecodedMessage } from "@/DecodedMessage";
+import { contentTypeLeaveRequest } from "@/utils/contentTypes";
 import { createRegisteredClient, createSigner, sleep } from "@test/helpers";
 
 describe("Group", () => {
@@ -784,6 +785,12 @@ describe("Group", () => {
     await group2.requestRemoval();
     expect(await group2.isPendingRemoval()).toBe(true);
     expect(await group2.isActive()).toBe(true);
+
+    const messages = await group2.messages();
+    const leaveRequestMessage = messages[1];
+    expect(leaveRequestMessage.contentType).toEqual(
+      await contentTypeLeaveRequest(),
+    );
   });
 
   it("should remove a member after processing their removal request", async () => {

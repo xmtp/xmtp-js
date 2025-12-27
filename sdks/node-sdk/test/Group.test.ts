@@ -1,6 +1,7 @@
 import {
   ConsentState,
   ContentType,
+  contentTypeLeaveRequest,
   ConversationType,
   DeliveryStatus,
   MetadataField,
@@ -777,6 +778,10 @@ describe("Group", () => {
     await group2.requestRemoval();
     expect(group2.isPendingRemoval).toBe(true);
     expect(group2.isActive).toBe(true);
+
+    const messages = await group2.messages();
+    const leaveRequestMessage = messages[1];
+    expect(leaveRequestMessage.contentType).toEqual(contentTypeLeaveRequest());
   });
 
   it("should remove a member after processing their removal request", async () => {
