@@ -1,4 +1,8 @@
-import { ConsentEntityType, ConsentState } from "@xmtp/node-bindings";
+import {
+  ConsentEntityType,
+  ConsentState,
+  type UserPreferenceUpdate,
+} from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
 import { uuid } from "@/utils/uuid";
 import {
@@ -171,10 +175,20 @@ describe("Preferences", () => {
 
   it("should stream preferences", async () => {
     const { signer } = createSigner();
-    const client = await createRegisteredClient(signer);
-    const stream = await client.preferences.streamPreferences();
+    const client1 = await createRegisteredClient(signer);
+    const { signer: signer2 } = createSigner();
+    const clientB = await createRegisteredClient(signer2);
+    const group = await client1.conversations.newGroup([clientB.inboxId]);
+    const stream = await client1.preferences.streamPreferences();
 
-    await sleep(2000);
+    group.updateConsentState(ConsentState.Denied);
+    await client1.preferences.setConsentStates([
+      {
+        entity: clientB.inboxId,
+        entityType: ConsentEntityType.InboxId,
+        state: ConsentState.Denied,
+      },
+    ]);
 
     const client2 = await createRegisteredClient(signer, {
       dbPath: `./test-${uuid()}.db3`,
@@ -185,27 +199,52 @@ describe("Preferences", () => {
     });
 
     await client3.conversations.syncAll();
-    await sleep(2000);
-    await client.conversations.syncAll();
-    await sleep(2000);
+    await sleep(1000);
+    await client1.conversations.syncAll();
+    await sleep(1000);
     await client2.conversations.syncAll();
-    await sleep(2000);
+    await sleep(1000);
 
     setTimeout(() => {
       void stream.end();
-    }, 2000);
+    }, 100);
 
-    let count = 0;
-    for await (const preferences of stream) {
-      count++;
-      expect(preferences).toBeDefined();
-      expect(preferences.length).toBe(1);
-      expect(preferences[0].type).toBe("HmacKeyUpdate");
-      // for proper typing
-      if (preferences[0].type === "HmacKeyUpdate") {
-        expect(preferences[0].key).toBeDefined();
-      }
+    const preferences: UserPreferenceUpdate[] = [];
+    for await (const update of stream) {
+      preferences.push(...update);
     }
-    expect(count).toBe(2);
+    expect(preferences.length).toBe(4);
+    const consentUpdate1 = preferences[0] as Extract<
+      UserPreferenceUpdate,
+      { type: "ConsentUpdate" }
+    >;
+    expect(consentUpdate1.type).toBe("ConsentUpdate");
+    expect(consentUpdate1.consent).toEqual({
+      entity: group.id,
+      entityType: ConsentEntityType.GroupId,
+      state: ConsentState.Denied,
+    });
+    const consentUpdate2 = preferences[1] as Extract<
+      UserPreferenceUpdate,
+      { type: "ConsentUpdate" }
+    >;
+    expect(consentUpdate2.type).toBe("ConsentUpdate");
+    expect(consentUpdate2.consent).toEqual({
+      entity: clientB.inboxId,
+      entityType: ConsentEntityType.InboxId,
+      state: ConsentState.Denied,
+    });
+    const hmacKeyUpdate1 = preferences[2] as Extract<
+      UserPreferenceUpdate,
+      { type: "HmacKeyUpdate" }
+    >;
+    expect(hmacKeyUpdate1.type).toBe("HmacKeyUpdate");
+    expect(hmacKeyUpdate1.key).toBeInstanceOf(Uint8Array);
+    const hmacKeyUpdate2 = preferences[3] as Extract<
+      UserPreferenceUpdate,
+      { type: "HmacKeyUpdate" }
+    >;
+    expect(hmacKeyUpdate2.type).toBe("HmacKeyUpdate");
+    expect(hmacKeyUpdate2.key).toBeInstanceOf(Uint8Array);
   });
 });
