@@ -3,6 +3,7 @@ import init, {
   contentTypeAttachment as wasmContentTypeAttachment,
   contentTypeGroupUpdated as wasmContentTypeGroupUpdated,
   contentTypeIntent as wasmContentTypeIntent,
+  contentTypeLeaveRequest as wasmContentTypeLeaveRequest,
   contentTypeMarkdown as wasmContentTypeMarkdown,
   contentTypeMultiRemoteAttachment as wasmContentTypeMultiRemoteAttachment,
   contentTypeReaction as wasmContentTypeReaction,
@@ -56,6 +57,7 @@ export const contentTypeActions = wrap(wasmContentTypeActions);
 export const contentTypeAttachment = wrap(wasmContentTypeAttachment);
 export const contentTypeGroupUpdated = wrap(wasmContentTypeGroupUpdated);
 export const contentTypeIntent = wrap(wasmContentTypeIntent);
+export const contentTypeLeaveRequest = wrap(wasmContentTypeLeaveRequest);
 export const contentTypeMarkdown = wrap(wasmContentTypeMarkdown);
 export const contentTypeMultiRemoteAttachment = wrap(
   wasmContentTypeMultiRemoteAttachment,
