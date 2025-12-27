@@ -525,8 +525,8 @@ describe("Group", () => {
 
     // create message disappearing settings so that messages are deleted after 1 second
     const messageDisappearingSettings: MessageDisappearingSettings = {
-      fromNs: 1,
-      inNs: 2_000_000_000,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     };
 
     // create a group with message disappearing settings
@@ -536,8 +536,8 @@ describe("Group", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(group.messageDisappearingSettings()).toEqual({
-      fromNs: 1,
-      inNs: 2_000_000_000,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     });
     expect(group.isMessageDisappearingEnabled()).toBe(true);
 
@@ -555,8 +555,8 @@ describe("Group", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(group2.messageDisappearingSettings()).toEqual({
-      fromNs: 1,
-      inNs: 2_000_000_000,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     });
     expect(group2.isMessageDisappearingEnabled()).toBe(true);
 
@@ -589,8 +589,8 @@ describe("Group", () => {
 
     // verify that the message disappearing settings are removed
     expect(group.messageDisappearingSettings()).toEqual({
-      fromNs: 0,
-      inNs: 0,
+      fromNs: 0n,
+      inNs: 0n,
     });
 
     expect(group.isMessageDisappearingEnabled()).toBe(false);
@@ -600,8 +600,8 @@ describe("Group", () => {
 
     // verify that the message disappearing settings are set and disabled
     expect(group2.messageDisappearingSettings()).toEqual({
-      fromNs: 0,
-      inNs: 0,
+      fromNs: 0n,
+      inNs: 0n,
     });
     expect(group2.isMessageDisappearingEnabled()).toBe(false);
 
@@ -721,11 +721,11 @@ describe("Group", () => {
 
     await group.sendText("text 1");
     await sleep(10);
-    const timestamp1 = Date.now() * 1_000_000;
+    const timestamp1 = BigInt(Date.now() * 1_000_000);
     await sleep(10);
     await group.sendText("text 2");
     await sleep(10);
-    const timestamp2 = Date.now() * 1_000_000;
+    const timestamp2 = BigInt(Date.now() * 1_000_000);
     await sleep(10);
     await group.sendText("text 3");
 

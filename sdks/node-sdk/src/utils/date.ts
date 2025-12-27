@@ -1,3 +1,3 @@
-export function nsToDate(ns: number): Date {
-  return new Date(ns / 1_000_000);
+export function nsToDate(ns: bigint): Date {
+  return new Date(Number(ns / 1_000_000n));
 }

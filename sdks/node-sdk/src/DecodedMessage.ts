@@ -89,7 +89,7 @@ export class DecodedMessage<ContentTypes = unknown> {
   contentType: ContentTypeId;
   conversationId: string;
   deliveryStatus: DeliveryStatus;
-  expiresAtNs?: number;
+  expiresAtNs?: bigint;
   expiresAt?: Date;
   fallback?: string;
   id: string;
@@ -98,12 +98,12 @@ export class DecodedMessage<ContentTypes = unknown> {
   reactions: DecodedMessage<Reaction>[];
   senderInboxId: string;
   sentAt: Date;
-  sentAtNs: number;
+  sentAtNs: bigint;
 
   constructor(client: Client<ContentTypes>, message: XmtpDecodedMessage) {
     this.#client = client;
     this.id = message.id;
-    this.expiresAtNs = message.expiresAtNs;
+    this.expiresAtNs = message.expiresAtNs ?? undefined;
     this.expiresAt = message.expiresAtNs
       ? nsToDate(message.expiresAtNs)
       : undefined;

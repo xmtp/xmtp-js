@@ -818,7 +818,7 @@ describe("Content types", () => {
       const client2 = await createRegisteredClient(signer2);
       const group = await client1.conversations.newGroup([client2.inboxId]);
 
-      const expiresAtNs = 1700000000000000000;
+      const expiresAtNs = 1700000000000000000n;
 
       const actions: Actions = {
         id: "expiring-actions",
