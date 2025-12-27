@@ -1,3 +1,7 @@
+import {
+  ConversationType,
+  ListConversationsOrderBy,
+} from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
 import { uuid } from "@/utils/uuid";
 import { createRegisteredClient, createSigner, sleep } from "@test/helpers";
@@ -68,6 +72,78 @@ describe("Conversations", () => {
     const message = client1.conversations.getMessageById(messageId);
     expect(message).toBeDefined();
     expect(message!.id).toBe(messageId);
+  });
+
+  it("should list conversations with options", async () => {
+    const { signer: signer1 } = createSigner();
+    const { signer: signer2 } = createSigner();
+    const { signer: signer3 } = createSigner();
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const client3 = await createRegisteredClient(signer3);
+    const group1 = await client1.conversations.newGroup([client2.inboxId]);
+    const group2 = await client1.conversations.newGroup([client3.inboxId]);
+    const dm1 = await client1.conversations.newDm(client2.inboxId);
+    const dm2 = await client1.conversations.newDm(client3.inboxId);
+
+    // conversations by type (group)
+    const groups = await client1.conversations.list({
+      conversationType: ConversationType.Group,
+    });
+    expect(groups.length).toBe(2);
+    expect(groups[0].id).toBe(group2.id);
+    expect(groups[1].id).toBe(group1.id);
+
+    // conversations by type (dm)
+    const dms = await client1.conversations.list({
+      conversationType: ConversationType.Dm,
+    });
+    expect(dms.length).toBe(2);
+    expect(dms[0].id).toBe(dm2.id);
+    expect(dms[1].id).toBe(dm1.id);
+
+    // conversations by created before timestamp
+    const convos = await client1.conversations.list({
+      createdBeforeNs: dm2.createdAtNs,
+    });
+    expect(convos.length).toBe(3);
+    expect(convos[0].id).toBe(dm1.id);
+    expect(convos[1].id).toBe(group2.id);
+    expect(convos[2].id).toBe(group1.id);
+
+    // conversations by created after timestamp
+    const convos2 = await client1.conversations.list({
+      createdAfterNs: group1.createdAtNs,
+    });
+    expect(convos2.length).toBe(3);
+    expect(convos2[0].id).toBe(dm2.id);
+    expect(convos2[1].id).toBe(dm1.id);
+    expect(convos2[2].id).toBe(group2.id);
+
+    // conversations by created after timestamp and before timestamp
+    const convos3 = await client1.conversations.list({
+      createdBeforeNs: dm2.createdAtNs,
+      createdAfterNs: group1.createdAtNs,
+    });
+    expect(convos3.length).toBe(2);
+    expect(convos3[0].id).toBe(dm1.id);
+    expect(convos3[1].id).toBe(group2.id);
+
+    // conversations by limit
+    const convos4 = await client1.conversations.list({
+      limit: 1,
+      orderBy: ListConversationsOrderBy.CreatedAt,
+    });
+    expect(convos4.length).toBe(1);
+    expect(convos4[0].id).toBe(dm2.id);
+
+    // conversations by order by (created at)
+    const convos5 = await client1.conversations.list({
+      limit: 1,
+      orderBy: ListConversationsOrderBy.LastActivity,
+    });
+    expect(convos5.length).toBe(1);
+    expect(convos5[0].id).toBe(dm2.id);
   });
 
   it("should stream new conversations", async () => {
