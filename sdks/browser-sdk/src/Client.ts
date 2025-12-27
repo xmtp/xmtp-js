@@ -2,7 +2,6 @@ import {
   contentTypesAreEqual,
   contentTypeToString,
   type ContentCodec,
-  type EncodedContent as PrimitivesEncodedContent,
 } from "@xmtp/content-type-primitives";
 import {
   contentTypeGroupUpdated,
@@ -760,7 +759,7 @@ export class Client<
       throw new InvalidGroupMembershipChangeError(message.id);
     }
 
-    return codec.decode(message.content as PrimitivesEncodedContent);
+    return codec.decode(message.content);
   }
 
   /**
