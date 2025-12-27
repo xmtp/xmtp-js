@@ -408,7 +408,7 @@ export class Conversation<ContentTypes = unknown> {
    * @param inNs - The duration after which messages should disappear
    * @returns Promise that resolves when the update is complete
    */
-  async updateMessageDisappearingSettings(fromNs: number, inNs: number) {
+  async updateMessageDisappearingSettings(fromNs: bigint, inNs: bigint) {
     return this.#conversation.updateMessageDisappearingSettings({
       fromNs,
       inNs,

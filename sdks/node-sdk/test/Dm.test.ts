@@ -206,8 +206,8 @@ describe("Dm", () => {
 
     // create message disappearing settings so that messages are deleted after 1 second
     const messageDisappearingSettings: MessageDisappearingSettings = {
-      fromNs: 1,
-      inNs: 2_000_000_000,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     };
 
     // create a group with message disappearing settings
@@ -217,8 +217,8 @@ describe("Dm", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(dm.messageDisappearingSettings()).toEqual({
-      fromNs: 1,
-      inNs: 2_000_000_000,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     });
     expect(dm.isMessageDisappearingEnabled()).toBe(true);
 
@@ -237,8 +237,8 @@ describe("Dm", () => {
 
     // verify that the message disappearing settings are set and enabled
     expect(dm2.messageDisappearingSettings()).toEqual({
-      fromNs: 1,
-      inNs: 2_000_000_000,
+      fromNs: 1n,
+      inNs: 2_000_000_000n,
     });
     expect(dm2.isMessageDisappearingEnabled()).toBe(true);
 
@@ -271,8 +271,8 @@ describe("Dm", () => {
 
     // verify that the message disappearing settings are removed
     expect(dm.messageDisappearingSettings()).toEqual({
-      fromNs: 0,
-      inNs: 0,
+      fromNs: 0n,
+      inNs: 0n,
     });
 
     expect(dm.isMessageDisappearingEnabled()).toBe(false);
@@ -282,8 +282,8 @@ describe("Dm", () => {
 
     // verify that the message disappearing settings are set and disabled
     expect(dm2.messageDisappearingSettings()).toEqual({
-      fromNs: 0,
-      inNs: 0,
+      fromNs: 0n,
+      inNs: 0n,
     });
     expect(dm2.isMessageDisappearingEnabled()).toBe(false);
 
@@ -404,11 +404,11 @@ describe("Dm", () => {
 
     await dm.sendText("text 1");
     await sleep(10);
-    const timestamp1 = Date.now() * 1_000_000;
+    const timestamp1 = BigInt(Date.now() * 1_000_000);
     await sleep(10);
     await dm.sendText("text 2");
     await sleep(10);
-    const timestamp2 = Date.now() * 1_000_000;
+    const timestamp2 = BigInt(Date.now() * 1_000_000);
     await sleep(10);
     await dm.sendText("text 3");
 

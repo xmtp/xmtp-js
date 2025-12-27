@@ -583,13 +583,13 @@ describe("Group permissions", () => {
     const group2 = client2.conversations.listGroups()[0];
     // updating message disappearing settings is not allowed for regular members
     await expect(() =>
-      group2.updateMessageDisappearingSettings(1, 1_000_000_000),
+      group2.updateMessageDisappearingSettings(1n, 1_000_000_000n),
     ).rejects.toThrow();
 
     // add client2 as an admin
     await group.addAdmin(client2.inboxId);
     // client2 is now able to update message disappearing settings
-    await group2.updateMessageDisappearingSettings(1, 1_000_000_000);
+    await group2.updateMessageDisappearingSettings(1n, 1_000_000_000n);
     expect(group2.isMessageDisappearingEnabled()).toBe(true);
   });
 
@@ -621,7 +621,7 @@ describe("Group permissions", () => {
     );
 
     // updating message disappearing settings works
-    await group.updateMessageDisappearingSettings(1, 1_000_000_000);
+    await group.updateMessageDisappearingSettings(1n, 1_000_000_000n);
     expect(group.isMessageDisappearingEnabled()).toBe(true);
   });
 
@@ -649,7 +649,7 @@ describe("Group permissions", () => {
 
     // even super admin (client1) cannot update message disappearing settings
     await expect(() =>
-      group.updateMessageDisappearingSettings(1, 1_000_000_000),
+      group.updateMessageDisappearingSettings(1n, 1_000_000_000n),
     ).rejects.toThrow();
   });
 
