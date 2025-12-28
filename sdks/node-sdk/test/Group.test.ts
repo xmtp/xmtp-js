@@ -1,17 +1,28 @@
 import {
   ConsentState,
   ContentType,
+  contentTypeGroupUpdated,
   contentTypeLeaveRequest,
   ConversationType,
   DeliveryStatus,
+  encodeText,
+  GroupMessageKind,
   MetadataField,
   metadataFieldName,
+  ReactionAction,
+  ReactionSchema,
+  SortDirection,
   type GroupUpdated,
   type MessageDisappearingSettings,
 } from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
 import type { DecodedMessage } from "@/DecodedMessage";
-import { createRegisteredClient, createSigner, sleep } from "@test/helpers";
+import {
+  createRegisteredClient,
+  createSigner,
+  sleep,
+  TestCodec,
+} from "@test/helpers";
 
 describe("Group", () => {
   it("should create a group", async () => {
@@ -337,6 +348,186 @@ describe("Group", () => {
     const messages4 = await group2.messages();
     expect(messages4.length).toBe(2);
     expect(messages4[1].content).toBe(text);
+  });
+
+  it("should filter messages with options", async () => {
+    const { signer: signer1 } = createSigner();
+    const { signer: signer2 } = createSigner();
+    const testCodec = new TestCodec();
+    const client1 = await createRegisteredClient(signer1, {
+      codecs: [testCodec],
+    });
+    const client2 = await createRegisteredClient(signer2);
+    const group = await client1.conversations.newGroup([client2.inboxId]);
+
+    // leave request message
+    await client2.conversations.sync();
+    const group2 = client2.conversations.listGroups()[0];
+    await group2.requestRemoval();
+    await group.sync();
+
+    const textMessageId = await group.sendText("gm");
+    await group.sendMarkdown("# gm");
+    await group.sendAttachment({
+      filename: "test.txt",
+      mimeType: "text/plain",
+      content: new Uint8Array([1, 2, 3]),
+    });
+    await group.sendReply({
+      reference: textMessageId,
+      referenceInboxId: client1.inboxId,
+      content: encodeText("gm"),
+    });
+    const replyMessage = await group.lastMessage();
+    await group.sendReaction({
+      reference: textMessageId,
+      action: ReactionAction.Added,
+      content: "👍",
+      schema: ReactionSchema.Unicode,
+      referenceInboxId: client1.inboxId,
+    });
+    await group.sendActions({
+      id: "actions-1",
+      description: "test",
+      actions: [
+        {
+          id: "opt-1",
+          label: "Option 1",
+        },
+      ],
+    });
+    await group.sendIntent({
+      id: "intent-1",
+      actionId: "opt-1",
+    });
+    await group.sendTransactionReference({
+      networkId: "1",
+      reference: "1234567890",
+    });
+    await group.sendWalletSendCalls({
+      version: "1.0",
+      chainId: "1",
+      from: "0x1234567890",
+      calls: [
+        {
+          to: "0x1234567890",
+          data: "0x1234567890",
+          value: "0x1234567890",
+        },
+      ],
+    });
+    await group.sendReadReceipt();
+    await group.sendRemoteAttachment({
+      url: "https://foo/bar.png",
+      contentDigest: "1234567890",
+      secret: new Uint8Array([1, 2, 3]),
+      salt: new Uint8Array([1, 2, 3]),
+      nonce: new Uint8Array([1, 2, 3]),
+      scheme: "https",
+      contentLength: 100,
+    });
+    await group.sendMultiRemoteAttachment({
+      attachments: [
+        {
+          url: "https://foo/bar.png",
+          contentDigest: "1234567890",
+          secret: new Uint8Array([1, 2, 3]),
+          salt: new Uint8Array([1, 2, 3]),
+          nonce: new Uint8Array([1, 2, 3]),
+          scheme: "https",
+          contentLength: 100,
+        },
+      ],
+    });
+
+    await group.send(testCodec.encode({ test: "test" }));
+
+    const messages = await group.messages();
+    // read receipts and reactions are automatically filtered
+    expect(messages.length).toBe(13);
+
+    // default sort order
+    expect(messages[0].contentType).toEqual(contentTypeGroupUpdated());
+
+    // descending sort order
+    const sortedMessages1 = await group.messages({
+      direction: SortDirection.Descending,
+    });
+    expect(sortedMessages1[0].contentType).toEqual(testCodec.contentType);
+
+    const filteredMessages1 = await group.messages({
+      contentTypes: [ContentType.Text, ContentType.Markdown, ContentType.Reply],
+    });
+    expect(filteredMessages1.length).toBe(3);
+
+    const filteredMessages2 = await group.messages({
+      contentTypes: [
+        ContentType.Actions,
+        ContentType.Intent,
+        ContentType.TransactionReference,
+        ContentType.WalletSendCalls,
+      ],
+    });
+    expect(filteredMessages2.length).toBe(4);
+
+    const filteredMessages3 = await group.messages({
+      contentTypes: [
+        ContentType.Attachment,
+        ContentType.RemoteAttachment,
+        ContentType.MultiRemoteAttachment,
+      ],
+    });
+    expect(filteredMessages3.length).toBe(3);
+
+    const filteredMessages4 = await group.messages({
+      contentTypes: [
+        ContentType.GroupUpdated,
+        ContentType.LeaveRequest,
+        ContentType.Custom,
+      ],
+    });
+    expect(filteredMessages4.length).toBe(3);
+
+    const filteredMessages5 = await group.messages({
+      excludeSenderInboxIds: [client2.inboxId],
+    });
+    expect(filteredMessages5.length).toBe(12);
+
+    const filteredMessages6 = await group.messages({
+      excludeContentTypes: [
+        ContentType.Text,
+        ContentType.Markdown,
+        ContentType.Reply,
+      ],
+    });
+    expect(filteredMessages6.length).toBe(10);
+
+    const filteredMessages7 = await group.messages({
+      sentAfterNs: replyMessage?.sentAtNs,
+    });
+    // does not include reaction and read receipt messages
+    expect(filteredMessages7.length).toBe(7);
+
+    const filteredMessages8 = await group.messages({
+      sentBeforeNs: replyMessage?.sentAtNs,
+    });
+    expect(filteredMessages8.length).toBe(5);
+
+    // initial group updated message adding a member
+    const filteredMessages9 = await group.messages({
+      kind: GroupMessageKind.MembershipChange,
+    });
+    expect(filteredMessages9.length).toBe(1);
+
+    await group.sendText("gm", true);
+    const filteredMessages10 = await group.messages({
+      deliveryStatus: DeliveryStatus.Published,
+    });
+    expect(filteredMessages10.length).toBe(13);
+    const filteredMessages11 = await group.messages({
+      deliveryStatus: DeliveryStatus.Unpublished,
+    });
+    expect(filteredMessages11.length).toBe(1);
   });
 
   it("should stream messages", async () => {
@@ -691,24 +882,6 @@ describe("Group", () => {
       expect(cursor.originatorId).toBeDefined();
       expect(cursor.sequenceId).toBeDefined();
     }
-  });
-
-  it("should filter messages by content type", async () => {
-    const { signer: signer1 } = createSigner();
-    const { signer: signer2 } = createSigner();
-    const client1 = await createRegisteredClient(signer1);
-    const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
-
-    await group.sendText("gm");
-
-    const messages = await group.messages();
-    expect(messages.length).toBe(2);
-
-    const filteredMessages = await group.messages({
-      contentTypes: [ContentType.Text],
-    });
-    expect(filteredMessages.length).toBe(1);
   });
 
   it("should count messages with various filters", async () => {
