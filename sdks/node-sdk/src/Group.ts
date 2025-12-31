@@ -24,15 +24,13 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * @param client - The client instance managing this group conversation
    * @param codecRegistry - The codec registry instance
    * @param conversation - The underlying conversation object
-   * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
     codecRegistry: CodecRegistry,
     conversation: XmtpConversation,
-    isCommitLogForked?: boolean | null,
   ) {
-    super(client, codecRegistry, conversation, isCommitLogForked);
+    super(client, codecRegistry, conversation);
     this.#conversation = conversation;
   }
 

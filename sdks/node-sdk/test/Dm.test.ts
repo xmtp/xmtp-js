@@ -24,7 +24,6 @@ describe("Dm", () => {
     expect(dm.createdAtNs).toBeDefined();
     expect(dm.createdAt).toBeDefined();
     expect(dm.isActive).toBe(true);
-    expect(dm.isCommitLogForked).toBe(null);
     expect(dm.addedByInboxId).toBe(client1.inboxId);
     expect(dm.peerInboxId).toBe(client2.inboxId);
 

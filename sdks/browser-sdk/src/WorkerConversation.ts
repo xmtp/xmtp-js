@@ -33,16 +33,10 @@ import type { WorkerClient } from "@/WorkerClient";
 export class WorkerConversation {
   #client: WorkerClient;
   #group: Conversation;
-  #isCommitLogForked?: boolean;
 
-  constructor(
-    client: WorkerClient,
-    group: Conversation,
-    isCommitLogForked?: boolean,
-  ) {
+  constructor(client: WorkerClient, group: Conversation) {
     this.#client = client;
     this.#group = group;
-    this.#isCommitLogForked = isCommitLogForked;
   }
 
   get id() {
@@ -88,10 +82,6 @@ export class WorkerConversation {
 
   get isActive() {
     return this.#group.isActive();
-  }
-
-  get isCommitLogForked() {
-    return this.#isCommitLogForked;
   }
 
   get addedByInboxId() {

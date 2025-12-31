@@ -234,14 +234,12 @@ export class Conversations<ContentTypes = unknown> {
               this.#client,
               this.#codecRegistry,
               item.conversation,
-              item.isCommitLogForked,
             );
           case ConversationType.Group:
             return new Group<ContentTypes>(
               this.#client,
               this.#codecRegistry,
               item.conversation,
-              item.isCommitLogForked,
             );
           default:
             return undefined;
@@ -268,7 +266,6 @@ export class Conversations<ContentTypes = unknown> {
         this.#client,
         this.#codecRegistry,
         item.conversation,
-        item.isCommitLogForked,
       );
       return conversation;
     });
@@ -291,7 +288,6 @@ export class Conversations<ContentTypes = unknown> {
         this.#client,
         this.#codecRegistry,
         item.conversation,
-        item.isCommitLogForked,
       );
       return conversation;
     });

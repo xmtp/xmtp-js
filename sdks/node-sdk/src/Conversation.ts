@@ -36,7 +36,6 @@ export class Conversation<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
   #codecRegistry: CodecRegistry;
   #conversation: XmtpConversation;
-  #isCommitLogForked: boolean | null = null;
 
   /**
    * Creates a new conversation instance
@@ -44,18 +43,15 @@ export class Conversation<ContentTypes = unknown> {
    * @param client - The client instance managing the conversation
    * @param codecRegistry - The codec registry instance
    * @param conversation - The underlying conversation instance
-   * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
     codecRegistry: CodecRegistry,
     conversation: XmtpConversation,
-    isCommitLogForked?: boolean | null,
   ) {
     this.#client = client;
     this.#codecRegistry = codecRegistry;
     this.#conversation = conversation;
-    this.#isCommitLogForked = isCommitLogForked ?? null;
   }
 
   /**
@@ -70,10 +66,6 @@ export class Conversation<ContentTypes = unknown> {
    */
   get isActive() {
     return this.#conversation.isActive();
-  }
-
-  get isCommitLogForked() {
-    return this.#isCommitLogForked;
   }
 
   /**

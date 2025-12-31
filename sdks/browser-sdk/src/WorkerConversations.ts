@@ -64,12 +64,7 @@ export class WorkerConversations {
   list(options?: ListConversationsOptions) {
     const groups = this.#conversations.list(options) as ConversationListItem[];
     return groups.map(
-      (item) =>
-        new WorkerConversation(
-          this.#client,
-          item.conversation,
-          item.isCommitLogForked,
-        ),
+      (item) => new WorkerConversation(this.#client, item.conversation),
     );
   }
 
@@ -79,12 +74,7 @@ export class WorkerConversations {
       conversationType: ConversationType.Group,
     }) as ConversationListItem[];
     return groups.map(
-      (item) =>
-        new WorkerConversation(
-          this.#client,
-          item.conversation,
-          item.isCommitLogForked,
-        ),
+      (item) => new WorkerConversation(this.#client, item.conversation),
     );
   }
 
@@ -94,12 +84,7 @@ export class WorkerConversations {
       conversationType: ConversationType.Dm,
     }) as ConversationListItem[];
     return groups.map(
-      (item) =>
-        new WorkerConversation(
-          this.#client,
-          item.conversation,
-          item.isCommitLogForked,
-        ),
+      (item) => new WorkerConversation(this.#client, item.conversation),
     );
   }
 

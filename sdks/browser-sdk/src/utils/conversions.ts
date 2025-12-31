@@ -21,7 +21,6 @@ export type SafeConversation = {
   admins: string[];
   superAdmins: string[];
   createdAtNs: bigint;
-  isCommitLogForked?: boolean;
 };
 
 export const toSafeConversation = async (
@@ -39,7 +38,6 @@ export const toSafeConversation = async (
     admins: conversation.admins,
     superAdmins: conversation.superAdmins,
     createdAtNs: conversation.createdAtNs,
-    isCommitLogForked: conversation.isCommitLogForked,
   };
 };
 

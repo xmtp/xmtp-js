@@ -42,7 +42,6 @@ describe("Group", () => {
     expect(group.createdAt).toBeDefined();
     expect(group.createdAtNs).toBeDefined();
     expect(await group.isActive()).toBe(true);
-    expect(group.isCommitLogForked).toBeUndefined();
     expect(group.name).toBe("");
     expect(group.addedByInboxId).toBe(client1.inboxId);
     expect((await group.messages()).length).toBe(1);
@@ -88,7 +87,6 @@ describe("Group", () => {
     expect(group.createdAt).toBeDefined();
     expect(group.createdAtNs).toBeDefined();
     expect(await group.isActive()).toBe(true);
-    expect(group.isCommitLogForked).toBeUndefined();
     expect(group.name).toBe("");
     expect(group.addedByInboxId).toBe(client1.inboxId);
     expect((await group.messages()).length).toBe(1);
