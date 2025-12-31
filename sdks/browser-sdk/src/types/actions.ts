@@ -6,7 +6,7 @@ import type { DmAction } from "@/types/actions/dm";
 import type { GroupAction } from "@/types/actions/group";
 import type { PreferencesAction } from "@/types/actions/preferences";
 
-type UnknownAction = {
+export type UnknownAction = {
   action: string;
   id: string;
   result: unknown;
