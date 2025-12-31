@@ -1,4 +1,5 @@
 export { Client } from "./Client";
+export { Opfs } from "./Opfs";
 export { Conversations } from "./Conversations";
 export { Conversation } from "./Conversation";
 export { Dm } from "./Dm";

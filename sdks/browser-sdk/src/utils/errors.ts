@@ -75,3 +75,17 @@ export class StreamInvalidRetryAttemptsError extends Error {
     super("Stream retry attempts must be greater than 0");
   }
 }
+
+export class OpfsNotInitializedError extends Error {
+  constructor() {
+    super("OPFS must be initialized before accessing its methods");
+  }
+}
+
+export class OpfsInitializationError extends Error {
+  constructor() {
+    super(
+      "Failed to initialize OPFS, ensure that there are no other active XMTP clients or Opfs instances",
+    );
+  }
+}
