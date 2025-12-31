@@ -15,6 +15,7 @@ import {
   type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
 import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { DecodedMessage } from "@/DecodedMessage";
 import type { SafeConversation } from "@/utils/conversions";
 import { nsToDate } from "@/utils/date";
@@ -33,6 +34,7 @@ import { uuid } from "@/utils/uuid";
 export class Conversation<ContentTypes = unknown> {
   #addedByInboxId?: SafeConversation["addedByInboxId"];
   #client: Client<ContentTypes>;
+  #codecRegistry: CodecRegistry;
   #createdAtNs?: SafeConversation["createdAtNs"];
   #id: string;
   #metadata?: SafeConversation["metadata"];
@@ -42,15 +44,18 @@ export class Conversation<ContentTypes = unknown> {
    * Creates a new conversation instance
    *
    * @param client - The client instance managing the conversation
+   * @param codecRegistry - The codec registry instance
    * @param id - The unique identifier for this conversation
    * @param data - Optional conversation data to initialize with
    */
   constructor(
     client: Client<ContentTypes>,
+    codecRegistry: CodecRegistry,
     id: string,
     data?: SafeConversation,
   ) {
     this.#client = client;
+    this.#codecRegistry = codecRegistry;
     this.#id = id;
     this.#syncData(data);
   }
@@ -94,7 +99,7 @@ export class Conversation<ContentTypes = unknown> {
       },
     );
     return lastMessage
-      ? new DecodedMessage(this.#client, lastMessage)
+      ? new DecodedMessage<ContentTypes>(this.#codecRegistry, lastMessage)
       : undefined;
   }
 
@@ -140,12 +145,15 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   /**
-   * Publishes a new message
+   * Sends a message
    *
-   * @param content - The content to send
-   * @param contentType - Optional content type of the message content
+   * @param content - The encoded content to send
+   * @param options - Optional send options
+   * @param options.shouldPush - Indicates whether this message should be
+   * included in push notifications
+   * @param options.optimistic - Indicates whether this message should be
+   * sent optimistically and published later via `publishMessages`
    * @returns Promise that resolves with the message ID after it has been sent
-   * @throws {MissingContentTypeError} if content type is required but not provided
    */
   async send(content: EncodedContent, options?: SendMessageOpts) {
     return this.#client.sendMessage("conversation.send", {
@@ -357,7 +365,10 @@ export class Conversation<ContentTypes = unknown> {
       options,
     });
 
-    return messages.map((message) => new DecodedMessage(this.#client, message));
+    return messages.map(
+      (message) =>
+        new DecodedMessage<ContentTypes>(this.#codecRegistry, message),
+    );
   }
 
   /**
@@ -493,7 +504,7 @@ export class Conversation<ContentTypes = unknown> {
       });
     };
     const convertMessage = (value: XmtpDecodedMessage) => {
-      return new DecodedMessage(this.#client, value);
+      return new DecodedMessage<ContentTypes>(this.#codecRegistry, value);
     };
 
     return createStream(stream, convertMessage, options);
