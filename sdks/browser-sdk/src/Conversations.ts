@@ -8,6 +8,7 @@ import {
   type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
 import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
@@ -26,14 +27,17 @@ import { uuid } from "@/utils/uuid";
  */
 export class Conversations<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
+  #codecRegistry: CodecRegistry;
 
   /**
    * Creates a new conversations instance
    *
    * @param client - The client instance managing the conversations
+   * @param codecRegistry - The codec registry instance
    */
-  constructor(client: Client<ContentTypes>) {
+  constructor(client: Client<ContentTypes>, codecRegistry: CodecRegistry) {
     this.#client = client;
+    this.#codecRegistry = codecRegistry;
   }
 
   /**
@@ -75,9 +79,9 @@ export class Conversations<ContentTypes = unknown> {
     if (data) {
       switch (data.metadata.conversationType) {
         case ConversationType.Group:
-          return new Group(this.#client, data.id, data);
+          return new Group(this.#client, this.#codecRegistry, data.id, data);
         case ConversationType.Dm:
-          return new Dm(this.#client, data.id, data);
+          return new Dm(this.#client, this.#codecRegistry, data.id, data);
         default:
           return undefined;
       }
@@ -98,7 +102,9 @@ export class Conversations<ContentTypes = unknown> {
         id,
       },
     );
-    return data ? new DecodedMessage(this.#client, data) : undefined;
+    return data
+      ? new DecodedMessage<ContentTypes>(this.#codecRegistry, data)
+      : undefined;
   }
 
   /**
@@ -114,7 +120,9 @@ export class Conversations<ContentTypes = unknown> {
         inboxId,
       },
     );
-    return data ? new Dm(this.#client, data.id, data) : undefined;
+    return data
+      ? new Dm(this.#client, this.#codecRegistry, data.id, data)
+      : undefined;
   }
 
   /**
@@ -146,9 +154,19 @@ export class Conversations<ContentTypes = unknown> {
       .map((conversation) => {
         switch (conversation.metadata.conversationType) {
           case ConversationType.Dm:
-            return new Dm(this.#client, conversation.id, conversation);
+            return new Dm(
+              this.#client,
+              this.#codecRegistry,
+              conversation.id,
+              conversation,
+            );
           case ConversationType.Group:
-            return new Group(this.#client, conversation.id, conversation);
+            return new Group(
+              this.#client,
+              this.#codecRegistry,
+              conversation.id,
+              conversation,
+            );
           default:
             return undefined;
         }
@@ -173,7 +191,13 @@ export class Conversations<ContentTypes = unknown> {
     );
 
     return conversations.map(
-      (conversation) => new Group(this.#client, conversation.id, conversation),
+      (conversation) =>
+        new Group(
+          this.#client,
+          this.#codecRegistry,
+          conversation.id,
+          conversation,
+        ),
     );
   }
 
@@ -192,7 +216,13 @@ export class Conversations<ContentTypes = unknown> {
     );
 
     return conversations.map(
-      (conversation) => new Dm(this.#client, conversation.id, conversation),
+      (conversation) =>
+        new Dm(
+          this.#client,
+          this.#codecRegistry,
+          conversation.id,
+          conversation,
+        ),
     );
   }
 
@@ -210,7 +240,12 @@ export class Conversations<ContentTypes = unknown> {
       },
     );
 
-    return new Group(this.#client, conversation.id, conversation);
+    return new Group(
+      this.#client,
+      this.#codecRegistry,
+      conversation.id,
+      conversation,
+    );
   }
 
   /**
@@ -232,7 +267,12 @@ export class Conversations<ContentTypes = unknown> {
       },
     );
 
-    return new Group(this.#client, conversation.id, conversation);
+    return new Group(
+      this.#client,
+      this.#codecRegistry,
+      conversation.id,
+      conversation,
+    );
   }
 
   /**
@@ -251,7 +291,12 @@ export class Conversations<ContentTypes = unknown> {
       },
     );
 
-    return new Group(this.#client, conversation.id, conversation);
+    return new Group(
+      this.#client,
+      this.#codecRegistry,
+      conversation.id,
+      conversation,
+    );
   }
 
   /**
@@ -270,7 +315,12 @@ export class Conversations<ContentTypes = unknown> {
       },
     );
 
-    return new Dm(this.#client, conversation.id, conversation);
+    return new Dm(
+      this.#client,
+      this.#codecRegistry,
+      conversation.id,
+      conversation,
+    );
   }
 
   /**
@@ -286,7 +336,12 @@ export class Conversations<ContentTypes = unknown> {
       options,
     });
 
-    return new Dm(this.#client, conversation.id, conversation);
+    return new Dm(
+      this.#client,
+      this.#codecRegistry,
+      conversation.id,
+      conversation,
+    );
   }
 
   /**
@@ -341,9 +396,19 @@ export class Conversations<ContentTypes = unknown> {
     const convertConversation = (value: SafeConversation) => {
       switch (value.metadata.conversationType) {
         case ConversationType.Group:
-          return new Group(this.#client, value.id, value) as T;
+          return new Group(
+            this.#client,
+            this.#codecRegistry,
+            value.id,
+            value,
+          ) as T;
         case ConversationType.Dm:
-          return new Dm(this.#client, value.id, value) as T;
+          return new Dm(
+            this.#client,
+            this.#codecRegistry,
+            value.id,
+            value,
+          ) as T;
         default:
           throw new Error(
             `Unknown conversation type: ${value.metadata.conversationType}`,
@@ -424,7 +489,7 @@ export class Conversations<ContentTypes = unknown> {
       });
     };
     const convertMessage = (value: XmtpDecodedMessage) => {
-      return new DecodedMessage(this.#client, value);
+      return new DecodedMessage<ContentTypes>(this.#codecRegistry, value);
     };
 
     return createStream(stream, convertMessage, options);

@@ -1,4 +1,4 @@
-import type { EncodedContent } from "@xmtp/content-type-primitives";
+import { contentTypeToString } from "@xmtp/content-type-primitives";
 import type {
   ContentTypeId,
   DecodedMessageContent,
@@ -7,7 +7,7 @@ import type {
   Reaction,
   DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
-import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { nsToDate } from "@/utils/date";
 
 const getContentFromDecodedMessageContent = <T = unknown>(
@@ -71,9 +71,9 @@ const getContentFromDecodedMessageContent = <T = unknown>(
  * @property {ContentTypeId} contentType - The content type of the message content
  * @property {string} conversationId - Unique identifier for the conversation
  * @property {DeliveryStatus} deliveryStatus - Current delivery status of the message ("unpublished" | "published" | "failed")
- * @property {bigint} [expiresAtNs] - Timestamp when the message will expire (in nanoseconds)
- * @property {Date} [expiresAt] - Timestamp when the message will expire
- * @property {string} [fallback] - Optional fallback text for the message
+ * @property {bigint} expiresAtNs - Timestamp when the message will expire (in nanoseconds)
+ * @property {Date} expiresAt - Timestamp when the message will expire
+ * @property {string} fallback - Optional fallback text for the message
  * @property {string} id - Unique identifier for the message
  * @property {GroupMessageKind} kind - Type of message ("application" | "membership_change")
  * @property {bigint} numReplies - Number of replies to the message
@@ -83,7 +83,6 @@ const getContentFromDecodedMessageContent = <T = unknown>(
  * @property {bigint} sentAtNs - Timestamp when the message was sent (in nanoseconds)
  */
 export class DecodedMessage<ContentTypes = unknown> {
-  #client: Client<ContentTypes>;
   content: ContentTypes | undefined;
   contentType: ContentTypeId;
   conversationId: string;
@@ -99,8 +98,7 @@ export class DecodedMessage<ContentTypes = unknown> {
   sentAt: Date;
   sentAtNs: bigint;
 
-  constructor(client: Client<ContentTypes>, message: XmtpDecodedMessage) {
-    this.#client = client;
+  constructor(codecRegistry: CodecRegistry, message: XmtpDecodedMessage) {
     this.id = message.id;
     this.expiresAtNs = message.expiresAtNs;
     this.expiresAt = message.expiresAtNs
@@ -110,12 +108,7 @@ export class DecodedMessage<ContentTypes = unknown> {
     this.sentAt = nsToDate(message.sentAtNs);
     this.conversationId = message.conversationId;
     this.senderInboxId = message.senderInboxId;
-    this.contentType = {
-      authorityId: message.contentType.authorityId,
-      typeId: message.contentType.typeId,
-      versionMajor: message.contentType.versionMajor,
-      versionMinor: message.contentType.versionMinor,
-    };
+    this.contentType = message.contentType;
     this.fallback = message.fallback ?? undefined;
 
     this.kind = message.kind;
@@ -123,11 +116,7 @@ export class DecodedMessage<ContentTypes = unknown> {
 
     this.numReplies = message.numReplies;
     this.reactions = message.reactions.map(
-      (reaction) =>
-        new DecodedMessage<Reaction>(
-          this.#client as Client<Reaction>,
-          reaction,
-        ),
+      (reaction) => new DecodedMessage<Reaction>(codecRegistry, reaction),
     );
 
     this.content =
@@ -143,23 +132,20 @@ export class DecodedMessage<ContentTypes = unknown> {
             reply.content,
           ),
           inReplyTo: reply.inReplyTo
-            ? new DecodedMessage<ContentTypes>(this.#client, reply.inReplyTo)
+            ? new DecodedMessage<ContentTypes>(codecRegistry, reply.inReplyTo)
             : null,
         } as ContentTypes;
         break;
       }
       case "custom": {
-        const customContent = message.content.content;
-        const codec = this.#client.codecFor<ContentTypes>(this.contentType);
+        const encodedContent = message.content.content;
+        const codec = codecRegistry.getCodec<ContentTypes>(this.contentType);
         if (codec) {
-          const encodedContent: EncodedContent = {
-            type: this.contentType,
-            parameters: customContent.parameters,
-            fallback: customContent.fallback,
-            compression: customContent.compression,
-            content: customContent.content,
-          };
           this.content = codec.decode(encodedContent);
+        } else {
+          console.warn(
+            `No codec found for content type "${contentTypeToString(this.contentType)}"`,
+          );
         }
         break;
       }

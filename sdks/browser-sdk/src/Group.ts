@@ -5,6 +5,7 @@ import type {
   PermissionUpdateType,
 } from "@xmtp/wasm-bindings";
 import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { Conversation } from "@/Conversation";
 import type { SafeConversation } from "@/utils/conversions";
 
@@ -36,15 +37,17 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * Creates a new group conversation instance
    *
    * @param client - The client instance managing this group conversation
+   * @param codecRegistry - The codec registry instance
    * @param id - Identifier for the group conversation
    * @param data - Optional conversation data to initialize with
    */
   constructor(
     client: Client<ContentTypes>,
+    codecRegistry: CodecRegistry,
     id: string,
     data?: SafeConversation,
   ) {
-    super(client, id, data);
+    super(client, codecRegistry, id, data);
     this.#client = client;
     this.#id = id;
     this.#syncData(data);

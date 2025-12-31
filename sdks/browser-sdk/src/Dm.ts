@@ -1,4 +1,5 @@
 import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { Conversation } from "@/Conversation";
 import type { SafeConversation } from "@/utils/conversions";
 
@@ -15,15 +16,17 @@ export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * Creates a new direct message conversation instance
    *
    * @param client - The client instance managing this direct message conversation
+   * @param codecRegistry - The codec registry instance
    * @param id - Identifier for the direct message conversation
    * @param data - Optional conversation data to initialize with
    */
   constructor(
     client: Client<ContentTypes>,
+    codecRegistry: CodecRegistry,
     id: string,
     data?: SafeConversation,
   ) {
-    super(client, id, data);
+    super(client, codecRegistry, id, data);
     this.#client = client;
     this.#id = id;
   }
