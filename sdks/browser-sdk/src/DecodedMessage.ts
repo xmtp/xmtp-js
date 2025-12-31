@@ -154,7 +154,7 @@ export class DecodedMessage<ContentTypes = unknown> {
         if (codec) {
           const encodedContent: EncodedContent = {
             type: this.contentType,
-            parameters: customContent.parameters ?? {},
+            parameters: customContent.parameters,
             fallback: customContent.fallback,
             compression: customContent.compression,
             content: customContent.content,
