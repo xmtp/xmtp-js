@@ -19,15 +19,13 @@ export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * @param client - The client instance managing this direct message conversation
    * @param codecRegistry - The codec registry instance
    * @param conversation - The underlying conversation instance
-   * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
     codecRegistry: CodecRegistry,
     conversation: XmtpConversation,
-    isCommitLogForked?: boolean | null,
   ) {
-    super(client, codecRegistry, conversation, isCommitLogForked);
+    super(client, codecRegistry, conversation);
     this.#client = client;
     this.#codecRegistry = codecRegistry;
     this.#conversation = conversation;
