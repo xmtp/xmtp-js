@@ -1,10 +1,10 @@
 import { type ContentCodec } from "@xmtp/content-type-primitives";
 import { LogLevel, type Identifier } from "@xmtp/wasm-bindings";
-import { ClientWorkerClass } from "@/ClientWorkerClass";
 import { CodecRegistry } from "@/CodecRegistry";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
+import type { ClientWorkerAction } from "@/types/actions";
 import type {
   ClientOptions,
   ExtractCodecContentTypes,
@@ -20,26 +20,26 @@ import { inboxStateFromInboxIds as utilsInboxStateFromInboxIds } from "@/utils/i
 import { revokeInstallations as utilsRevokeInstallations } from "@/utils/installations";
 import { toSafeSigner, type SafeSigner, type Signer } from "@/utils/signer";
 import { uuid } from "@/utils/uuid";
+import { WorkerBridge } from "@/utils/WorkerBridge";
 
 /**
  * Client for interacting with the XMTP network
  */
-export class Client<
-  ContentTypes = ExtractCodecContentTypes,
-> extends ClientWorkerClass {
+export class Client<ContentTypes = ExtractCodecContentTypes> {
   #appVersion?: string;
   #codecRegistry: CodecRegistry;
   #conversations: Conversations<ContentTypes>;
-  #debugInformation: DebugInformation<ContentTypes>;
+  #debugInformation: DebugInformation;
   #identifier?: Identifier;
   #inboxId?: string;
   #installationId?: string;
   #installationIdBytes?: Uint8Array;
   #isReady = false;
   #libxmtpVersion?: string;
-  #preferences: Preferences<ContentTypes>;
-  #signer?: Signer;
   #options?: ClientOptions;
+  #preferences: Preferences;
+  #signer?: Signer;
+  #worker: WorkerBridge<ClientWorkerAction>;
 
   /**
    * Creates a new XMTP client instance
@@ -53,16 +53,15 @@ export class Client<
     const worker = new Worker(new URL("./workers/client", import.meta.url), {
       type: "module",
     });
-    super(
-      worker,
+    const enableLogging =
       options?.loggingLevel !== undefined &&
-        options.loggingLevel !== LogLevel.Off,
-    );
+      options.loggingLevel !== LogLevel.Off;
+    this.#worker = new WorkerBridge<ClientWorkerAction>(worker, enableLogging);
     this.#options = options;
     this.#codecRegistry = new CodecRegistry([...(options?.codecs ?? [])]);
-    this.#conversations = new Conversations(this, this.#codecRegistry);
-    this.#debugInformation = new DebugInformation(this);
-    this.#preferences = new Preferences(this);
+    this.#conversations = new Conversations(this.#worker, this.#codecRegistry);
+    this.#debugInformation = new DebugInformation(this.#worker);
+    this.#preferences = new Preferences(this.#worker);
   }
 
   /**
@@ -74,7 +73,7 @@ export class Client<
    * @param identifier - The identifier to initialize the client with
    */
   async init(identifier: Identifier) {
-    const result = await this.sendMessage("client.init", {
+    const result = await this.#worker.action("client.init", {
       identifier,
       options: this.#options,
     });
@@ -85,6 +84,14 @@ export class Client<
     this.#installationIdBytes = result.installationIdBytes;
     this.#libxmtpVersion = result.libxmtpVersion;
     this.#isReady = true;
+  }
+
+  /**
+   * Shutdown the client
+   */
+  close() {
+    this.#worker.close();
+    this.#isReady = false;
   }
 
   /**
@@ -232,7 +239,7 @@ export class Client<
    * @returns The signature text and signature request ID
    */
   async unsafe_createInboxSignatureText() {
-    return this.sendMessage("client.createInboxSignatureText", {
+    return this.#worker.action("client.createInboxSignatureText", {
       signatureRequestId: uuid(),
     });
   }
@@ -259,7 +266,7 @@ export class Client<
       throw new InboxReassignError();
     }
 
-    return this.sendMessage("client.addAccountSignatureText", {
+    return this.#worker.action("client.addAccountSignatureText", {
       newIdentifier,
       signatureRequestId: uuid(),
     });
@@ -278,7 +285,7 @@ export class Client<
    * @returns The signature text and signature request ID
    */
   async unsafe_removeAccountSignatureText(identifier: Identifier) {
-    return this.sendMessage("client.removeAccountSignatureText", {
+    return this.#worker.action("client.removeAccountSignatureText", {
       identifier,
       signatureRequestId: uuid(),
     });
@@ -297,9 +304,12 @@ export class Client<
    * @returns The signature text and signature request ID
    */
   async unsafe_revokeAllOtherInstallationsSignatureText() {
-    return this.sendMessage("client.revokeAllOtherInstallationsSignatureText", {
-      signatureRequestId: uuid(),
-    });
+    return this.#worker.action(
+      "client.revokeAllOtherInstallationsSignatureText",
+      {
+        signatureRequestId: uuid(),
+      },
+    );
   }
 
   /**
@@ -316,7 +326,7 @@ export class Client<
    * @returns The signature text and signature request ID
    */
   async unsafe_revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
-    return this.sendMessage("client.revokeInstallationsSignatureText", {
+    return this.#worker.action("client.revokeInstallationsSignatureText", {
       installationIds,
       signatureRequestId: uuid(),
     });
@@ -336,7 +346,7 @@ export class Client<
    * @returns The signature text and signature request ID
    */
   async unsafe_changeRecoveryIdentifierSignatureText(identifier: Identifier) {
-    return this.sendMessage("client.changeRecoveryIdentifierSignatureText", {
+    return this.#worker.action("client.changeRecoveryIdentifierSignatureText", {
       identifier,
       signatureRequestId: uuid(),
     });
@@ -360,7 +370,7 @@ export class Client<
     signer: SafeSigner,
     signatureRequestId: string,
   ) {
-    return this.sendMessage("client.applySignatureRequest", {
+    return this.#worker.action("client.applySignatureRequest", {
       signer,
       signatureRequestId,
     });
@@ -389,7 +399,7 @@ export class Client<
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 
-    return this.sendMessage("client.registerIdentity", {
+    return this.#worker.action("client.registerIdentity", {
       signer,
       signatureRequestId,
     });
@@ -441,7 +451,7 @@ export class Client<
       );
     const signature = await newAccountSigner.signMessage(signatureText);
     const signer = await toSafeSigner(newAccountSigner, signature);
-    return this.sendMessage("client.addAccount", {
+    return this.#worker.action("client.addAccount", {
       identifier: signer.identifier,
       signer,
       signatureRequestId,
@@ -466,7 +476,7 @@ export class Client<
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 
-    return this.sendMessage("client.removeAccount", {
+    return this.#worker.action("client.removeAccount", {
       identifier,
       signer,
       signatureRequestId,
@@ -496,7 +506,7 @@ export class Client<
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 
-    return this.sendMessage("client.revokeAllOtherInstallations", {
+    return this.#worker.action("client.revokeAllOtherInstallations", {
       signer,
       signatureRequestId,
     });
@@ -520,7 +530,7 @@ export class Client<
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 
-    return this.sendMessage("client.revokeInstallations", {
+    return this.#worker.action("client.revokeInstallations", {
       installationIds,
       signer,
       signatureRequestId,
@@ -584,7 +594,7 @@ export class Client<
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 
-    return this.sendMessage("client.changeRecoveryIdentifier", {
+    return this.#worker.action("client.changeRecoveryIdentifier", {
       identifier,
       signer,
       signatureRequestId,
@@ -597,7 +607,7 @@ export class Client<
    * @returns Whether the client is registered
    */
   async isRegistered() {
-    return this.sendMessage("client.isRegistered", undefined);
+    return this.#worker.action("client.isRegistered");
   }
 
   /**
@@ -607,7 +617,7 @@ export class Client<
    * @returns Whether the client can message the identifiers
    */
   async canMessage(identifiers: Identifier[]) {
-    return this.sendMessage("client.canMessage", { identifiers });
+    return this.#worker.action("client.canMessage", { identifiers });
   }
 
   /**
@@ -636,7 +646,7 @@ export class Client<
    * @returns The inbox ID, if found
    */
   async getInboxIdByIdentifier(identifier: Identifier) {
-    return this.sendMessage("client.getInboxIdByIdentifier", { identifier });
+    return this.#worker.action("client.getInboxIdByIdentifier", { identifier });
   }
 
   /**
@@ -646,7 +656,7 @@ export class Client<
    * @returns The signature
    */
   signWithInstallationKey(signatureText: string) {
-    return this.sendMessage("client.signWithInstallationKey", {
+    return this.#worker.action("client.signWithInstallationKey", {
       signatureText,
     });
   }
@@ -662,7 +672,7 @@ export class Client<
     signatureText: string,
     signatureBytes: Uint8Array,
   ) {
-    return this.sendMessage("client.verifySignedWithInstallationKey", {
+    return this.#worker.action("client.verifySignedWithInstallationKey", {
       signatureText,
       signatureBytes,
     });
@@ -681,7 +691,7 @@ export class Client<
     signatureBytes: Uint8Array,
     publicKey: Uint8Array,
   ) {
-    return this.sendMessage("client.verifySignedWithPublicKey", {
+    return this.#worker.action("client.verifySignedWithPublicKey", {
       signatureText,
       signatureBytes,
       publicKey,
@@ -695,8 +705,11 @@ export class Client<
    * @returns The key package statuses
    */
   async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
-    return this.sendMessage("client.getKeyPackageStatusesForInstallationIds", {
-      installationIds,
-    });
+    return this.#worker.action(
+      "client.getKeyPackageStatusesForInstallationIds",
+      {
+        installationIds,
+      },
+    );
   }
 }

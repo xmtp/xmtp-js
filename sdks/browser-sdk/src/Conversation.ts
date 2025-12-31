@@ -14,9 +14,9 @@ import {
   type WalletSendCalls,
   type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
-import type { Client } from "@/Client";
 import type { CodecRegistry } from "@/CodecRegistry";
 import { DecodedMessage } from "@/DecodedMessage";
+import type { ClientWorkerAction } from "@/types/actions";
 import type { SafeConversation } from "@/utils/conversions";
 import { nsToDate } from "@/utils/date";
 import {
@@ -25,6 +25,7 @@ import {
   type StreamOptions,
 } from "@/utils/streams";
 import { uuid } from "@/utils/uuid";
+import type { WorkerBridge } from "@/utils/WorkerBridge";
 
 /**
  * Represents a conversation
@@ -33,27 +34,27 @@ import { uuid } from "@/utils/uuid";
  */
 export class Conversation<ContentTypes = unknown> {
   #addedByInboxId?: SafeConversation["addedByInboxId"];
-  #client: Client<ContentTypes>;
   #codecRegistry: CodecRegistry;
   #createdAtNs?: SafeConversation["createdAtNs"];
   #id: string;
   #metadata?: SafeConversation["metadata"];
+  #worker: WorkerBridge<ClientWorkerAction>;
 
   /**
    * Creates a new conversation instance
    *
-   * @param client - The client instance managing the conversation
+   * @param worker - The worker bridge instance for client communication
    * @param codecRegistry - The codec registry instance
    * @param id - The unique identifier for this conversation
    * @param data - Optional conversation data to initialize with
    */
   constructor(
-    client: Client<ContentTypes>,
+    worker: WorkerBridge<ClientWorkerAction>,
     codecRegistry: CodecRegistry,
     id: string,
     data?: SafeConversation,
   ) {
-    this.#client = client;
+    this.#worker = worker;
     this.#codecRegistry = codecRegistry;
     this.#id = id;
     this.#syncData(data);
@@ -86,19 +87,16 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   async lastMessage() {
-    const lastMessage = await this.#client.sendMessage(
-      "conversation.lastMessage",
-      {
-        id: this.#id,
-      },
-    );
+    const lastMessage = await this.#worker.action("conversation.lastMessage", {
+      id: this.#id,
+    });
     return lastMessage
       ? new DecodedMessage<ContentTypes>(this.#codecRegistry, lastMessage)
       : undefined;
   }
 
   async isActive() {
-    return this.#client.sendMessage("conversation.isActive", {
+    return this.#worker.action("conversation.isActive", {
       id: this.#id,
     });
   }
@@ -109,7 +107,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the conversation members
    */
   async members() {
-    return this.#client.sendMessage("conversation.members", {
+    return this.#worker.action("conversation.members", {
       id: this.#id,
     });
   }
@@ -120,7 +118,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the updated conversation data
    */
   async sync() {
-    const data = await this.#client.sendMessage("conversation.sync", {
+    const data = await this.#worker.action("conversation.sync", {
       id: this.#id,
     });
     this.#syncData(data);
@@ -133,7 +131,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves when publishing is complete
    */
   async publishMessages() {
-    return this.#client.sendMessage("conversation.publishMessages", {
+    return this.#worker.action("conversation.publishMessages", {
       id: this.#id,
     });
   }
@@ -150,7 +148,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async send(content: EncodedContent, options?: SendMessageOpts) {
-    return this.#client.sendMessage("conversation.send", {
+    return this.#worker.action("conversation.send", {
       id: this.#id,
       content,
       options,
@@ -165,7 +163,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendText(text: string, optimistic?: boolean) {
-    return this.#client.sendMessage("conversation.sendText", {
+    return this.#worker.action("conversation.sendText", {
       id: this.#id,
       text,
       optimistic,
@@ -180,7 +178,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendMarkdown(markdown: string, optimistic?: boolean) {
-    return this.#client.sendMessage("conversation.sendMarkdown", {
+    return this.#worker.action("conversation.sendMarkdown", {
       id: this.#id,
       markdown,
       optimistic,
@@ -195,7 +193,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendReaction(reaction: Reaction, optimistic?: boolean) {
-    return this.#client.sendMessage("conversation.sendReaction", {
+    return this.#worker.action("conversation.sendReaction", {
       id: this.#id,
       reaction,
       optimistic,
@@ -209,7 +207,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendReadReceipt(optimistic?: boolean) {
-    return this.#client.sendMessage("conversation.sendReadReceipt", {
+    return this.#worker.action("conversation.sendReadReceipt", {
       id: this.#id,
       optimistic,
     });
@@ -223,7 +221,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendReply(reply: Reply, optimistic?: boolean) {
-    return this.#client.sendMessage("conversation.sendReply", {
+    return this.#worker.action("conversation.sendReply", {
       id: this.#id,
       reply,
       optimistic,
@@ -241,7 +239,7 @@ export class Conversation<ContentTypes = unknown> {
     transactionReference: TransactionReference,
     optimistic?: boolean,
   ) {
-    return this.#client.sendMessage("conversation.sendTransactionReference", {
+    return this.#worker.action("conversation.sendTransactionReference", {
       id: this.#id,
       transactionReference,
       optimistic,
@@ -259,7 +257,7 @@ export class Conversation<ContentTypes = unknown> {
     walletSendCalls: WalletSendCalls,
     optimistic?: boolean,
   ) {
-    return this.#client.sendMessage("conversation.sendWalletSendCalls", {
+    return this.#worker.action("conversation.sendWalletSendCalls", {
       id: this.#id,
       walletSendCalls,
       optimistic,
@@ -274,7 +272,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendActions(actions: Actions, optimistic?: boolean) {
-    return this.#client.sendMessage("conversation.sendActions", {
+    return this.#worker.action("conversation.sendActions", {
       id: this.#id,
       actions,
       optimistic,
@@ -289,7 +287,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendIntent(intent: Intent, optimistic?: boolean) {
-    return this.#client.sendMessage("conversation.sendIntent", {
+    return this.#worker.action("conversation.sendIntent", {
       id: this.#id,
       intent,
       optimistic,
@@ -304,7 +302,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendAttachment(attachment: Attachment, optimistic?: boolean) {
-    return this.#client.sendMessage("conversation.sendAttachment", {
+    return this.#worker.action("conversation.sendAttachment", {
       id: this.#id,
       attachment,
       optimistic,
@@ -322,7 +320,7 @@ export class Conversation<ContentTypes = unknown> {
     multiRemoteAttachment: MultiRemoteAttachment,
     optimistic?: boolean,
   ) {
-    return this.#client.sendMessage("conversation.sendMultiRemoteAttachment", {
+    return this.#worker.action("conversation.sendMultiRemoteAttachment", {
       id: this.#id,
       multiRemoteAttachment,
       optimistic,
@@ -340,7 +338,7 @@ export class Conversation<ContentTypes = unknown> {
     remoteAttachment: RemoteAttachment,
     optimistic?: boolean,
   ) {
-    return this.#client.sendMessage("conversation.sendRemoteAttachment", {
+    return this.#worker.action("conversation.sendRemoteAttachment", {
       id: this.#id,
       remoteAttachment,
       optimistic,
@@ -354,7 +352,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with an array of decoded messages
    */
   async messages(options?: ListMessagesOptions) {
-    const messages = await this.#client.sendMessage("conversation.messages", {
+    const messages = await this.#worker.action("conversation.messages", {
       id: this.#id,
       options,
     });
@@ -374,7 +372,7 @@ export class Conversation<ContentTypes = unknown> {
   async countMessages(
     options?: Omit<ListMessagesOptions, "limit" | "direction">,
   ) {
-    const count = await this.#client.sendMessage("conversation.countMessages", {
+    const count = await this.#worker.action("conversation.countMessages", {
       id: this.#id,
       options,
     });
@@ -387,7 +385,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the current consent state
    */
   async consentState(): Promise<ConsentState> {
-    return this.#client.sendMessage("conversation.consentState", {
+    return this.#worker.action("conversation.consentState", {
       id: this.#id,
     });
   }
@@ -399,7 +397,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves when the update is complete
    */
   async updateConsentState(state: ConsentState) {
-    return this.#client.sendMessage("conversation.updateConsentState", {
+    return this.#worker.action("conversation.updateConsentState", {
       id: this.#id,
       state,
     });
@@ -411,12 +409,9 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the current message disappearing settings
    */
   async messageDisappearingSettings() {
-    return this.#client.sendMessage(
-      "conversation.messageDisappearingSettings",
-      {
-        id: this.#id,
-      },
-    );
+    return this.#worker.action("conversation.messageDisappearingSettings", {
+      id: this.#id,
+    });
   }
 
   /**
@@ -427,7 +422,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves when the update is complete
    */
   async updateMessageDisappearingSettings(fromNs: bigint, inNs: bigint) {
-    return this.#client.sendMessage(
+    return this.#worker.action(
       "conversation.updateMessageDisappearingSettings",
       {
         id: this.#id,
@@ -443,7 +438,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves when the settings are removed
    */
   async removeMessageDisappearingSettings() {
-    return this.#client.sendMessage(
+    return this.#worker.action(
       "conversation.removeMessageDisappearingSettings",
       {
         id: this.#id,
@@ -457,12 +452,9 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with whether message disappearing is enabled
    */
   async isMessageDisappearingEnabled() {
-    return this.#client.sendMessage(
-      "conversation.isMessageDisappearingEnabled",
-      {
-        id: this.#id,
-      },
-    );
+    return this.#worker.action("conversation.isMessageDisappearingEnabled", {
+      id: this.#id,
+    });
   }
 
   /**
@@ -484,12 +476,12 @@ export class Conversation<ContentTypes = unknown> {
         await this.sync();
       }
       // start the stream
-      await this.#client.sendMessage("conversation.stream", {
+      await this.#worker.action("conversation.stream", {
         groupId: this.#id,
         streamId,
       });
       // handle stream messages
-      return this.#client.handleStreamMessage<
+      return this.#worker.handleStreamMessage<
         XmtpDecodedMessage,
         DecodedMessage<ContentTypes>
       >(streamId, callback, {
@@ -505,7 +497,7 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   async pausedForVersion() {
-    return this.#client.sendMessage("conversation.pausedForVersion", {
+    return this.#worker.action("conversation.pausedForVersion", {
       id: this.#id,
     });
   }
@@ -516,7 +508,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the HMAC keys
    */
   async getHmacKeys() {
-    return this.#client.sendMessage("conversation.getHmacKeys", {
+    return this.#worker.action("conversation.getHmacKeys", {
       id: this.#id,
     });
   }
@@ -527,7 +519,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns The debug information for this conversation
    */
   async debugInfo() {
-    return this.#client.sendMessage("conversation.debugInfo", {
+    return this.#worker.action("conversation.debugInfo", {
       id: this.#id,
     });
   }
@@ -538,7 +530,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with the last read times
    */
   async lastReadTimes() {
-    return this.#client.sendMessage("conversation.lastReadTimes", {
+    return this.#worker.action("conversation.lastReadTimes", {
       id: this.#id,
     });
   }

@@ -1,42 +1,31 @@
-import type { Client } from "./Client";
+import type { ClientWorkerAction } from "@/types/actions";
+import type { WorkerBridge } from "@/utils/WorkerBridge";
 
 /**
  * Debug information helpers for the client
  *
  * This class is not intended to be initialized directly.
  */
-export class DebugInformation<ContentTypes = unknown> {
-  #client: Client<ContentTypes>;
+export class DebugInformation {
+  #worker: WorkerBridge<ClientWorkerAction>;
 
-  constructor(client: Client<ContentTypes>) {
-    this.#client = client;
+  constructor(worker: WorkerBridge<ClientWorkerAction>) {
+    this.#worker = worker;
   }
 
   apiStatistics() {
-    return this.#client.sendMessage(
-      "debugInformation.apiStatistics",
-      undefined,
-    );
+    return this.#worker.action("debugInformation.apiStatistics");
   }
 
   apiIdentityStatistics() {
-    return this.#client.sendMessage(
-      "debugInformation.apiIdentityStatistics",
-      undefined,
-    );
+    return this.#worker.action("debugInformation.apiIdentityStatistics");
   }
 
   apiAggregateStatistics() {
-    return this.#client.sendMessage(
-      "debugInformation.apiAggregateStatistics",
-      undefined,
-    );
+    return this.#worker.action("debugInformation.apiAggregateStatistics");
   }
 
   clearAllStatistics() {
-    return this.#client.sendMessage(
-      "debugInformation.clearAllStatistics",
-      undefined,
-    );
+    return this.#worker.action("debugInformation.clearAllStatistics");
   }
 }

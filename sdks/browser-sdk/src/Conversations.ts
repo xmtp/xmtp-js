@@ -7,11 +7,11 @@ import {
   type ListConversationsOptions,
   type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
-import type { Client } from "@/Client";
 import type { CodecRegistry } from "@/CodecRegistry";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
+import type { ClientWorkerAction } from "@/types/actions";
 import type { SafeConversation } from "@/utils/conversions";
 import {
   createStream,
@@ -19,6 +19,7 @@ import {
   type StreamOptions,
 } from "@/utils/streams";
 import { uuid } from "@/utils/uuid";
+import type { WorkerBridge } from "@/utils/WorkerBridge";
 
 /**
  * Manages conversations
@@ -26,17 +27,20 @@ import { uuid } from "@/utils/uuid";
  * This class is not intended to be initialized directly.
  */
 export class Conversations<ContentTypes = unknown> {
-  #client: Client<ContentTypes>;
   #codecRegistry: CodecRegistry;
+  #worker: WorkerBridge<ClientWorkerAction>;
 
   /**
    * Creates a new conversations instance
    *
-   * @param client - The client instance managing the conversations
+   * @param worker - The worker bridge instance for client communication
    * @param codecRegistry - The codec registry instance
    */
-  constructor(client: Client<ContentTypes>, codecRegistry: CodecRegistry) {
-    this.#client = client;
+  constructor(
+    worker: WorkerBridge<ClientWorkerAction>,
+    codecRegistry: CodecRegistry,
+  ) {
+    this.#worker = worker;
     this.#codecRegistry = codecRegistry;
   }
 
@@ -46,7 +50,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves when sync is complete
    */
   async sync() {
-    return this.#client.sendMessage("conversations.sync", undefined);
+    return this.#worker.action("conversations.sync");
   }
 
   /**
@@ -58,7 +62,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves when sync is complete
    */
   async syncAll(consentStates?: ConsentState[]) {
-    return this.#client.sendMessage("conversations.syncAll", {
+    return this.#worker.action("conversations.syncAll", {
       consentStates,
     });
   }
@@ -70,7 +74,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the conversation, if found
    */
   async getConversationById(id: string) {
-    const data = await this.#client.sendMessage(
+    const data = await this.#worker.action(
       "conversations.getConversationById",
       {
         id,
@@ -79,9 +83,19 @@ export class Conversations<ContentTypes = unknown> {
     if (data) {
       switch (data.metadata.conversationType) {
         case ConversationType.Group:
-          return new Group(this.#client, this.#codecRegistry, data.id, data);
+          return new Group<ContentTypes>(
+            this.#worker,
+            this.#codecRegistry,
+            data.id,
+            data,
+          );
         case ConversationType.Dm:
-          return new Dm(this.#client, this.#codecRegistry, data.id, data);
+          return new Dm<ContentTypes>(
+            this.#worker,
+            this.#codecRegistry,
+            data.id,
+            data,
+          );
         default:
           return undefined;
       }
@@ -96,12 +110,9 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the decoded message, if found
    */
   async getMessageById(id: string) {
-    const data = await this.#client.sendMessage(
-      "conversations.getMessageById",
-      {
-        id,
-      },
-    );
+    const data = await this.#worker.action("conversations.getMessageById", {
+      id,
+    });
     return data
       ? new DecodedMessage<ContentTypes>(this.#codecRegistry, data)
       : undefined;
@@ -114,14 +125,11 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the DM, if found
    */
   async getDmByInboxId(inboxId: string) {
-    const data = await this.#client.sendMessage(
-      "conversations.getDmByInboxId",
-      {
-        inboxId,
-      },
-    );
+    const data = await this.#worker.action("conversations.getDmByInboxId", {
+      inboxId,
+    });
     return data
-      ? new Dm(this.#client, this.#codecRegistry, data.id, data)
+      ? new Dm(this.#worker, this.#codecRegistry, data.id, data)
       : undefined;
   }
 
@@ -132,7 +140,9 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the DM, if found
    */
   async getDmByIdentifier(identifier: Identifier) {
-    const inboxId = await this.#client.getInboxIdByIdentifier(identifier);
+    const inboxId = await this.#worker.action("client.getInboxIdByIdentifier", {
+      identifier,
+    });
     if (!inboxId) {
       return undefined;
     }
@@ -146,7 +156,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with an array of conversations
    */
   async list(options?: ListConversationsOptions) {
-    const conversations = await this.#client.sendMessage("conversations.list", {
+    const conversations = await this.#worker.action("conversations.list", {
       options,
     });
 
@@ -154,15 +164,15 @@ export class Conversations<ContentTypes = unknown> {
       .map((conversation) => {
         switch (conversation.metadata.conversationType) {
           case ConversationType.Dm:
-            return new Dm(
-              this.#client,
+            return new Dm<ContentTypes>(
+              this.#worker,
               this.#codecRegistry,
               conversation.id,
               conversation,
             );
           case ConversationType.Group:
-            return new Group(
-              this.#client,
+            return new Group<ContentTypes>(
+              this.#worker,
               this.#codecRegistry,
               conversation.id,
               conversation,
@@ -183,7 +193,7 @@ export class Conversations<ContentTypes = unknown> {
   async listGroups(
     options?: Omit<ListConversationsOptions, "conversationType">,
   ) {
-    const conversations = await this.#client.sendMessage(
+    const conversations = await this.#worker.action(
       "conversations.listGroups",
       {
         options,
@@ -192,8 +202,8 @@ export class Conversations<ContentTypes = unknown> {
 
     return conversations.map(
       (conversation) =>
-        new Group(
-          this.#client,
+        new Group<ContentTypes>(
+          this.#worker,
           this.#codecRegistry,
           conversation.id,
           conversation,
@@ -208,17 +218,14 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with an array of DMs
    */
   async listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
-    const conversations = await this.#client.sendMessage(
-      "conversations.listDms",
-      {
-        options,
-      },
-    );
+    const conversations = await this.#worker.action("conversations.listDms", {
+      options,
+    });
 
     return conversations.map(
       (conversation) =>
-        new Dm(
-          this.#client,
+        new Dm<ContentTypes>(
+          this.#worker,
           this.#codecRegistry,
           conversation.id,
           conversation,
@@ -233,15 +240,15 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the new group
    */
   async newGroupOptimistic(options?: CreateGroupOptions) {
-    const conversation = await this.#client.sendMessage(
+    const conversation = await this.#worker.action(
       "conversations.newGroupOptimistic",
       {
         options,
       },
     );
 
-    return new Group(
-      this.#client,
+    return new Group<ContentTypes>(
+      this.#worker,
       this.#codecRegistry,
       conversation.id,
       conversation,
@@ -259,7 +266,7 @@ export class Conversations<ContentTypes = unknown> {
     identifiers: Identifier[],
     options?: CreateGroupOptions,
   ) {
-    const conversation = await this.#client.sendMessage(
+    const conversation = await this.#worker.action(
       "conversations.newGroupWithIdentifiers",
       {
         identifiers,
@@ -267,8 +274,8 @@ export class Conversations<ContentTypes = unknown> {
       },
     );
 
-    return new Group(
-      this.#client,
+    return new Group<ContentTypes>(
+      this.#worker,
       this.#codecRegistry,
       conversation.id,
       conversation,
@@ -283,16 +290,13 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the new group
    */
   async newGroup(inboxIds: string[], options?: CreateGroupOptions) {
-    const conversation = await this.#client.sendMessage(
-      "conversations.newGroup",
-      {
-        inboxIds,
-        options,
-      },
-    );
+    const conversation = await this.#worker.action("conversations.newGroup", {
+      inboxIds,
+      options,
+    });
 
-    return new Group(
-      this.#client,
+    return new Group<ContentTypes>(
+      this.#worker,
       this.#codecRegistry,
       conversation.id,
       conversation,
@@ -307,7 +311,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the new DM
    */
   async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
-    const conversation = await this.#client.sendMessage(
+    const conversation = await this.#worker.action(
       "conversations.newDmWithIdentifier",
       {
         identifier,
@@ -315,8 +319,8 @@ export class Conversations<ContentTypes = unknown> {
       },
     );
 
-    return new Dm(
-      this.#client,
+    return new Dm<ContentTypes>(
+      this.#worker,
       this.#codecRegistry,
       conversation.id,
       conversation,
@@ -331,13 +335,13 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the new DM
    */
   async newDm(inboxId: string, options?: CreateDmOptions) {
-    const conversation = await this.#client.sendMessage("conversations.newDm", {
+    const conversation = await this.#worker.action("conversations.newDm", {
       inboxId,
       options,
     });
 
-    return new Dm(
-      this.#client,
+    return new Dm<ContentTypes>(
+      this.#worker,
       this.#codecRegistry,
       conversation.id,
       conversation,
@@ -350,7 +354,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the HMAC keys for all conversations
    */
   async getHmacKeys() {
-    return this.#client.sendMessage("conversations.getHmacKeys", undefined);
+    return this.#worker.action("conversations.getHmacKeys");
   }
 
   /**
@@ -379,12 +383,12 @@ export class Conversations<ContentTypes = unknown> {
         await this.sync();
       }
       // start the stream
-      await this.#client.sendMessage("conversations.stream", {
+      await this.#worker.action("conversations.stream", {
         streamId,
         conversationType: options?.conversationType,
       });
       // handle stream messages
-      return this.#client.handleStreamMessage<SafeConversation, T>(
+      return this.#worker.handleStreamMessage<SafeConversation, T>(
         streamId,
         callback,
         {
@@ -396,15 +400,15 @@ export class Conversations<ContentTypes = unknown> {
     const convertConversation = (value: SafeConversation) => {
       switch (value.metadata.conversationType) {
         case ConversationType.Group:
-          return new Group(
-            this.#client,
+          return new Group<ContentTypes>(
+            this.#worker,
             this.#codecRegistry,
             value.id,
             value,
           ) as T;
         case ConversationType.Dm:
-          return new Dm(
-            this.#client,
+          return new Dm<ContentTypes>(
+            this.#worker,
             this.#codecRegistry,
             value.id,
             value,
@@ -474,13 +478,13 @@ export class Conversations<ContentTypes = unknown> {
         await this.sync();
       }
       // start the stream
-      await this.#client.sendMessage("conversations.streamAllMessages", {
+      await this.#worker.action("conversations.streamAllMessages", {
         streamId,
         conversationType: options?.conversationType,
         consentStates: options?.consentStates,
       });
       // handle stream messages
-      return this.#client.handleStreamMessage<
+      return this.#worker.handleStreamMessage<
         XmtpDecodedMessage,
         DecodedMessage<ContentTypes>
       >(streamId, callback, {
@@ -558,11 +562,11 @@ export class Conversations<ContentTypes = unknown> {
     const stream = async (callback: StreamCallback<string>) => {
       const streamId = uuid();
       // start the stream
-      await this.#client.sendMessage("conversations.streamMessageDeletions", {
+      await this.#worker.action("conversations.streamMessageDeletions", {
         streamId,
       });
       // handle stream messages
-      return this.#client.handleStreamMessage<string>(
+      return this.#worker.handleStreamMessage<string>(
         streamId,
         callback,
         options,
