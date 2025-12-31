@@ -1,7 +1,8 @@
-import type { Client } from "@/Client";
 import type { CodecRegistry } from "@/CodecRegistry";
 import { Conversation } from "@/Conversation";
+import type { ClientWorkerAction } from "@/types/actions";
 import type { SafeConversation } from "@/utils/conversions";
+import type { WorkerBridge } from "@/utils/WorkerBridge";
 
 /**
  * Represents a direct message conversation between two inboxes
@@ -9,25 +10,25 @@ import type { SafeConversation } from "@/utils/conversions";
  * This class is not intended to be initialized directly.
  */
 export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
-  #client: Client<ContentTypes>;
+  #worker: WorkerBridge<ClientWorkerAction>;
   #id: string;
 
   /**
    * Creates a new direct message conversation instance
    *
-   * @param client - The client instance managing this direct message conversation
+   * @param worker - The worker bridge instance for client communication
    * @param codecRegistry - The codec registry instance
    * @param id - Identifier for the direct message conversation
    * @param data - Optional conversation data to initialize with
    */
   constructor(
-    client: Client<ContentTypes>,
+    worker: WorkerBridge<ClientWorkerAction>,
     codecRegistry: CodecRegistry,
     id: string,
     data?: SafeConversation,
   ) {
-    super(client, codecRegistry, id, data);
-    this.#client = client;
+    super(worker, codecRegistry, id, data);
+    this.#worker = worker;
     this.#id = id;
   }
 
@@ -37,13 +38,13 @@ export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * @returns Promise that resolves with the peer's inbox ID
    */
   async peerInboxId() {
-    return this.#client.sendMessage("dm.peerInboxId", {
+    return this.#worker.action("dm.peerInboxId", {
       id: this.#id,
     });
   }
 
   async getDuplicateDms() {
-    return this.#client.sendMessage("dm.getDuplicateDms", {
+    return this.#worker.action("dm.getDuplicateDms", {
       id: this.#id,
     });
   }

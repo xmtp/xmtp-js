@@ -13,15 +13,17 @@ export type UnknownAction = {
   data: unknown;
 };
 
+export type EndStreamAction = {
+  action: "endStream";
+  id: string;
+  result: undefined;
+  data: {
+    streamId: string;
+  };
+};
+
 export type ClientWorkerAction =
-  | {
-      action: "endStream";
-      id: string;
-      result: undefined;
-      data: {
-        streamId: string;
-      };
-    }
+  | EndStreamAction
   | ClientAction
   | ConversationAction
   | ConversationsAction

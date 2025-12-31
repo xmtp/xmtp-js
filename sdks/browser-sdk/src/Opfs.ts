@@ -30,15 +30,15 @@ export class Opfs {
   }
 
   async listFiles() {
-    return this.#worker.action("opfs.listFiles", undefined);
+    return this.#worker.action("opfs.listFiles");
   }
 
   async fileCount() {
-    return this.#worker.action("opfs.fileCount", undefined);
+    return this.#worker.action("opfs.fileCount");
   }
 
   async poolCapacity() {
-    return this.#worker.action("opfs.poolCapacity", undefined);
+    return this.#worker.action("opfs.poolCapacity");
   }
 
   async fileExists(path: string) {
@@ -58,6 +58,6 @@ export class Opfs {
   }
 
   async clearAll() {
-    return this.#worker.action("opfs.clearAll", undefined);
+    return this.#worker.action("opfs.clearAll");
   }
 }

@@ -2,6 +2,7 @@ import type {
   ActionErrorData,
   ActionName,
   ActionWithoutData,
+  EndStreamAction,
   ExtractActionData,
   ExtractActionResult,
   UnknownAction,
@@ -51,12 +52,16 @@ export class WorkerBridge<T extends UnknownAction> {
    * @param data - The data to send to the worker
    * @returns A promise that resolves when the action is completed
    */
-  action<A extends ActionName<T>>(action: A, data: ExtractActionData<T, A>) {
+  action<
+    A extends ActionName<T>,
+    D = ExtractActionData<T, A>,
+    R = ExtractActionResult<T, A>,
+  >(action: A, ...args: D extends undefined ? [] : [data: D]) {
     const promiseId = uuid();
     this.#worker.postMessage({
       action,
       id: promiseId,
-      data,
+      data: args[0],
     });
     const promise = new Promise((resolve, reject) => {
       this.#promises.set(promiseId, {
@@ -64,9 +69,7 @@ export class WorkerBridge<T extends UnknownAction> {
         reject,
       });
     });
-    return promise as [ExtractActionResult<T, A>] extends [undefined]
-      ? Promise<void>
-      : Promise<ExtractActionResult<T, A>>;
+    return promise as [R] extends [undefined] ? Promise<void> : Promise<R>;
   }
 
   /**
@@ -99,10 +102,10 @@ export class WorkerBridge<T extends UnknownAction> {
    * @param callback - The callback to handle the stream message
    * @returns A function to remove the stream handler
    */
-  handleStreamMessage = <T extends StreamAction["result"], V = T>(
+  handleStreamMessage = <R extends StreamAction["result"], V = R>(
     streamId: string,
-    callback: (error: Error | null, value: T | undefined) => void,
-    options?: StreamOptions<T, V>,
+    callback: (error: Error | null, value: R | undefined) => void,
+    options?: StreamOptions<R, V>,
   ) => {
     const streamHandler = (
       event: MessageEvent<StreamAction | StreamActionErrorData>,
@@ -118,16 +121,18 @@ export class WorkerBridge<T extends UnknownAction> {
         if ("error" in eventData) {
           callback(eventData.error, undefined);
         } else {
-          callback(null, eventData.result as T);
+          callback(null, eventData.result as R);
         }
       }
     };
     this.#worker.addEventListener("message", streamHandler);
 
     return async () => {
-      await this.action("endStream", {
-        streamId,
-      });
+      await this.action<
+        "endStream",
+        EndStreamAction["data"],
+        EndStreamAction["result"]
+      >("endStream", { streamId });
       this.#worker.removeEventListener("message", streamHandler);
     };
   };
