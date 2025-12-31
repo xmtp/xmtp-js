@@ -1,24 +1,16 @@
-import {
-  contentTypesAreEqual,
-  contentTypeToString,
-  type ContentCodec,
-  type ContentTypeId,
-} from "@xmtp/content-type-primitives";
+import { type ContentCodec } from "@xmtp/content-type-primitives";
 import {
   applySignatureRequest,
-  contentTypeGroupUpdated,
-  GroupMessageKind,
   inboxStateFromInboxIds,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
   revokeInstallationsSignatureRequest,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
   type Identifier,
-  type Message,
   type Client as NodeClient,
-  type SendMessageOpts,
   type SignatureRequestHandle,
 } from "@xmtp/node-bindings";
+import { CodecRegistry } from "@/CodecRegistry";
 import { ApiUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
@@ -28,9 +20,7 @@ import { createClient } from "@/utils/createClient";
 import {
   AccountAlreadyAssociatedError,
   ClientNotInitializedError,
-  CodecNotFoundError,
   InboxReassignError,
-  InvalidGroupMembershipChangeError,
   SignerUnavailableError,
 } from "@/utils/errors";
 import { getInboxIdForIdentifier } from "@/utils/inboxId";
@@ -41,11 +31,11 @@ import { type Signer } from "@/utils/signer";
  */
 export class Client<ContentTypes = ExtractCodecContentTypes> {
   #client?: NodeClient;
+  #codecRegistry: CodecRegistry;
   #conversations?: Conversations<ContentTypes>;
   #debugInformation?: DebugInformation;
   #preferences?: Preferences;
   #signer?: Signer;
-  #codecs: Map<string, ContentCodec>;
   #identifier?: Identifier;
   #options?: ClientOptions;
 
@@ -59,10 +49,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    */
   constructor(options?: ClientOptions) {
     this.#options = options;
-    const codecs = [...(options?.codecs ?? [])];
-    this.#codecs = new Map(
-      codecs.map((codec) => [contentTypeToString(codec.contentType), codec]),
-    );
+    this.#codecRegistry = new CodecRegistry([...(options?.codecs ?? [])]);
   }
 
   /**
@@ -81,7 +68,11 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     this.#identifier = identifier;
     this.#client = await createClient(identifier, this.#options);
     const conversations = this.#client.conversations();
-    this.#conversations = new Conversations(this, conversations);
+    this.#conversations = new Conversations(
+      this,
+      this.#codecRegistry,
+      conversations,
+    );
     this.#debugInformation = new DebugInformation(this.#client);
     this.#preferences = new Preferences(this.#client, conversations);
   }
@@ -698,114 +689,6 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     return this.#client.getKeyPackageStatusesForInstallationIds(
       installationIds,
     );
-  }
-
-  /**
-   * Gets the codec for a given content type
-   *
-   * @param contentType - The content type to get the codec for
-   * @returns The codec, if found
-   */
-  codecFor<ContentType = unknown>(contentType: ContentTypeId) {
-    return this.#codecs.get(contentTypeToString(contentType)) as
-      | ContentCodec<ContentType>
-      | undefined;
-  }
-
-  /**
-   * Encodes content for a given content type
-   *
-   * @param content - The content to encode
-   * @param contentType - The content type to encode for
-   * @returns The encoded content
-   * @throws {CodecNotFoundError} if no codec is found for the content type
-   */
-  encodeContent(content: ContentTypes, contentType: ContentTypeId) {
-    const codec = this.codecFor(contentType);
-    if (!codec) {
-      throw new CodecNotFoundError(contentType);
-    }
-
-    return this.#encodeWithCodec(content, codec);
-  }
-
-  /**
-   * Prepares content for sending by encoding it and generating send options from the codec
-   *
-   * @param content - The message content to prepare for sending
-   * @param contentType - The content type identifier for the appropriate codec
-   * @returns An object containing the encoded content and send options
-   * @throws {CodecNotFoundError} When no codec is registered for the specified content type
-   */
-  prepareForSend(content: ContentTypes, contentType: ContentTypeId) {
-    const codec = this.codecFor(contentType);
-    if (!codec) {
-      throw new CodecNotFoundError(contentType);
-    }
-
-    return {
-      encodedContent: this.#encodeWithCodec(content, codec),
-      sendOptions: this.#sendMessageOpts(content, codec),
-    };
-  }
-
-  /**
-   * Encodes content using a specific codec and adds fallback information if available
-   *
-   * @param content - The content to encode
-   * @param codec - The codec to use for encoding
-   * @returns The encoded content with optional fallback
-   */
-  #encodeWithCodec(content: ContentTypes, codec: ContentCodec) {
-    const encoded = codec.encode(content);
-    const fallback = codec.fallback(content);
-    if (fallback) {
-      encoded.fallback = fallback;
-    }
-    return encoded;
-  }
-
-  /**
-   * Generates send options based on the content and codec
-   *
-   * @param content - The content being sent
-   * @param codec - The codec used for the content
-   * @returns Send options including whether to push notify recipients
-   */
-  #sendMessageOpts(
-    content: ContentTypes,
-    codec: ContentCodec,
-  ): SendMessageOpts {
-    return { shouldPush: codec.shouldPush(content) };
-  }
-
-  /**
-   * Decodes a message for a given content type
-   *
-   * @param message - The message to decode
-   * @param contentType - The content type to decode for
-   * @returns The decoded content
-   * @throws {CodecNotFoundError} if no codec is found for the content type
-   * @throws {InvalidGroupMembershipChangeError} if the message is an invalid group membership change
-   */
-  decodeContent<ContentType = unknown>(
-    message: Message,
-    contentType: ContentTypeId,
-  ) {
-    const codec = this.codecFor<ContentType>(contentType);
-    if (!codec) {
-      throw new CodecNotFoundError(contentType);
-    }
-
-    // throw an error if there's an invalid group membership change message
-    if (
-      contentTypesAreEqual(contentType, contentTypeGroupUpdated()) &&
-      message.kind !== GroupMessageKind.MembershipChange
-    ) {
-      throw new InvalidGroupMembershipChangeError(message.id);
-    }
-
-    return codec.decode(message.content);
   }
 
   /**

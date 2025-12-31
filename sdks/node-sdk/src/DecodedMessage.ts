@@ -1,3 +1,4 @@
+import { contentTypeToString } from "@xmtp/content-type-primitives";
 import {
   DecodedMessageContentType,
   type ContentTypeId,
@@ -8,7 +9,7 @@ import {
   type Reaction,
   type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/node-bindings";
-import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { nsToDate } from "@/utils/date";
 
 const getContentFromDecodedMessageContent = <T = unknown>(
@@ -84,7 +85,6 @@ const getContentFromDecodedMessageContent = <T = unknown>(
  * @property {number} sentAtNs - Timestamp when the message was sent (in nanoseconds)
  */
 export class DecodedMessage<ContentTypes = unknown> {
-  #client: Client<ContentTypes>;
   content: ContentTypes | undefined;
   contentType: ContentTypeId;
   conversationId: string;
@@ -100,8 +100,7 @@ export class DecodedMessage<ContentTypes = unknown> {
   sentAt: Date;
   sentAtNs: bigint;
 
-  constructor(client: Client<ContentTypes>, message: XmtpDecodedMessage) {
-    this.#client = client;
+  constructor(codecRegistry: CodecRegistry, message: XmtpDecodedMessage) {
     this.id = message.id;
     this.expiresAtNs = message.expiresAtNs ?? undefined;
     this.expiresAt = message.expiresAtNs
@@ -118,11 +117,7 @@ export class DecodedMessage<ContentTypes = unknown> {
 
     this.numReplies = message.numReplies;
     this.reactions = message.reactions.map(
-      (reaction) =>
-        new DecodedMessage<Reaction>(
-          this.#client as Client<Reaction>,
-          reaction,
-        ),
+      (reaction) => new DecodedMessage<Reaction>(codecRegistry, reaction),
     );
 
     this.content =
@@ -138,7 +133,7 @@ export class DecodedMessage<ContentTypes = unknown> {
             reply.content,
           ),
           inReplyTo: reply.inReplyTo
-            ? new DecodedMessage<ContentTypes>(this.#client, reply.inReplyTo)
+            ? new DecodedMessage<ContentTypes>(codecRegistry, reply.inReplyTo)
             : null,
         } as ContentTypes;
         break;
@@ -146,9 +141,13 @@ export class DecodedMessage<ContentTypes = unknown> {
       case DecodedMessageContentType.Custom: {
         const customContent = message.content.custom;
         if (customContent !== null) {
-          const codec = this.#client.codecFor<ContentTypes>(this.contentType);
+          const codec = codecRegistry.getCodec<ContentTypes>(this.contentType);
           if (codec) {
             this.content = codec.decode(customContent);
+          } else {
+            console.warn(
+              `No codec found for content type "${contentTypeToString(this.contentType)}"`,
+            );
           }
         }
         break;

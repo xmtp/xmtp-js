@@ -1,5 +1,6 @@
 import type { Conversation as XmtpConversation } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { Conversation } from "@/Conversation";
 
 /**
@@ -9,22 +10,26 @@ import { Conversation } from "@/Conversation";
  */
 export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
   #client: Client<ContentTypes>;
+  #codecRegistry: CodecRegistry;
   #conversation: XmtpConversation;
 
   /**
    * Creates a new direct message conversation instance
    *
    * @param client - The client instance managing this direct message conversation
+   * @param codecRegistry - The codec registry instance
    * @param conversation - The underlying conversation instance
    * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
+    codecRegistry: CodecRegistry,
     conversation: XmtpConversation,
     isCommitLogForked?: boolean | null,
   ) {
-    super(client, conversation, isCommitLogForked);
+    super(client, codecRegistry, conversation, isCommitLogForked);
     this.#client = client;
+    this.#codecRegistry = codecRegistry;
     this.#conversation = conversation;
   }
 
@@ -39,6 +44,8 @@ export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
 
   async getDuplicateDms() {
     const duplicateDms = await this.#conversation.findDuplicateDms();
-    return duplicateDms.map((dm) => new Dm<ContentTypes>(this.#client, dm));
+    return duplicateDms.map(
+      (dm) => new Dm<ContentTypes>(this.#client, this.#codecRegistry, dm),
+    );
   }
 }

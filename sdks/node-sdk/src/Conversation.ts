@@ -17,6 +17,7 @@ import {
   type Conversation as XmtpConversation,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { DecodedMessage } from "@/DecodedMessage";
 import { nsToDate } from "@/utils/date";
 import { MissingContentTypeError } from "@/utils/errors";
@@ -33,6 +34,7 @@ import {
  */
 export class Conversation<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
+  #codecRegistry: CodecRegistry;
   #conversation: XmtpConversation;
   #isCommitLogForked: boolean | null = null;
 
@@ -40,15 +42,18 @@ export class Conversation<ContentTypes = unknown> {
    * Creates a new conversation instance
    *
    * @param client - The client instance managing the conversation
+   * @param codecRegistry - The codec registry instance
    * @param conversation - The underlying conversation instance
    * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
+    codecRegistry: CodecRegistry,
     conversation: XmtpConversation,
     isCommitLogForked?: boolean | null,
   ) {
     this.#client = client;
+    this.#codecRegistry = codecRegistry;
     this.#conversation = conversation;
     this.#isCommitLogForked = isCommitLogForked ?? null;
   }
@@ -343,7 +348,8 @@ export class Conversation<ContentTypes = unknown> {
   async messages(options?: ListMessagesOptions) {
     const messages = await this.#conversation.findEnrichedMessages(options);
     return messages.map(
-      (message) => new DecodedMessage<ContentTypes>(this.#client, message),
+      (message) =>
+        new DecodedMessage<ContentTypes>(this.#codecRegistry, message),
     );
   }
 

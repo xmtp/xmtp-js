@@ -10,6 +10,7 @@ import {
   type Conversations as XmtpConversations,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
@@ -26,16 +27,23 @@ import {
  */
 export class Conversations<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
+  #codecRegistry: CodecRegistry;
   #conversations: XmtpConversations;
 
   /**
    * Creates a new conversations instance
    *
    * @param client - The client instance managing the conversations
+   * @param codecRegistry - The codec registry instance
    * @param conversations - The underlying conversations instance
    */
-  constructor(client: Client<ContentTypes>, conversations: XmtpConversations) {
+  constructor(
+    client: Client<ContentTypes>,
+    codecRegistry: CodecRegistry,
+    conversations: XmtpConversations,
+  ) {
     this.#client = client;
+    this.#codecRegistry = codecRegistry;
     this.#conversations = conversations;
   }
 
@@ -53,9 +61,13 @@ export class Conversations<ContentTypes = unknown> {
       const metadata = await group.groupMetadata();
       switch (metadata.conversationType()) {
         case ConversationType.Group:
-          return new Group<ContentTypes>(this.#client, group);
+          return new Group<ContentTypes>(
+            this.#client,
+            this.#codecRegistry,
+            group,
+          );
         case ConversationType.Dm:
-          return new Dm<ContentTypes>(this.#client, group);
+          return new Dm<ContentTypes>(this.#client, this.#codecRegistry, group);
         default:
           return undefined;
       }
@@ -75,7 +87,7 @@ export class Conversations<ContentTypes = unknown> {
     try {
       // findDmByTargetInboxId will throw if group is not found
       const group = this.#conversations.findDmByTargetInboxId(inboxId);
-      return new Dm<ContentTypes>(this.#client, group);
+      return new Dm<ContentTypes>(this.#client, this.#codecRegistry, group);
     } catch {
       return undefined;
     }
@@ -107,7 +119,7 @@ export class Conversations<ContentTypes = unknown> {
     try {
       // findEnrichedMessageById will throw if message is not found
       const message = this.#conversations.findEnrichedMessageById(id);
-      return new DecodedMessage<ContentTypes>(this.#client, message);
+      return new DecodedMessage<ContentTypes>(this.#codecRegistry, message);
     } catch {
       return undefined;
     }
@@ -122,7 +134,7 @@ export class Conversations<ContentTypes = unknown> {
    */
   newGroupOptimistic(options?: CreateGroupOptions) {
     const group = this.#conversations.createGroupOptimistic(options);
-    return new Group<ContentTypes>(this.#client, group);
+    return new Group<ContentTypes>(this.#client, this.#codecRegistry, group);
   }
 
   /**
@@ -138,7 +150,11 @@ export class Conversations<ContentTypes = unknown> {
     options?: CreateGroupOptions,
   ) {
     const group = await this.#conversations.createGroup(identifiers, options);
-    const conversation = new Group<ContentTypes>(this.#client, group);
+    const conversation = new Group<ContentTypes>(
+      this.#client,
+      this.#codecRegistry,
+      group,
+    );
     return conversation;
   }
 
@@ -155,7 +171,11 @@ export class Conversations<ContentTypes = unknown> {
       inboxIds,
       options,
     );
-    const conversation = new Group<ContentTypes>(this.#client, group);
+    const conversation = new Group<ContentTypes>(
+      this.#client,
+      this.#codecRegistry,
+      group,
+    );
     return conversation;
   }
 
@@ -169,7 +189,11 @@ export class Conversations<ContentTypes = unknown> {
    */
   async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
     const group = await this.#conversations.createDm(identifier, options);
-    const conversation = new Dm<ContentTypes>(this.#client, group);
+    const conversation = new Dm<ContentTypes>(
+      this.#client,
+      this.#codecRegistry,
+      group,
+    );
     return conversation;
   }
 
@@ -183,7 +207,11 @@ export class Conversations<ContentTypes = unknown> {
    */
   async newDm(inboxId: string, options?: CreateDmOptions) {
     const group = await this.#conversations.createDmByInboxId(inboxId, options);
-    const conversation = new Dm<ContentTypes>(this.#client, group);
+    const conversation = new Dm<ContentTypes>(
+      this.#client,
+      this.#codecRegistry,
+      group,
+    );
     return conversation;
   }
 
@@ -204,12 +232,14 @@ export class Conversations<ContentTypes = unknown> {
           case ConversationType.Dm:
             return new Dm<ContentTypes>(
               this.#client,
+              this.#codecRegistry,
               item.conversation,
               item.isCommitLogForked,
             );
           case ConversationType.Group:
             return new Group<ContentTypes>(
               this.#client,
+              this.#codecRegistry,
               item.conversation,
               item.isCommitLogForked,
             );
@@ -236,6 +266,7 @@ export class Conversations<ContentTypes = unknown> {
     return groups.map((item) => {
       const conversation = new Group<ContentTypes>(
         this.#client,
+        this.#codecRegistry,
         item.conversation,
         item.isCommitLogForked,
       );
@@ -258,6 +289,7 @@ export class Conversations<ContentTypes = unknown> {
     return groups.map((item) => {
       const conversation = new Dm<ContentTypes>(
         this.#client,
+        this.#codecRegistry,
         item.conversation,
         item.isCommitLogForked,
       );
@@ -322,10 +354,18 @@ export class Conversations<ContentTypes = unknown> {
       let conversation: Group<ContentTypes> | Dm<ContentTypes> | undefined;
       switch (conversationType) {
         case ConversationType.Dm:
-          conversation = new Dm<ContentTypes>(this.#client, value);
+          conversation = new Dm<ContentTypes>(
+            this.#client,
+            this.#codecRegistry,
+            value,
+          );
           break;
         case ConversationType.Group:
-          conversation = new Group<ContentTypes>(this.#client, value);
+          conversation = new Group<ContentTypes>(
+            this.#client,
+            this.#codecRegistry,
+            value,
+          );
           break;
       }
       return conversation;
@@ -358,7 +398,7 @@ export class Conversations<ContentTypes = unknown> {
       );
     };
     const convertConversation = (value: Conversation) => {
-      return new Group<ContentTypes>(this.#client, value);
+      return new Group<ContentTypes>(this.#client, this.#codecRegistry, value);
     };
 
     return createStream(stream, convertConversation, options);
@@ -382,7 +422,7 @@ export class Conversations<ContentTypes = unknown> {
       return this.#conversations.stream(callback, onFail, ConversationType.Dm);
     };
     const convertConversation = (value: Conversation) => {
-      return new Dm<ContentTypes>(this.#client, value);
+      return new Dm<ContentTypes>(this.#client, this.#codecRegistry, value);
     };
 
     return createStream(stream, convertConversation, options);
