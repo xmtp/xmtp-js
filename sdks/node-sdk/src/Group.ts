@@ -7,6 +7,7 @@ import {
   type Conversation as XmtpConversation,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { Conversation } from "@/Conversation";
 
 /**
@@ -21,15 +22,17 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * Creates a new group conversation instance
    *
    * @param client - The client instance managing this group conversation
+   * @param codecRegistry - The codec registry instance
    * @param conversation - The underlying conversation object
    * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
+    codecRegistry: CodecRegistry,
     conversation: XmtpConversation,
     isCommitLogForked?: boolean | null,
   ) {
-    super(client, conversation, isCommitLogForked);
+    super(client, codecRegistry, conversation, isCommitLogForked);
     this.#conversation = conversation;
   }
 

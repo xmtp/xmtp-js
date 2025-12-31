@@ -1,16 +1,3 @@
-import {
-  contentTypeToString,
-  type ContentTypeId,
-} from "@xmtp/content-type-primitives";
-
-export class CodecNotFoundError extends Error {
-  constructor(contentType: ContentTypeId) {
-    super(
-      `Codec not found for "${contentTypeToString(contentType)}" content type`,
-    );
-  }
-}
-
 export class InboxReassignError extends Error {
   constructor() {
     super(
@@ -22,12 +9,6 @@ export class InboxReassignError extends Error {
 export class AccountAlreadyAssociatedError extends Error {
   constructor(inboxId: string) {
     super(`Account already associated with inbox ${inboxId}`);
-  }
-}
-
-export class InvalidGroupMembershipChangeError extends Error {
-  constructor(messageId: string) {
-    super(`Invalid group membership change for message ${messageId}`);
   }
 }
 
