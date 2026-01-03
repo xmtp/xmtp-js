@@ -1,0 +1,11 @@
+{
+  "buildCommand": "yarn turbo run build --filter=xmtp-agents...",
+  "outputDirectory": "apps/xmtp-agents/dist",
+  "installCommand": "corepack enable && corepack prepare yarn@4.10.3 --activate && yarn install",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
