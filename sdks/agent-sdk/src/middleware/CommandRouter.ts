@@ -9,19 +9,23 @@ import type { MessageContext } from "@/core/MessageContext.js";
 type SupportedType = ReturnType<TextCodec["decode"]>;
 
 export class CommandRouter {
-  private commandMap = new Map<string, AgentMessageHandler<SupportedType>>();
-  private defaultHandler: AgentMessageHandler<SupportedType> | null = null;
+  #commandMap = new Map<string, AgentMessageHandler<SupportedType>>();
+  #defaultHandler: AgentMessageHandler<SupportedType> | null = null;
+
+  get commandList(): string[] {
+    return Array.from(this.#commandMap.keys());
+  }
 
   command(command: string, handler: AgentMessageHandler<SupportedType>): this {
     if (!command.startsWith("/")) {
       throw new Error('Command must start with "/"');
     }
-    this.commandMap.set(command.toLowerCase(), handler);
+    this.#commandMap.set(command.toLowerCase(), handler);
     return this;
   }
 
   default(handler: AgentMessageHandler<SupportedType>): this {
-    this.defaultHandler = handler;
+    this.#defaultHandler = handler;
     return this;
   }
 
@@ -36,7 +40,7 @@ export class CommandRouter {
 
     // Check if this is a command message
     if (command.startsWith("/")) {
-      const handler = this.commandMap.get(command);
+      const handler = this.#commandMap.get(command);
       if (handler) {
         // Create a new context with modified content (everything after the command)
         const argsText = parts.slice(1).join(" ");
@@ -47,8 +51,8 @@ export class CommandRouter {
     }
 
     // If no command matched and there's a default handler, use it
-    if (this.defaultHandler) {
-      await this.defaultHandler(ctx);
+    if (this.#defaultHandler) {
+      await this.#defaultHandler(ctx);
       return true;
     }
 
