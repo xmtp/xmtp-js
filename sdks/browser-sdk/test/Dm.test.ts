@@ -18,7 +18,7 @@ describe("Dm", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
 
-    const dm = await client1.conversations.newDm(client2.inboxId!);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
     expect(dm).toBeDefined();
     expect(dm.id).toBeDefined();
     expect(dm.createdAtNs).toBeDefined();
@@ -66,7 +66,7 @@ describe("Dm", () => {
     const { signer: signer2, identifier: identifier2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const dm = await client1.conversations.newDmWithIdentifier(identifier2);
+    const dm = await client1.conversations.createDmWithIdentifier(identifier2);
     expect(await dm.peerInboxId()).toBe(client2.inboxId);
   });
 
@@ -75,7 +75,7 @@ describe("Dm", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const dm = await client1.conversations.newDm(client2.inboxId!);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
 
     expect(await dm.lastMessage()).toBeDefined();
 
@@ -115,7 +115,7 @@ describe("Dm", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const dm = await client1.conversations.newDm(client2.inboxId!);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
 
     const text = "gm";
     await dm.sendText(text, true);
@@ -150,7 +150,7 @@ describe("Dm", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const dm = await client1.conversations.newDm(client2.inboxId!);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
 
     // wait a second to exclude GroupUpdated message
     await sleep(1000);
@@ -183,7 +183,7 @@ describe("Dm", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const dm = await client1.conversations.newDm(client2.inboxId!);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
     expect(await dm.consentState()).toBe(ConsentState.Allowed);
 
     await client2.conversations.sync();
@@ -209,7 +209,7 @@ describe("Dm", () => {
     };
 
     // create a group with message disappearing settings
-    const dm = await client1.conversations.newDm(client2.inboxId!, {
+    const dm = await client1.conversations.createDm(client2.inboxId!, {
       messageDisappearingSettings,
     });
 
@@ -326,7 +326,7 @@ describe("Dm", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const conversation = await client1.conversations.newDm(client2.inboxId!);
+    const conversation = await client1.conversations.createDm(client2.inboxId!);
     expect(await conversation.pausedForVersion()).toBeUndefined();
   });
 
@@ -336,9 +336,9 @@ describe("Dm", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
 
-    const dm = await client1.conversations.newDm(client2.inboxId!);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
 
-    const hmacKeys = await dm.getHmacKeys();
+    const hmacKeys = await dm.hmacKeys();
     const groupIds = Array.from(hmacKeys.keys());
     for (const groupId of groupIds) {
       expect(hmacKeys.get(groupId)?.length).toBe(3);
@@ -356,7 +356,7 @@ describe("Dm", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const dm = await client1.conversations.newDm(client2.inboxId!);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
     const debugInfo = await dm.debugInfo();
     expect(debugInfo).toBeDefined();
     expect(debugInfo.epoch).toBeDefined();
@@ -378,7 +378,7 @@ describe("Dm", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const dm = await client1.conversations.newDm(client2.inboxId!);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
 
     await dm.sendText("gm");
 
@@ -398,7 +398,7 @@ describe("Dm", () => {
     const client2 = await createRegisteredClient(signer2);
 
     // Setup: create conversation and messages once
-    const dm = await client1.conversations.newDm(client2.inboxId!);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
 
     await dm.sendText("text 1");
     await sleep(10);

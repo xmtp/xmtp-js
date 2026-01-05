@@ -325,8 +325,8 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "client.getKeyPackageStatusesForInstallationIds": {
-        const result = await client.getKeyPackageStatusesForInstallationIds(
+      case "client.fetchKeyPackageStatuses": {
+        const result = await client.fetchKeyPackageStatuses(
           data.installationIds,
         );
         postMessage({
@@ -369,17 +369,10 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "preferences.inboxStateFromInboxIds": {
-        const result = await client.preferences.inboxStateFromInboxIds(
+      case "preferences.getInboxStates": {
+        const result = await client.preferences.getInboxStates(
           data.inboxIds,
           data.refreshFromNetwork,
-        );
-        postMessage({ id, action, result });
-        break;
-      }
-      case "preferences.getLatestInboxState": {
-        const result = await client.preferences.getLatestInboxState(
-          data.inboxId,
         );
         postMessage({ id, action, result });
         break;
@@ -624,25 +617,26 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.newGroupOptimistic": {
-        const conversation = client.conversations.newGroupOptimistic(
+      case "conversations.createGroupOptimistic": {
+        const conversation = client.conversations.createGroupOptimistic(
           data.options,
         );
         const result = await toSafeConversation(conversation);
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.newGroupWithIdentifiers": {
-        const conversation = await client.conversations.newGroupWithIdentifiers(
-          data.identifiers,
-          data.options,
-        );
+      case "conversations.createGroupWithIdentifiers": {
+        const conversation =
+          await client.conversations.createGroupWithIdentifiers(
+            data.identifiers,
+            data.options,
+          );
         const result = await toSafeConversation(conversation);
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.newGroup": {
-        const conversation = await client.conversations.newGroup(
+      case "conversations.createGroup": {
+        const conversation = await client.conversations.createGroup(
           data.inboxIds,
           data.options,
         );
@@ -650,8 +644,8 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.newDmWithIdentifier": {
-        const conversation = await client.conversations.newDmWithIdentifier(
+      case "conversations.createDmWithIdentifier": {
+        const conversation = await client.conversations.createDmWithIdentifier(
           data.identifier,
           data.options,
         );
@@ -659,8 +653,8 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.newDm": {
-        const conversation = await client.conversations.newDm(
+      case "conversations.createDm": {
+        const conversation = await client.conversations.createDm(
           data.inboxId,
           data.options,
         );
@@ -699,8 +693,8 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.getHmacKeys": {
-        const hmacKeys = client.conversations.getHmacKeys();
+      case "conversations.hmacKeys": {
+        const hmacKeys = client.conversations.hmacKeys();
         postMessage({ id, action, result: hmacKeys });
         break;
       }
@@ -729,7 +723,7 @@ self.onmessage = async (
       }
       case "conversation.consentState": {
         const group = getGroup(data.id);
-        const result = group.consentState;
+        const result = group.consentState();
         postMessage({ id, action, result });
         break;
       }
@@ -796,13 +790,13 @@ self.onmessage = async (
       }
       case "group.listAdmins": {
         const group = getGroup(data.id);
-        const result = group.admins;
+        const result = group.listAdmins();
         postMessage({ id, action, result });
         break;
       }
       case "group.listSuperAdmins": {
         const group = getGroup(data.id);
-        const result = group.superAdmins;
+        const result = group.listSuperAdmins();
         postMessage({ id, action, result });
         break;
       }
@@ -897,7 +891,7 @@ self.onmessage = async (
       }
       case "group.isPendingRemoval": {
         const group = getGroup(data.id);
-        const result = group.isPendingRemoval;
+        const result = group.isPendingRemoval();
         postMessage({ id, action, result });
         break;
       }
@@ -967,9 +961,9 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "conversation.getHmacKeys": {
+      case "conversation.hmacKeys": {
         const group = getGroup(data.id);
-        const result = group.getHmacKeys();
+        const result = group.hmacKeys();
         postMessage({ id, action, result });
         break;
       }

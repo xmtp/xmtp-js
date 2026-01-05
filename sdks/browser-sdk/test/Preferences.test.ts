@@ -16,7 +16,7 @@ describe("Preferences", () => {
   it("should return the correct inbox state", async () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
-    const inboxState = await client.preferences.inboxState();
+    const inboxState = await client.preferences.getInboxState();
     expect(inboxState.inboxId).toBe(client.inboxId);
     expect(inboxState.installations.map((install) => install.id)).toEqual([
       client.installationId,
@@ -30,9 +30,10 @@ describe("Preferences", () => {
 
     const { signer: signer2 } = createSigner();
     const client2 = await createClient(signer2);
-    const inboxState2 = await client2.preferences.getLatestInboxState(
+    const inboxStates = await client2.preferences.fetchInboxStates([
       client.inboxId!,
-    );
+    ]);
+    const inboxState2 = inboxStates[0];
     expect(inboxState2.inboxId).toBe(client.inboxId);
     expect(inboxState.installations.length).toBe(1);
     expect(inboxState.installations[0].id).toBe(client.installationId);
@@ -49,7 +50,7 @@ describe("Preferences", () => {
     const { signer: signer2 } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer2);
-    const inboxStates = await client.preferences.inboxStateFromInboxIds([
+    const inboxStates = await client.preferences.getInboxStates([
       client.inboxId!,
     ]);
     expect(inboxStates.length).toBe(1);
@@ -58,10 +59,9 @@ describe("Preferences", () => {
       await signer.getIdentifier(),
     ]);
 
-    const inboxStates2 = await client2.preferences.inboxStateFromInboxIds(
-      [client2.inboxId!],
-      true,
-    );
+    const inboxStates2 = await client2.preferences.fetchInboxStates([
+      client2.inboxId!,
+    ]);
     expect(inboxStates2.length).toBe(1);
     expect(inboxStates2[0].inboxId).toBe(client2.inboxId);
     expect(inboxStates2[0].accountIdentifiers).toEqual([
@@ -74,7 +74,7 @@ describe("Preferences", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.createGroup([client2.inboxId!]);
 
     await client2.conversations.sync();
     const group2 = await client2.conversations.getConversationById(group.id);
@@ -120,7 +120,7 @@ describe("Preferences", () => {
     const { signer: signer2 } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client.conversations.newGroup([client2.inboxId!]);
+    const group = await client.conversations.createGroup([client2.inboxId!]);
     const stream = await client.preferences.streamConsent();
 
     await sleep(1000);
@@ -184,7 +184,7 @@ describe("Preferences", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer);
     const clientB = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([clientB.inboxId!]);
+    const group = await client1.conversations.createGroup([clientB.inboxId!]);
     const stream = await client1.preferences.streamPreferences();
 
     await group.updateConsentState(ConsentState.Denied);

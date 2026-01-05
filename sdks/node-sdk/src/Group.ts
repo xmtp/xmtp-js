@@ -101,7 +101,7 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
   /**
    * The permissions of the group
    */
-  get permissions() {
+  permissions() {
     const permissions = this.#conversation.groupPermissions();
     return {
       policyType: permissions.policyType(),
@@ -131,14 +131,14 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
   /**
    * The list of admins of the group
    */
-  get admins() {
+  listAdmins() {
     return this.#conversation.adminList();
   }
 
   /**
    * The list of super admins of the group
    */
-  get superAdmins() {
+  listSuperAdmins() {
     return this.#conversation.superAdminList();
   }
 
@@ -246,7 +246,7 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    *
    * @returns Boolean
    */
-  get isPendingRemoval() {
+  isPendingRemoval() {
     return (
       this.#conversation.membershipState() ===
       GroupMembershipState.PendingRemove

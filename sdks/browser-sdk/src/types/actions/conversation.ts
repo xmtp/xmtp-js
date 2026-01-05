@@ -43,16 +43,6 @@ export type ConversationAction =
       };
     }
   | {
-      action: "conversation.sendOptimistic";
-      id: string;
-      result: string;
-      data: {
-        id: string;
-        content: EncodedContent;
-        sendOptions: SendMessageOpts;
-      };
-    }
-  | {
       action: "conversation.publishMessages";
       id: string;
       result: undefined;
@@ -136,7 +126,7 @@ export type ConversationAction =
       };
     }
   | {
-      action: "conversation.getHmacKeys";
+      action: "conversation.hmacKeys";
       id: string;
       result: HmacKeys;
       data: {

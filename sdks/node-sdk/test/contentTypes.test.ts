@@ -41,7 +41,7 @@ describe("Content types", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
     const messageId = await group.sendText("gm");
     const messages = await group.messages();
     const textMessage = messages[1];
@@ -59,7 +59,7 @@ describe("Content types", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
     const messageId = await group.sendMarkdown("# gm");
     const messages = await group.messages();
     const markdownMessage = messages[1];
@@ -78,7 +78,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const textMessageId = await group.sendText("Hello!");
       const reaction: Reaction = {
         reference: textMessageId,
@@ -111,7 +111,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const textMessageId = await group.sendText("Hello!");
       const reaction: Reaction = {
         reference: textMessageId,
@@ -139,7 +139,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const textMessageId = await group.sendText("Hello!");
       const reaction: Reaction = {
         reference: textMessageId,
@@ -167,7 +167,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const textMessageId = await group.sendText("Hello!");
       const reaction: Reaction = {
         reference: textMessageId,
@@ -197,7 +197,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
 
       const textMessageId = await group.sendText("Original message");
       const reply: XmtpReply = {
@@ -235,7 +235,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
 
       const textMessageId = await group.sendText("Original message");
       const attachment: Attachment = {
@@ -269,7 +269,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const attachment: Attachment = {
         filename: "test.txt",
         mimeType: "text/plain",
@@ -294,7 +294,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const attachment: Attachment = {
         mimeType: "text/plain",
         content: new Uint8Array([1, 2, 3]),
@@ -340,7 +340,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const remoteAttachment: RemoteAttachment = {
         url: "https://example.com/test.txt",
         contentDigest: "1234567890",
@@ -373,7 +373,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const remoteAttachment: RemoteAttachment = {
         url: "https://example.com/test.txt",
         contentDigest: "1234567890",
@@ -401,7 +401,7 @@ describe("Content types", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
     const multiRemoteAttachment: MultiRemoteAttachment = {
       attachments: [
         {
@@ -443,7 +443,7 @@ describe("Content types", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
     await group.sendText("gm");
     const readReceiptId = await group.sendReadReceipt();
     const readTimes = await group.lastReadTimes();
@@ -460,7 +460,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const transactionReference: TransactionReference = {
         namespace: "test",
         networkId: "1",
@@ -494,7 +494,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const transactionReference: TransactionReference = {
         networkId: "1",
         reference: "1234567890",
@@ -516,7 +516,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const transactionReference: TransactionReference = {
         networkId: "1",
         reference: "",
@@ -536,7 +536,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const transactionReference: TransactionReference = {
         namespace: "test",
         networkId: "1",
@@ -569,7 +569,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const walletSendCalls: WalletSendCalls = {
         version: "1.0",
         chainId: "1",
@@ -605,7 +605,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const walletSendCalls: WalletSendCalls = {
         version: "1.0",
         chainId: "1",
@@ -641,7 +641,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const walletSendCalls: WalletSendCalls = {
         version: "1.0",
         chainId: "1",
@@ -680,7 +680,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const walletSendCalls: WalletSendCalls = {
         version: "1.0",
         chainId: "1",
@@ -707,7 +707,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
       const walletSendCalls: WalletSendCalls = {
         version: "1.0",
         chainId: "1",
@@ -736,7 +736,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
 
       const actions: Actions = {
         id: "actions-1",
@@ -776,7 +776,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
 
       const actions: Actions = {
         id: "action-styles",
@@ -816,7 +816,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
 
       const expiresAtNs = 1700000000000000000n;
 
@@ -850,7 +850,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
 
       const actions: Actions = {
         id: "action-with-image",
@@ -883,7 +883,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
 
       const intent: Intent = {
         id: "intent-1",
@@ -908,7 +908,7 @@ describe("Content types", () => {
       const { signer: signer2 } = createSigner();
       const client1 = await createRegisteredClient(signer1);
       const client2 = await createRegisteredClient(signer2);
-      const group = await client1.conversations.newGroup([client2.inboxId]);
+      const group = await client1.conversations.createGroup([client2.inboxId]);
 
       const intent: Intent = {
         id: "intent-2",
@@ -934,7 +934,7 @@ describe("Content types", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
     await group.updateName("test");
     await group.updateDescription("test");
     await group.updateImageUrl("test");
@@ -1100,7 +1100,7 @@ describe("Content types", () => {
       codecs: [testCodec],
     });
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
     const customContentId = await group.send(
       testCodec.encode({ test: "test" }),
     );

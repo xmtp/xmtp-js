@@ -503,12 +503,12 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   /**
-   * Retrieves HMAC keys for this conversation
+   * Gets HMAC keys for this conversation
    *
    * @returns Promise that resolves with the HMAC keys
    */
-  async getHmacKeys() {
-    return this.#worker.action("conversation.getHmacKeys", {
+  async hmacKeys() {
+    return this.#worker.action("conversation.hmacKeys", {
       id: this.#id,
     });
   }
@@ -527,7 +527,8 @@ export class Conversation<ContentTypes = unknown> {
   /**
    * Retrieves the last read times for this conversation
    *
-   * @returns Promise that resolves with the last read times
+   * @returns A map keyed by inbox ID with the last read timestamp
+   * (nanoseconds since epoch)
    */
   async lastReadTimes() {
     return this.#worker.action("conversation.lastReadTimes", {

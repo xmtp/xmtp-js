@@ -495,7 +495,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   ) {
     // check for existing inbox id
     const identifier = await newAccountSigner.getIdentifier();
-    const existingInboxId = await this.getInboxIdByIdentifier(identifier);
+    const existingInboxId = await this.fetchInboxIdByIdentifier(identifier);
 
     if (existingInboxId && !allowInboxReassign) {
       throw new AccountAlreadyAssociatedError(existingInboxId);
@@ -610,22 +610,6 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
-   * Gets the inbox state for the specified inbox IDs without a client
-   *
-   * @param env - The environment to use
-   * @param inboxIds - The inbox IDs to get the state for
-   * @returns The inbox state for the specified inbox IDs
-   */
-  static async inboxStateFromInboxIds(
-    inboxIds: string[],
-    env?: XmtpEnv,
-    gatewayHost?: string,
-  ) {
-    const host = ApiUrls[env ?? "dev"];
-    return inboxStateFromInboxIds(host, gatewayHost, inboxIds);
-  }
-
-  /**
    * Changes the recovery identifier for the client's inbox
    *
    * Requires a signer, use `Client.create` to create a client with a signer.
@@ -659,29 +643,14 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
-   * Checks if the specified identifiers can be messaged
-   *
-   * @param identifiers - The identifiers to check
-   * @param env - Optional XMTP environment
-   * @returns Map of identifiers to whether they can be messaged
-   */
-  static async canMessage(identifiers: Identifier[], env?: XmtpEnv) {
-    const canMessageMap = new Map<string, boolean>();
-    for (const identifier of identifiers) {
-      const inboxId = await getInboxIdForIdentifier(identifier, env);
-      canMessageMap.set(identifier.identifier.toLowerCase(), inboxId !== null);
-    }
-    return canMessageMap;
-  }
-
-  /**
-   * Gets the key package statuses for the specified installation IDs
+   * Fetches the key package statuses from the network for the specified
+   * installation IDs
    *
    * @param installationIds - The installation IDs to check
    * @returns The key package statuses
    * @throws {ClientNotInitializedError} if the client is not initialized
    */
-  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
+  async fetchKeyPackageStatuses(installationIds: string[]) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
@@ -692,13 +661,14 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
-   * Finds the inbox ID for a given identifier
+   * Fetches the inbox ID for a given identifier from the local database
+   * If not found, fetches from the network
    *
    * @param identifier - The identifier to look up
    * @returns The inbox ID, if found
    * @throws {ClientNotInitializedError} if the client is not initialized
    */
-  async getInboxIdByIdentifier(identifier: Identifier) {
+  async fetchInboxIdByIdentifier(identifier: Identifier) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
@@ -746,6 +716,39 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Fetches the inbox states for the specified inbox IDs from the network
+   * without a client
+   *
+   * @param env - The environment to use
+   * @param inboxIds - The inbox IDs to get the state for
+   * @returns The inbox states for the specified inbox IDs
+   */
+  static async fetchInboxStates(
+    inboxIds: string[],
+    env?: XmtpEnv,
+    gatewayHost?: string,
+  ) {
+    const host = ApiUrls[env ?? "dev"];
+    return inboxStateFromInboxIds(host, gatewayHost, inboxIds);
+  }
+
+  /**
+   * Checks if the specified identifiers can be messaged
+   *
+   * @param identifiers - The identifiers to check
+   * @param env - Optional XMTP environment
+   * @returns Map of identifiers to whether they can be messaged
+   */
+  static async canMessage(identifiers: Identifier[], env?: XmtpEnv) {
+    const canMessageMap = new Map<string, boolean>();
+    for (const identifier of identifiers) {
+      const inboxId = await getInboxIdForIdentifier(identifier, env);
+      canMessageMap.set(identifier.identifier.toLowerCase(), inboxId !== null);
+    }
+    return canMessageMap;
   }
 
   /**

@@ -436,7 +436,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     }
 
     // check for existing inbox id
-    const existingInboxId = await this.getInboxIdByIdentifier(
+    const existingInboxId = await this.fetchInboxIdByIdentifier(
       await newAccountSigner.getIdentifier(),
     );
 
@@ -562,13 +562,14 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
-   * Gets the inbox state for the specified inbox IDs without a client
+   * Fetches the inbox states for the specified inbox IDs from the network
+   * without a client
    *
    * @param inboxIds - The inbox IDs to get the state for
    * @param env - The environment to use
-   * @returns The inbox state for the specified inbox IDs
+   * @returns The inbox states for the specified inbox IDs
    */
-  static async inboxStateFromInboxIds(
+  static async fetchInboxStates(
     inboxIds: string[],
     env?: XmtpEnv,
     gatewayHost?: string,
@@ -640,12 +641,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
-   * Finds the inbox ID for a given identifier
+   * Fetches the inbox ID for a given identifier from the local database
+   * If not found, fetches from the network
    *
    * @param identifier - The identifier to look up
    * @returns The inbox ID, if found
    */
-  async getInboxIdByIdentifier(identifier: Identifier) {
+  async fetchInboxIdByIdentifier(identifier: Identifier) {
     return this.#worker.action("client.getInboxIdByIdentifier", { identifier });
   }
 
@@ -699,17 +701,15 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
-   * Gets the key package statuses for the specified installation IDs
+   * Fetches the key package statuses from the network for the specified
+   * installation IDs
    *
    * @param installationIds - The installation IDs to check
    * @returns The key package statuses
    */
-  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
-    return this.#worker.action(
-      "client.getKeyPackageStatusesForInstallationIds",
-      {
-        installationIds,
-      },
-    );
+  async fetchKeyPackageStatuses(installationIds: string[]) {
+    return this.#worker.action("client.fetchKeyPackageStatuses", {
+      installationIds,
+    });
   }
 }

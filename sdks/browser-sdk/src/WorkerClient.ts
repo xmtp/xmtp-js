@@ -179,7 +179,7 @@ export class WorkerClient {
     }
   }
 
-  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
+  async fetchKeyPackageStatuses(installationIds: string[]) {
     return this.#client.getKeyPackageStatusesForInstallationIds(
       installationIds,
     ) as Promise<Map<string, KeyPackageStatus>>;
