@@ -114,4 +114,25 @@ describe("CommandRouter", () => {
       );
     });
   });
+
+  describe("commandList", () => {
+    it("returns an empty array when no commands are registered", () => {
+      const router = new CommandRouter();
+      expect(router.commandList).toEqual([]);
+    });
+
+    it("returns commands in lowercase as they are stored", () => {
+      const router = new CommandRouter();
+      router.command("/HELP", vi.fn());
+      router.command("/Balance", vi.fn());
+      expect(router.commandList).toEqual(["/help", "/balance"]);
+    });
+
+    it("does not include the default handler in the command list", () => {
+      const router = new CommandRouter();
+      router.command("/help", vi.fn());
+      router.default(vi.fn());
+      expect(router.commandList).toEqual(["/help"]);
+    });
+  });
 });
