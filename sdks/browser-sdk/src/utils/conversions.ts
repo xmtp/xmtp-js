@@ -32,11 +32,11 @@ export const toSafeConversation = async (
     imageUrl: conversation.imageUrl,
     description: conversation.description,
     appData: conversation.appData,
-    permissions: conversation.permissions,
+    permissions: conversation.permissions(),
     addedByInboxId: conversation.addedByInboxId,
     metadata: await conversation.metadata(),
-    admins: conversation.admins,
-    superAdmins: conversation.superAdmins,
+    admins: conversation.listAdmins(),
+    superAdmins: conversation.listSuperAdmins(),
     createdAtNs: conversation.createdAtNs,
   };
 };

@@ -134,12 +134,12 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
-   * Retrieves a DM by identifier
+   * Fetches a DM by identifier
    *
    * @param identifier - The identifier to look up
    * @returns Promise that resolves with the DM, if found
    */
-  async getDmByIdentifier(identifier: Identifier) {
+  async fetchDmByIdentifier(identifier: Identifier) {
     const inboxId = await this.#worker.action("client.getInboxIdByIdentifier", {
       identifier,
     });
@@ -234,14 +234,14 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
-   * Creates a new group without syncing to the network
+   * Creates a new group conversation without publishing to the network
    *
    * @param options - Optional group creation options
    * @returns Promise that resolves with the new group
    */
-  async newGroupOptimistic(options?: CreateGroupOptions) {
+  async createGroupOptimistic(options?: CreateGroupOptions) {
     const conversation = await this.#worker.action(
-      "conversations.newGroupOptimistic",
+      "conversations.createGroupOptimistic",
       {
         options,
       },
@@ -262,12 +262,12 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional group creation options
    * @returns Promise that resolves with the new group
    */
-  async newGroupWithIdentifiers(
+  async createGroupWithIdentifiers(
     identifiers: Identifier[],
     options?: CreateGroupOptions,
   ) {
     const conversation = await this.#worker.action(
-      "conversations.newGroupWithIdentifiers",
+      "conversations.createGroupWithIdentifiers",
       {
         identifiers,
         options,
@@ -289,11 +289,14 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional group creation options
    * @returns Promise that resolves with the new group
    */
-  async newGroup(inboxIds: string[], options?: CreateGroupOptions) {
-    const conversation = await this.#worker.action("conversations.newGroup", {
-      inboxIds,
-      options,
-    });
+  async createGroup(inboxIds: string[], options?: CreateGroupOptions) {
+    const conversation = await this.#worker.action(
+      "conversations.createGroup",
+      {
+        inboxIds,
+        options,
+      },
+    );
 
     return new Group<ContentTypes>(
       this.#worker,
@@ -310,9 +313,12 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional DM creation options
    * @returns Promise that resolves with the new DM
    */
-  async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
+  async createDmWithIdentifier(
+    identifier: Identifier,
+    options?: CreateDmOptions,
+  ) {
     const conversation = await this.#worker.action(
-      "conversations.newDmWithIdentifier",
+      "conversations.createDmWithIdentifier",
       {
         identifier,
         options,
@@ -334,8 +340,8 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional DM creation options
    * @returns Promise that resolves with the new DM
    */
-  async newDm(inboxId: string, options?: CreateDmOptions) {
-    const conversation = await this.#worker.action("conversations.newDm", {
+  async createDm(inboxId: string, options?: CreateDmOptions) {
+    const conversation = await this.#worker.action("conversations.createDm", {
       inboxId,
       options,
     });
@@ -349,12 +355,12 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
-   * Retrieves HMAC keys for all conversations
+   * Gets the HMAC keys for all conversations
    *
    * @returns Promise that resolves with the HMAC keys for all conversations
    */
-  async getHmacKeys() {
-    return this.#worker.action("conversations.getHmacKeys");
+  async hmacKeys() {
+    return this.#worker.action("conversations.hmacKeys");
   }
 
   /**

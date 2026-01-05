@@ -16,20 +16,12 @@ export type PreferencesAction =
       };
     }
   | {
-      action: "preferences.inboxStateFromInboxIds";
+      action: "preferences.getInboxStates";
       id: string;
       result: InboxState[];
       data: {
         inboxIds: string[];
         refreshFromNetwork: boolean;
-      };
-    }
-  | {
-      action: "preferences.getLatestInboxState";
-      id: string;
-      result: InboxState;
-      data: {
-        inboxId: string;
       };
     }
   | {

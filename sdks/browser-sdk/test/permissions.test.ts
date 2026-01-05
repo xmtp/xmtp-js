@@ -11,7 +11,7 @@ describe("Group permissions", () => {
   it("should create a group with default permissions", async () => {
     const { signer: signer1 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const group = await client1.conversations.newGroup([]);
+    const group = await client1.conversations.createGroup([]);
     const permissions = await group.permissions();
     expect(permissions.policyType).toBe(GroupPermissionsOptions.Default);
     expect(permissions.policySet).toEqual({
@@ -30,7 +30,7 @@ describe("Group permissions", () => {
   it("should create a group with admin only permissions", async () => {
     const { signer: signer1 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const group = await client1.conversations.newGroup([], {
+    const group = await client1.conversations.createGroup([], {
       permissions: GroupPermissionsOptions.AdminOnly,
     });
     const permissions = await group.permissions();
@@ -53,7 +53,7 @@ describe("Group permissions", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId!], {
+    const group = await client1.conversations.createGroup([client2.inboxId!], {
       permissions: GroupPermissionsOptions.CustomPolicy,
       customPermissionPolicySet: {
         addAdminPolicy: PermissionPolicy.Deny,
@@ -87,7 +87,7 @@ describe("Group permissions", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.createGroup([client2.inboxId!]);
 
     const permissions = await group.permissions();
     expect(permissions.policySet).toEqual({
@@ -174,7 +174,7 @@ describe("Group permissions", () => {
     const client5 = await createRegisteredClient(signer5);
     const client6 = await createRegisteredClient(signer6);
     // create group with default permissions (anyone can add members)
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.createGroup([client2.inboxId!]);
 
     // client2 is a regular member of the group
     await client2.conversations.sync();
@@ -241,7 +241,7 @@ describe("Group permissions", () => {
     const client4 = await createRegisteredClient(signer4);
     const client5 = await createRegisteredClient(signer5);
     // create group with default permissions (only admins can remove members)
-    const group = await client1.conversations.newGroup([
+    const group = await client1.conversations.createGroup([
       client2.inboxId!,
       client3.inboxId!,
       client4.inboxId!,
@@ -306,7 +306,7 @@ describe("Group permissions", () => {
     const client2 = await createRegisteredClient(signer2);
     const client3 = await createRegisteredClient(signer3);
     // create group with default permissions (only super admins can add admins)
-    const group = await client1.conversations.newGroup([
+    const group = await client1.conversations.createGroup([
       client2.inboxId!,
       client3.inboxId!,
     ]);
@@ -344,7 +344,7 @@ describe("Group permissions", () => {
     const client2 = await createRegisteredClient(signer2);
     const client3 = await createRegisteredClient(signer3);
     // create group with default permissions (only super admins can remove admins)
-    const group = await client1.conversations.newGroup([
+    const group = await client1.conversations.createGroup([
       client2.inboxId!,
       client3.inboxId!,
     ]);
@@ -383,7 +383,7 @@ describe("Group permissions", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     // create group with default permissions (anyone can update group name)
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.createGroup([client2.inboxId!]);
 
     // client2 is a regular member of the group
     await client2.conversations.sync();
@@ -438,7 +438,7 @@ describe("Group permissions", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     // create group with default permissions (anyone can update group description)
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.createGroup([client2.inboxId!]);
 
     // client2 is a regular member of the group
     await client2.conversations.sync();
@@ -499,7 +499,7 @@ describe("Group permissions", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     // create group with default permissions (anyone can update group image url)
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.createGroup([client2.inboxId!]);
 
     // client2 is a regular member of the group
     await client2.conversations.sync();
@@ -560,7 +560,7 @@ describe("Group permissions", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     // create group with default permissions (only admins can update message disappearing)
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.createGroup([client2.inboxId!]);
 
     // client2 is a regular member of the group
     await client2.conversations.sync();
@@ -584,7 +584,7 @@ describe("Group permissions", () => {
     const client2 = await createRegisteredClient(signer2);
 
     // create group with custom permissions (anyone can update message disappearing)
-    const group = await client1.conversations.newGroup([client2.inboxId!], {
+    const group = await client1.conversations.createGroup([client2.inboxId!], {
       permissions: GroupPermissionsOptions.CustomPolicy,
       customPermissionPolicySet: {
         addAdminPolicy: PermissionPolicy.SuperAdmin,
@@ -617,7 +617,7 @@ describe("Group permissions", () => {
     const client2 = await createRegisteredClient(signer2);
 
     // create group with custom permissions (nobody can update message disappearing)
-    const group = await client1.conversations.newGroup([client2.inboxId!], {
+    const group = await client1.conversations.createGroup([client2.inboxId!], {
       permissions: GroupPermissionsOptions.CustomPolicy,
       customPermissionPolicySet: {
         addAdminPolicy: PermissionPolicy.SuperAdmin,
@@ -644,7 +644,7 @@ describe("Group permissions", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     // create group with default permissions (anyone can update app data)
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.createGroup([client2.inboxId!]);
 
     // client2 is a regular member of the group
     await client2.conversations.sync();

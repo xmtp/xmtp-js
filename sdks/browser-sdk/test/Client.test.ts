@@ -101,7 +101,7 @@ describe("Client", () => {
   it("should get an inbox ID from an address", async () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
-    const inboxId = await client.getInboxIdByIdentifier(
+    const inboxId = await client.fetchInboxIdByIdentifier(
       await signer.getIdentifier(),
     );
     expect(inboxId).toBe(client.inboxId);
@@ -110,7 +110,7 @@ describe("Client", () => {
   it("should return the correct inbox state", async () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
-    const inboxState = await client.preferences.inboxState(false);
+    const inboxState = await client.preferences.getInboxState();
     expect(inboxState.inboxId).toBe(client.inboxId);
     expect(inboxState.installations.map((install) => install.id)).toEqual([
       client.installationId,
@@ -122,9 +122,10 @@ describe("Client", () => {
 
     const { signer: signer2 } = createSigner();
     const client2 = await createClient(signer2);
-    const inboxState2 = await client2.preferences.getLatestInboxState(
+    const inboxStates = await client2.preferences.fetchInboxStates([
       client.inboxId!,
-    );
+    ]);
+    const inboxState2 = inboxStates[0];
     expect(inboxState2.inboxId).toBe(client.inboxId);
     expect(inboxState.installations.length).toBe(1);
     expect(inboxState.installations[0].id).toBe(client.installationId);
@@ -146,7 +147,7 @@ describe("Client", () => {
     const { signer: signer2 } = createSigner();
 
     await client.unsafe_addAccount(signer2, true);
-    const inboxState = await client.preferences.inboxState();
+    const inboxState = await client.preferences.getInboxState();
     expect(inboxState.accountIdentifiers.length).toEqual(2);
     expect(inboxState.accountIdentifiers).toContainEqual(
       await signer.getIdentifier(),
@@ -165,7 +166,7 @@ describe("Client", () => {
     await client.unsafe_addAccount(signer2, true);
     await client.removeAccount(await signer2.getIdentifier());
 
-    const inboxState = await client.preferences.inboxState();
+    const inboxState = await client.preferences.getInboxState();
     expect(inboxState.accountIdentifiers).toEqual([
       await signer.getIdentifier(),
     ]);
@@ -182,7 +183,7 @@ describe("Client", () => {
       dbPath: `./test-${uuid()}.db3`,
     });
 
-    const inboxState = await client3.preferences.inboxState(true);
+    const inboxState = await client3.preferences.fetchInboxState();
     expect(inboxState.installations.length).toBe(3);
 
     const installationIds = inboxState.installations.map((i) => i.id);
@@ -192,7 +193,7 @@ describe("Client", () => {
 
     await client3.revokeAllOtherInstallations();
 
-    const inboxState2 = await client3.preferences.inboxState(true);
+    const inboxState2 = await client3.preferences.fetchInboxState();
 
     expect(inboxState2.installations.length).toBe(1);
     expect(inboxState2.installations[0].id).toBe(client3.installationId);
@@ -208,7 +209,7 @@ describe("Client", () => {
       dbPath: `./test-${uuid()}.db3`,
     });
 
-    const inboxState = await client3.preferences.inboxState(true);
+    const inboxState = await client3.preferences.fetchInboxState();
     expect(inboxState.installations.length).toBe(3);
 
     const installationIds = inboxState.installations.map((i) => i.id);
@@ -218,7 +219,7 @@ describe("Client", () => {
 
     await client3.revokeInstallations([client.installationIdBytes!]);
 
-    const inboxState2 = await client3.preferences.inboxState(true);
+    const inboxState2 = await client3.preferences.fetchInboxState();
 
     expect(inboxState2.installations.length).toBe(2);
 
@@ -259,7 +260,7 @@ describe("Client", () => {
       dbPath: `./test-${uuid()}.db3`,
     });
 
-    const inboxState = await client3.preferences.inboxState(true);
+    const inboxState = await client3.preferences.fetchInboxState();
     expect(inboxState.installations.length).toBe(10);
 
     const installationIds = inboxState.installations.map((i) => i.id);
@@ -282,7 +283,7 @@ describe("Client", () => {
 
     await client3.revokeAllOtherInstallations();
 
-    const inboxState2 = await client3.preferences.inboxState(true);
+    const inboxState2 = await client3.preferences.fetchInboxState();
 
     expect(inboxState2.installations.length).toBe(1);
     expect(inboxState2.installations[0].id).toBe(client3.installationId);
@@ -291,7 +292,7 @@ describe("Client", () => {
       dbPath: `./test-${uuid()}.db3`,
     });
 
-    const inboxState3 = await client11.preferences.inboxState(true);
+    const inboxState3 = await client11.preferences.fetchInboxState();
     expect(inboxState3.installations.length).toBe(2);
     const installationIds3 = inboxState3.installations.map((i) => i.id);
     expect(installationIds3).toContain(client3.installationId);
@@ -307,7 +308,7 @@ describe("Client", () => {
 
     await client.changeRecoveryIdentifier(await signer2.getIdentifier());
 
-    const inboxState = await client.preferences.inboxState();
+    const inboxState = await client.preferences.getInboxState();
     expect(inboxState.recoveryIdentifier).toEqual(
       await signer2.getIdentifier(),
     );
@@ -317,7 +318,7 @@ describe("Client", () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
 
-    const inboxState = await client.preferences.inboxState(true);
+    const inboxState = await client.preferences.fetchInboxState();
     expect(inboxState.installations.length).toBe(1);
     expect(inboxState.installations[0].id).toBe(client.installationId);
 
@@ -334,7 +335,7 @@ describe("Client", () => {
       dbPath: `./test-${uuid()}.db3`,
     });
 
-    const inboxState = await client3.preferences.inboxState(true);
+    const inboxState = await client3.preferences.fetchInboxState();
     expect(inboxState.installations.length).toBe(3);
 
     const installationIds = inboxState.installations.map((i) => i.id);
@@ -349,7 +350,7 @@ describe("Client", () => {
       "local",
     );
 
-    const inboxState2 = await client3.preferences.inboxState(true);
+    const inboxState2 = await client3.preferences.fetchInboxState();
 
     expect(inboxState2.installations.length).toBe(2);
 
@@ -390,7 +391,7 @@ describe("Client", () => {
     // change recovery identifier to temporary account
     await client.changeRecoveryIdentifier(identifier2);
 
-    const inboxState = await client.preferences.inboxState(true);
+    const inboxState = await client.preferences.fetchInboxState();
     // check that the temporary account is the only account on the inbox
     expect(inboxState.accountIdentifiers).toEqual([identifier2]);
     expect(inboxState.recoveryIdentifier).toEqual(identifier2);
@@ -406,7 +407,7 @@ describe("Client", () => {
     // change recovery identifier to original account
     await transferClient.changeRecoveryIdentifier(identifier);
 
-    const inboxState2 = await transferClient.preferences.inboxState(true);
+    const inboxState2 = await transferClient.preferences.fetchInboxState();
     // check that the original account is the only account on the inbox
     expect(inboxState2.accountIdentifiers).toEqual([identifier]);
     expect(inboxState2.recoveryIdentifier).toEqual(identifier);
@@ -426,7 +427,7 @@ describe("Client", () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
 
-    const statuses = await client.getKeyPackageStatusesForInstallationIds([
+    const statuses = await client.fetchKeyPackageStatuses([
       client.installationId!,
     ]);
     expect(statuses.size).toBe(1);
@@ -440,7 +441,7 @@ describe("Client", () => {
   it("should get inbox state from inbox ids without a client", async () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
-    const inboxState = await Client.inboxStateFromInboxIds(
+    const inboxState = await Client.fetchInboxStates(
       [client.inboxId!],
       "local",
     );

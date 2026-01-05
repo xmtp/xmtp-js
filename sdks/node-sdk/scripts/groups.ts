@@ -45,7 +45,7 @@ console.log("Creating groups...");
 while (accounts.length > 200) {
   const groupsAccounts = accounts.splice(0, 4);
   const group =
-    await primaryAccountClient.conversations.newGroupWithIdentifiers(
+    await primaryAccountClient.conversations.createGroupWithIdentifiers(
       groupsAccounts.map((a) => ({
         identifierKind: IdentifierKind.Ethereum,
         identifier: a.address,
@@ -67,7 +67,7 @@ console.log("Creating DM groups...");
 const dmGroups = [];
 
 while (accounts.length > 0) {
-  const dmGroup = await primaryAccountClient.conversations.newDmWithIdentifier({
+  const dmGroup = await primaryAccountClient.conversations.createDmWithIdentifier({
     identifierKind: IdentifierKind.Ethereum,
     identifier: (accounts.pop() as Account).address,
   });

@@ -100,8 +100,8 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the DM, if found
    * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#conversation-helper-methods
    */
-  async getDmByIdentifier(identifier: Identifier) {
-    const inboxId = await this.#client.getInboxIdByIdentifier(identifier);
+  async fetchDmByIdentifier(identifier: Identifier) {
+    const inboxId = await this.#client.fetchInboxIdByIdentifier(identifier);
     if (!inboxId) {
       return undefined;
     }
@@ -126,13 +126,13 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
-   * Creates a new group conversation without syncing to the network
+   * Creates a new group conversation without publishing to the network
    *
    * @param options - Optional group creation options
    * @returns The new group
    * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#optimistically-create-a-new-group-chat
    */
-  newGroupOptimistic(options?: CreateGroupOptions) {
+  createGroupOptimistic(options?: CreateGroupOptions) {
     const group = this.#conversations.createGroupOptimistic(options);
     return new Group<ContentTypes>(this.#client, this.#codecRegistry, group);
   }
@@ -145,7 +145,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns The new group
    * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#create-a-new-group-chat
    */
-  async newGroupWithIdentifiers(
+  async createGroupWithIdentifiers(
     identifiers: Identifier[],
     options?: CreateGroupOptions,
   ) {
@@ -166,7 +166,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns The new group
    * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#create-a-new-group-chat
    */
-  async newGroup(inboxIds: string[], options?: CreateGroupOptions) {
+  async createGroup(inboxIds: string[], options?: CreateGroupOptions) {
     const group = await this.#conversations.createGroupByInboxId(
       inboxIds,
       options,
@@ -187,7 +187,10 @@ export class Conversations<ContentTypes = unknown> {
    * @returns The new DM
    * @see https://docs.xmtp.org/agents/build-agents/create-conversations#by-ethereum-address-1
    */
-  async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
+  async createDmWithIdentifier(
+    identifier: Identifier,
+    options?: CreateDmOptions,
+  ) {
     const group = await this.#conversations.createDm(identifier, options);
     const conversation = new Dm<ContentTypes>(
       this.#client,
@@ -205,7 +208,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns The new DM
    * @see https://docs.xmtp.org/agents/build-agents/create-conversations#by-inbox-id-1
    */
-  async newDm(inboxId: string, options?: CreateDmOptions) {
+  async createDm(inboxId: string, options?: CreateDmOptions) {
     const group = await this.#conversations.createDmByInboxId(inboxId, options);
     const conversation = new Dm<ContentTypes>(
       this.#client,
@@ -529,7 +532,7 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
-   * Retrieves HMAC keys for all conversations
+   * Gets the HMAC keys for all conversations
    *
    * @returns The HMAC keys for all conversations
    * @see https://docs.xmtp.org/chat-apps/push-notifs/push-notifs#get-hmac-keys-for-a-conversation

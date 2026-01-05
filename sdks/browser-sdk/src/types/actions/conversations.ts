@@ -59,7 +59,7 @@ export type ConversationsAction =
       };
     }
   | {
-      action: "conversations.newGroupOptimistic";
+      action: "conversations.createGroupOptimistic";
       id: string;
       result: SafeConversation;
       data: {
@@ -67,7 +67,7 @@ export type ConversationsAction =
       };
     }
   | {
-      action: "conversations.newGroupWithIdentifiers";
+      action: "conversations.createGroupWithIdentifiers";
       id: string;
       result: SafeConversation;
       data: {
@@ -76,7 +76,7 @@ export type ConversationsAction =
       };
     }
   | {
-      action: "conversations.newGroup";
+      action: "conversations.createGroup";
       id: string;
       result: SafeConversation;
       data: {
@@ -85,7 +85,7 @@ export type ConversationsAction =
       };
     }
   | {
-      action: "conversations.newDmWithIdentifier";
+      action: "conversations.createDmWithIdentifier";
       id: string;
       result: SafeConversation;
       data: {
@@ -94,7 +94,7 @@ export type ConversationsAction =
       };
     }
   | {
-      action: "conversations.newDm";
+      action: "conversations.createDm";
       id: string;
       result: SafeConversation;
       data: {
@@ -117,7 +117,7 @@ export type ConversationsAction =
       };
     }
   | {
-      action: "conversations.getHmacKeys";
+      action: "conversations.hmacKeys";
       id: string;
       result: HmacKeys;
       data: undefined;

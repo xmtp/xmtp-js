@@ -89,6 +89,19 @@ export class Conversation<ContentTypes = unknown> {
     return nsToDate(this.createdAtNs);
   }
 
+  pausedForVersion() {
+    return this.#conversation.pausedForVersion() ?? undefined;
+  }
+
+  /**
+   * Gets HMAC keys for this conversation
+   *
+   * @returns The HMAC keys for this conversation
+   */
+  hmacKeys() {
+    return this.#conversation.getHmacKeys();
+  }
+
   /**
    * Gets the metadata for this conversation
    *
@@ -377,7 +390,7 @@ export class Conversation<ContentTypes = unknown> {
   /**
    * Gets the consent state for this conversation
    */
-  get consentState() {
+  consentState() {
     return this.#conversation.consentState();
   }
 
@@ -429,19 +442,6 @@ export class Conversation<ContentTypes = unknown> {
    */
   isMessageDisappearingEnabled() {
     return this.#conversation.isMessageDisappearingEnabled();
-  }
-
-  pausedForVersion() {
-    return this.#conversation.pausedForVersion() ?? undefined;
-  }
-
-  /**
-   * Retrieves HMAC keys for this conversation
-   *
-   * @returns The HMAC keys for this conversation
-   */
-  getHmacKeys() {
-    return this.#conversation.getHmacKeys();
   }
 
   /**

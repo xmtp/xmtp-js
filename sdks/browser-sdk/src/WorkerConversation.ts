@@ -112,15 +112,15 @@ export class WorkerConversation {
     return members;
   }
 
-  get admins() {
+  listAdmins() {
     return this.#group.adminList();
   }
 
-  get superAdmins() {
+  listSuperAdmins() {
     return this.#group.superAdminList();
   }
 
-  get permissions() {
+  permissions() {
     const permissions = this.#group.groupPermissions();
     return {
       policyType: permissions.policyType,
@@ -266,7 +266,7 @@ export class WorkerConversation {
     return this.#group.countMessages(options);
   }
 
-  get consentState() {
+  consentState() {
     return this.#group.consentState();
   }
 
@@ -312,7 +312,7 @@ export class WorkerConversation {
     return this.#group.pausedForVersion();
   }
 
-  getHmacKeys() {
+  hmacKeys() {
     return this.#group.getHmacKeys() as Map<string, HmacKey[]>;
   }
 
@@ -329,7 +329,7 @@ export class WorkerConversation {
     return this.#group.leaveGroup();
   }
 
-  get isPendingRemoval() {
+  isPendingRemoval() {
     return this.#group.membershipState() === GroupMembershipState.PendingRemove;
   }
 

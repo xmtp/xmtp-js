@@ -21,7 +21,7 @@ describe("Conversations", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
 
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.createGroup([client2.inboxId!]);
     expect(group).toBeDefined();
     expect(group.id).toBeDefined();
     const foundGroup = await client1.conversations.getConversationById(
@@ -30,7 +30,7 @@ describe("Conversations", () => {
     expect(foundGroup).toBeDefined();
     expect(foundGroup!.id).toBe(group.id);
 
-    const dm = await client1.conversations.newDm(client2.inboxId!);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
     expect(dm).toBeDefined();
     expect(dm.id).toBeDefined();
     const foundDm = await client1.conversations.getConversationById(dm.id);
@@ -43,7 +43,7 @@ describe("Conversations", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const dm = await client1.conversations.newDm(client2.inboxId!);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
     const foundDm = await client1.conversations.getDmByInboxId(
       client2.inboxId!,
     );
@@ -56,8 +56,8 @@ describe("Conversations", () => {
     const { signer: signer2, identifier: identifier2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const dm = await client1.conversations.newDm(client2.inboxId!);
-    const foundDm = await client1.conversations.getDmByIdentifier(identifier2);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
+    const foundDm = await client1.conversations.fetchDmByIdentifier(identifier2);
     expect(foundDm).toBeDefined();
     expect(foundDm!.id).toBe(dm.id);
   });
@@ -67,7 +67,7 @@ describe("Conversations", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
+    const group = await client1.conversations.createGroup([client2.inboxId!]);
     const messageId = await group.sendText("gm!");
     expect(messageId).toBeDefined();
 
@@ -83,10 +83,10 @@ describe("Conversations", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     const client3 = await createRegisteredClient(signer3);
-    const group1 = await client1.conversations.newGroup([client2.inboxId!]);
-    const group2 = await client1.conversations.newGroup([client3.inboxId!]);
-    const dm1 = await client1.conversations.newDm(client2.inboxId!);
-    const dm2 = await client1.conversations.newDm(client3.inboxId!);
+    const group1 = await client1.conversations.createGroup([client2.inboxId!]);
+    const group2 = await client1.conversations.createGroup([client3.inboxId!]);
+    const dm1 = await client1.conversations.createDm(client2.inboxId!);
+    const dm2 = await client1.conversations.createDm(client3.inboxId!);
 
     // conversations by type (group)
     const groups = await client1.conversations.list({
@@ -156,10 +156,10 @@ describe("Conversations", () => {
     const client2 = await createRegisteredClient(signer2);
     const client3 = await createRegisteredClient(signer3);
     const stream = await client3.conversations.stream();
-    const conversation1 = await client1.conversations.newGroup([
+    const conversation1 = await client1.conversations.createGroup([
       client3.inboxId!,
     ]);
-    const conversation2 = await client2.conversations.newDm(client3.inboxId!);
+    const conversation2 = await client2.conversations.createDm(client3.inboxId!);
 
     const expectedIds = [conversation1.id, conversation2.id];
     const receivedIds: string[] = [];
@@ -193,9 +193,9 @@ describe("Conversations", () => {
     const client3 = await createRegisteredClient(signer3);
     const client4 = await createRegisteredClient(signer4);
     const stream = await client3.conversations.streamGroups();
-    await client4.conversations.newDm(client3.inboxId!);
-    const group1 = await client1.conversations.newGroup([client3.inboxId!]);
-    const group2 = await client2.conversations.newGroup([client3.inboxId!]);
+    await client4.conversations.createDm(client3.inboxId!);
+    const group1 = await client1.conversations.createGroup([client3.inboxId!]);
+    const group2 = await client2.conversations.createGroup([client3.inboxId!]);
 
     const expectedIds = [group1.id, group2.id];
     const receivedIds: string[] = [];
@@ -222,9 +222,9 @@ describe("Conversations", () => {
     const client3 = await createRegisteredClient(signer3);
     const client4 = await createRegisteredClient(signer4);
     const stream = await client3.conversations.streamDms();
-    await client1.conversations.newGroup([client3.inboxId!]);
-    await client2.conversations.newGroup([client3.inboxId!]);
-    const group3 = await client4.conversations.newDm(client3.inboxId!);
+    await client1.conversations.createGroup([client3.inboxId!]);
+    await client2.conversations.createGroup([client3.inboxId!]);
+    const group3 = await client4.conversations.createDm(client3.inboxId!);
 
     setTimeout(() => {
       void stream.end();
@@ -248,8 +248,8 @@ describe("Conversations", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     const client3 = await createRegisteredClient(signer3);
-    await client1.conversations.newGroup([client2.inboxId!]);
-    await client1.conversations.newDm(client3.inboxId!);
+    await client1.conversations.createGroup([client2.inboxId!]);
+    await client1.conversations.createDm(client3.inboxId!);
 
     await sleep(2000);
 
@@ -291,9 +291,9 @@ describe("Conversations", () => {
     const client2 = await createRegisteredClient(signer2);
     const client3 = await createRegisteredClient(signer3);
     const client4 = await createRegisteredClient(signer4);
-    await client1.conversations.newGroup([client2.inboxId!]);
-    await client1.conversations.newGroup([client3.inboxId!]);
-    await client1.conversations.newDm(client4.inboxId!);
+    await client1.conversations.createGroup([client2.inboxId!]);
+    await client1.conversations.createGroup([client3.inboxId!]);
+    await client1.conversations.createDm(client4.inboxId!);
 
     await sleep(2000);
 
@@ -342,9 +342,9 @@ describe("Conversations", () => {
     const client2 = await createRegisteredClient(signer2);
     const client3 = await createRegisteredClient(signer3);
     const client4 = await createRegisteredClient(signer4);
-    await client1.conversations.newGroup([client2.inboxId!]);
-    await client1.conversations.newGroup([client3.inboxId!]);
-    await client1.conversations.newDm(client4.inboxId!);
+    await client1.conversations.createGroup([client2.inboxId!]);
+    await client1.conversations.createGroup([client3.inboxId!]);
+    await client1.conversations.createDm(client4.inboxId!);
 
     await sleep(2000);
 
@@ -386,9 +386,9 @@ describe("Conversations", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId!]);
-    const dm = await client1.conversations.newDm(client2.inboxId!);
-    const hmacKeys = await client1.conversations.getHmacKeys();
+    const group = await client1.conversations.createGroup([client2.inboxId!]);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
+    const hmacKeys = await client1.conversations.hmacKeys();
     expect(hmacKeys).toBeDefined();
     const keys = [...hmacKeys.keys()];
     expect(keys.length).toBe(2);
@@ -414,13 +414,13 @@ describe("Conversations", () => {
     });
     await createRegisteredClient(signer2);
 
-    const group = await client.conversations.newGroup([client2.inboxId!]);
+    const group = await client.conversations.createGroup([client2.inboxId!]);
     await client2.conversations.sync();
     const convos = await client2.conversations.listGroups();
     expect(convos.length).toBe(1);
     expect(convos[0].id).toBe(group.id);
 
-    const group2 = await client.conversations.newDm(client2.inboxId!);
+    const group2 = await client.conversations.createDm(client2.inboxId!);
     await client2.conversations.sync();
     const convos2 = await client2.conversations.list();
     expect(convos2.length).toBe(2);
@@ -434,8 +434,8 @@ describe("Conversations", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const dm1 = await client1.conversations.newDm(client2.inboxId!);
-    const dm2 = await client2.conversations.newDm(client1.inboxId!);
+    const dm1 = await client1.conversations.createDm(client2.inboxId!);
+    const dm2 = await client2.conversations.createDm(client1.inboxId!);
 
     await dm1.sendText("hi");
     // since this is the last message sent, the stitched group ID will be

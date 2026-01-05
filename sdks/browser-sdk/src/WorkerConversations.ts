@@ -88,12 +88,12 @@ export class WorkerConversations {
     );
   }
 
-  newGroupOptimistic(options?: CreateGroupOptions) {
+  createGroupOptimistic(options?: CreateGroupOptions) {
     const group = this.#conversations.createGroupOptimistic(options);
     return new WorkerConversation(this.#client, group);
   }
 
-  async newGroupWithIdentifiers(
+  async createGroupWithIdentifiers(
     identifiers: Identifier[],
     options?: CreateGroupOptions,
   ) {
@@ -101,7 +101,7 @@ export class WorkerConversations {
     return new WorkerConversation(this.#client, group);
   }
 
-  async newGroup(inboxIds: string[], options?: CreateGroupOptions) {
+  async createGroup(inboxIds: string[], options?: CreateGroupOptions) {
     const group = await this.#conversations.createGroupByInboxIds(
       inboxIds,
       options,
@@ -109,17 +109,20 @@ export class WorkerConversations {
     return new WorkerConversation(this.#client, group);
   }
 
-  async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
+  async createDmWithIdentifier(
+    identifier: Identifier,
+    options?: CreateDmOptions,
+  ) {
     const group = await this.#conversations.createDm(identifier, options);
     return new WorkerConversation(this.#client, group);
   }
 
-  async newDm(inboxId: string, options?: CreateDmOptions) {
+  async createDm(inboxId: string, options?: CreateDmOptions) {
     const group = await this.#conversations.createDmByInboxId(inboxId, options);
     return new WorkerConversation(this.#client, group);
   }
 
-  getHmacKeys() {
+  hmacKeys() {
     return this.#conversations.getHmacKeys() as HmacKeys;
   }
 

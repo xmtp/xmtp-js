@@ -35,43 +35,51 @@ export class Preferences {
   }
 
   /**
-   * Retrieves the current inbox state
+   * Retrieves the current inbox state of this client from the local database
    *
-   * @param refreshFromNetwork - Optional flag to force refresh from network
    * @returns Promise that resolves with the inbox state
    */
-  async inboxState(refreshFromNetwork?: boolean) {
+  async getInboxState() {
     return this.#worker.action("preferences.inboxState", {
-      refreshFromNetwork: refreshFromNetwork ?? false,
+      refreshFromNetwork: false,
     });
   }
 
   /**
-   * Retrieves inbox state for specific inbox IDs
+   * Retrieves the latest inbox state of this client from the network
+   *
+   * @returns Promise that resolves with the inbox state
+   */
+  async fetchInboxState() {
+    return this.#worker.action("preferences.inboxState", {
+      refreshFromNetwork: true,
+    });
+  }
+
+  /**
+   * Retrieves the current inbox states for specified inbox IDs from the local
+   * database
    *
    * @param inboxIds - Array of inbox IDs to get state for
-   * @param refreshFromNetwork - Optional flag to force refresh from network
-   * @returns Promise that resolves with the inbox state for the inbox IDs
+   * @returns Promise that resolves with the inbox states for the inbox IDs
    */
-  async inboxStateFromInboxIds(
-    inboxIds: string[],
-    refreshFromNetwork?: boolean,
-  ) {
-    return this.#worker.action("preferences.inboxStateFromInboxIds", {
+  async getInboxStates(inboxIds: string[]) {
+    return this.#worker.action("preferences.getInboxStates", {
       inboxIds,
-      refreshFromNetwork: refreshFromNetwork ?? false,
+      refreshFromNetwork: false,
     });
   }
 
   /**
-   * Gets the latest inbox state for a specific inbox
+   * Retrieves the latest inbox states for specified inbox IDs from the network
    *
-   * @param inboxId - The inbox ID to get state for
-   * @returns Promise that resolves with the latest inbox state
+   * @param inboxIds - Array of inbox IDs to get state for
+   * @returns Promise that resolves with the inbox states for the inbox IDs
    */
-  async getLatestInboxState(inboxId: string) {
-    return this.#worker.action("preferences.getLatestInboxState", {
-      inboxId,
+  async fetchInboxStates(inboxIds: string[]) {
+    return this.#worker.action("preferences.getInboxStates", {
+      inboxIds,
+      refreshFromNetwork: true,
     });
   }
 

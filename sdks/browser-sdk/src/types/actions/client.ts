@@ -205,7 +205,7 @@ export type ClientAction =
       };
     }
   | {
-      action: "client.getKeyPackageStatusesForInstallationIds";
+      action: "client.fetchKeyPackageStatuses";
       id: string;
       result: Map<string, KeyPackageStatus>;
       data: {

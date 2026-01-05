@@ -31,7 +31,7 @@ describe("Group", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
 
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
     expect(group).toBeDefined();
     expect(
       (await client1.conversations.getConversationById(group.id))?.id,
@@ -74,7 +74,7 @@ describe("Group", () => {
     const { signer: signer2, identifier: identifier2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroupWithIdentifiers([
+    const group = await client1.conversations.createGroupWithIdentifiers([
       identifier2,
     ]);
     expect(group).toBeDefined();
@@ -116,7 +116,7 @@ describe("Group", () => {
   it("should optimistically create a group", async () => {
     const { signer: signer1 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const group = client1.conversations.newGroupOptimistic({
+    const group = client1.conversations.createGroupOptimistic({
       groupName: "foo",
       groupDescription: "bar",
     });
@@ -148,7 +148,7 @@ describe("Group", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = client1.conversations.newGroupOptimistic({
+    const group = client1.conversations.createGroupOptimistic({
       groupName: "foo",
       groupDescription: "bar",
     });
@@ -185,7 +185,7 @@ describe("Group", () => {
   it("should create a group with options", async () => {
     const { signer: signer1 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const group = await client1.conversations.newGroup([], {
+    const group = await client1.conversations.createGroup([], {
       groupName: "foo",
       groupImageUrlSquare: "https://foo/bar.png",
       groupDescription: "foo",
@@ -198,7 +198,7 @@ describe("Group", () => {
   it("should update group name", async () => {
     const { signer: signer1 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const group = await client1.conversations.newGroup([]);
+    const group = await client1.conversations.createGroup([]);
     expect(group.name).toBe("");
     const newName = "foo";
     await group.updateName(newName);
@@ -217,7 +217,7 @@ describe("Group", () => {
   it("should update group image URL", async () => {
     const { signer: signer1 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const group = await client1.conversations.newGroup([]);
+    const group = await client1.conversations.createGroup([]);
     expect(group.imageUrl).toBe("");
     const imageUrl = "https://foo/bar.jpg";
     await group.updateImageUrl(imageUrl);
@@ -236,7 +236,7 @@ describe("Group", () => {
   it("should update group description", async () => {
     const { signer: signer1 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const group = await client1.conversations.newGroup([]);
+    const group = await client1.conversations.createGroup([]);
     expect(group.description).toBe("");
     const newDescription = "foo";
     await group.updateDescription(newDescription);
@@ -257,7 +257,7 @@ describe("Group", () => {
   it("should update group app data", async () => {
     const { signer: signer1 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
-    const group = await client1.conversations.newGroup([]);
+    const group = await client1.conversations.createGroup([]);
     expect(group.appData).toBe("");
     const appData = "foo";
     await group.updateAppData(appData);
@@ -278,7 +278,7 @@ describe("Group", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
 
     expect(await group.lastMessage()).toBeDefined();
 
@@ -318,7 +318,7 @@ describe("Group", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
 
     const text = "gm";
     await group.sendText(text, true);
@@ -356,7 +356,7 @@ describe("Group", () => {
       codecs: [testCodec],
     });
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
 
     // leave request message
     await client2.conversations.sync();
@@ -533,7 +533,7 @@ describe("Group", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
 
     await client2.conversations.sync();
     const groups = client2.conversations.listGroups();
@@ -576,7 +576,7 @@ describe("Group", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     const client3 = await createRegisteredClient(signer3);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
 
     const members = await group.members();
 
@@ -622,23 +622,23 @@ describe("Group", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
 
     expect(group.isSuperAdmin(client1.inboxId)).toBe(true);
-    expect(group.superAdmins.length).toBe(1);
-    expect(group.superAdmins).toContain(client1.inboxId);
+    expect(group.listSuperAdmins().length).toBe(1);
+    expect(group.listSuperAdmins()).toContain(client1.inboxId);
     expect(group.isAdmin(client1.inboxId)).toBe(false);
     expect(group.isAdmin(client2.inboxId)).toBe(false);
-    expect(group.admins.length).toBe(0);
+    expect(group.listAdmins().length).toBe(0);
 
     await group.addAdmin(client2.inboxId);
     expect(group.isAdmin(client2.inboxId)).toBe(true);
-    expect(group.admins.length).toBe(1);
-    expect(group.admins).toContain(client2.inboxId);
+    expect(group.listAdmins().length).toBe(1);
+    expect(group.listAdmins()).toContain(client2.inboxId);
 
     await group.removeAdmin(client2.inboxId);
     expect(group.isAdmin(client2.inboxId)).toBe(false);
-    expect(group.admins.length).toBe(0);
+    expect(group.listAdmins().length).toBe(0);
 
     const messages = (await group.messages()) as DecodedMessage<GroupUpdated>[];
     expect(messages.length).toBe(3);
@@ -657,23 +657,23 @@ describe("Group", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
 
     expect(group.isSuperAdmin(client1.inboxId)).toBe(true);
     expect(group.isSuperAdmin(client2.inboxId)).toBe(false);
-    expect(group.superAdmins.length).toBe(1);
-    expect(group.superAdmins).toContain(client1.inboxId);
+    expect(group.listSuperAdmins().length).toBe(1);
+    expect(group.listSuperAdmins()).toContain(client1.inboxId);
 
     await group.addSuperAdmin(client2.inboxId);
     expect(group.isSuperAdmin(client2.inboxId)).toBe(true);
-    expect(group.superAdmins.length).toBe(2);
-    expect(group.superAdmins).toContain(client1.inboxId);
-    expect(group.superAdmins).toContain(client2.inboxId);
+    expect(group.listSuperAdmins().length).toBe(2);
+    expect(group.listSuperAdmins()).toContain(client1.inboxId);
+    expect(group.listSuperAdmins()).toContain(client2.inboxId);
 
     await group.removeSuperAdmin(client2.inboxId);
     expect(group.isSuperAdmin(client2.inboxId)).toBe(false);
-    expect(group.superAdmins.length).toBe(1);
-    expect(group.superAdmins).toContain(client1.inboxId);
+    expect(group.listSuperAdmins().length).toBe(1);
+    expect(group.listSuperAdmins()).toContain(client1.inboxId);
 
     const messages = (await group.messages()) as DecodedMessage<GroupUpdated>[];
     expect(messages.length).toBe(3);
@@ -692,16 +692,16 @@ describe("Group", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
     expect(group).toBeDefined();
-    expect(group.consentState).toBe(ConsentState.Allowed);
+    expect(group.consentState()).toBe(ConsentState.Allowed);
 
     await client2.conversations.sync();
     const group2 = await client2.conversations.getConversationById(group.id);
     expect(group2).toBeDefined();
-    expect(group2!.consentState).toBe(ConsentState.Unknown);
+    expect(group2!.consentState()).toBe(ConsentState.Unknown);
     await group2!.sendText("gm!");
-    expect(group2!.consentState).toBe(ConsentState.Allowed);
+    expect(group2!.consentState()).toBe(ConsentState.Allowed);
   });
 
   it("should handle disappearing messages", async () => {
@@ -719,7 +719,7 @@ describe("Group", () => {
     };
 
     // create a group with message disappearing settings
-    const group = await client1.conversations.newGroup([client2.inboxId], {
+    const group = await client1.conversations.createGroup([client2.inboxId], {
       messageDisappearingSettings,
     });
 
@@ -835,7 +835,7 @@ describe("Group", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newDm(client2.inboxId);
+    const group = await client1.conversations.createDm(client2.inboxId);
     expect(group.pausedForVersion()).toBeUndefined();
   });
 
@@ -845,9 +845,9 @@ describe("Group", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
 
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
 
-    const hmacKeys = group.getHmacKeys();
+    const hmacKeys = group.hmacKeys();
     const groupIds = Object.keys(hmacKeys);
     for (const groupId of groupIds) {
       expect(hmacKeys[groupId].length).toBe(3);
@@ -865,7 +865,7 @@ describe("Group", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
     const debugInfo = await group.debugInfo();
     expect(debugInfo).toBeDefined();
     expect(debugInfo.epoch).toBeDefined();
@@ -888,7 +888,7 @@ describe("Group", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
 
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
 
     await group.sendText("text 1");
     await sleep(10);
@@ -940,14 +940,14 @@ describe("Group", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    await client1.conversations.newGroup([client2.inboxId]);
+    await client1.conversations.createGroup([client2.inboxId]);
 
     await client2.conversations.sync();
     const group2 = client2.conversations.listGroups()[0];
 
-    expect(group2.isPendingRemoval).toBe(false);
+    expect(group2.isPendingRemoval()).toBe(false);
     await group2.requestRemoval();
-    expect(group2.isPendingRemoval).toBe(true);
+    expect(group2.isPendingRemoval()).toBe(true);
     expect(group2.isActive).toBe(true);
 
     const messages = await group2.messages();
@@ -960,7 +960,7 @@ describe("Group", () => {
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
 
     await client2.conversations.sync();
     const group2 = client2.conversations.listGroups()[0];
@@ -977,7 +977,7 @@ describe("Group", () => {
     await group2.sync();
 
     expect(group2.isActive).toBe(false);
-    expect(group2.isPendingRemoval).toBe(true);
+    expect(group2.isPendingRemoval()).toBe(true);
 
     expect(await group.members()).toHaveLength(1);
     expect(await group2.members()).toHaveLength(1);
