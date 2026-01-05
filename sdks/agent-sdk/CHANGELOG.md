@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 1.2.4
+
+### Patch Changes
+
+- 1f7e6ed: Exposed command list in CommandRouter middleware
+
 ## 1.2.3
 
 ### Patch Changes
