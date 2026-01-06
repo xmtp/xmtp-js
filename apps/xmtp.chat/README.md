@@ -10,6 +10,14 @@ To learn more about XMTP and get answers to frequently asked questions, see the 
 
 ## Run xmtp.chat locally
 
+### Run a local backend
+
+Start a local backend from the repository root:
+
+```bash
+yarn workspace xmtp-js test:setup
+```
+
 ### Setup environment
 
 Copy `.env.example` to `.env` and fill in the proper values.
