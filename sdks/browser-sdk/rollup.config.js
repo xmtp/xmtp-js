@@ -43,6 +43,16 @@ export default defineConfig([
     external,
   },
   {
+    input: "src/workers/opfs.ts",
+    output: {
+      file: "dist/workers/opfs.js",
+      format: "es",
+      sourcemap: true,
+    },
+    plugins,
+    external,
+  },
+  {
     input: "src/index.ts",
     output: {
       file: "dist/index.d.ts",
