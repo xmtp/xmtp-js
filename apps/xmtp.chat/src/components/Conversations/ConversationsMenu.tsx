@@ -1,5 +1,5 @@
-import { ActionIcon, Menu } from "@mantine/core";
-import { IconDots } from "@/icons/IconDots";
+import { ActionIcon, Menu, Stack, Text } from "@mantine/core";
+import { IconRefresh } from "@/icons/IconRefresh";
 
 export type ConversationsMenuProps = {
   onSync: () => void;
@@ -18,13 +18,27 @@ export const ConversationsMenu: React.FC<ConversationsMenuProps> = ({
     <Menu shadow="md" disabled={disabled} position="bottom-end">
       <Menu.Target>
         <ActionIcon variant="default" loading={loading}>
-          <IconDots />
+          <IconRefresh />
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown miw={200}>
-        <Menu.Label>Actions</Menu.Label>
-        <Menu.Item onClick={onSync}>Sync</Menu.Item>
-        <Menu.Item onClick={onSyncAll}>Sync All</Menu.Item>
+        <Menu.Label>Synchronization</Menu.Label>
+        <Menu.Item onClick={onSync}>
+          <Stack gap={2}>
+            <Text size="sm">Sync</Text>
+            <Text size="xs" c="dimmed">
+              Sync new conversations only
+            </Text>
+          </Stack>
+        </Menu.Item>
+        <Menu.Item onClick={onSyncAll}>
+          <Stack gap={2}>
+            <Text size="sm">Sync All</Text>
+            <Text size="xs" c="dimmed">
+              Full sync of all conversations and messages
+            </Text>
+          </Stack>
+        </Menu.Item>
       </Menu.Dropdown>
     </Menu>
   );

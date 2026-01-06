@@ -98,6 +98,12 @@ export const Metadata: React.FC<MetadataProps> = ({
           }}
         />
       </Group>
+      <Group gap="sm" align="center" wrap="nowrap">
+        <Text flex="1 1 20%" size="sm">
+          Conversation ID
+        </Text>
+        <TextInput size="sm" flex="1 1 65%" value={conversation?.id} disabled />
+      </Group>
     </Stack>
   );
 };

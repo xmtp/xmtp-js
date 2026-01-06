@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useClientPermissions } from "@/hooks/useClientPermissions";
 import { useSettings } from "@/hooks/useSettings";
-import { IconDots } from "@/icons/IconDots";
+import { IconSettings } from "@/icons/IconSettings";
 
 export type ConversationMenuProps = {
   conversationId: string;
@@ -38,7 +38,7 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
     <Menu shadow="md" disabled={disabled} position="bottom-end">
       <Menu.Target>
         <ActionIcon variant="default">
-          <IconDots />
+          <IconSettings />
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown miw={200}>
