@@ -49,8 +49,8 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@xmtp/content-type-primitives": "3.0.0-rc1",
-    "@xmtp/node-bindings": "1.7.0-rc2"
+    "@xmtp/content-type-primitives": "3.0.0",
+    "@xmtp/node-bindings": "1.8.0"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
