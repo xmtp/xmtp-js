@@ -1,52 +1,99 @@
 import { describe, expect, it } from "vitest";
-import { ContentTypeId } from ".";
+import {
+  contentTypeFromString,
+  contentTypesAreEqual,
+  contentTypeToString,
+  type ContentTypeId,
+} from ".";
 
-describe("ContentTypeId", () => {
-  it("creates a new content type", () => {
-    const contentType = new ContentTypeId({
+describe("contentTypesAreEqual", () => {
+  it("returns true if the content type IDs are equal", () => {
+    const contentType1: ContentTypeId = {
       authorityId: "foo",
       typeId: "bar",
       versionMajor: 1,
       versionMinor: 0,
-    });
-    expect(contentType.authorityId).toEqual("foo");
-    expect(contentType.typeId).toEqual("bar");
-    expect(contentType.versionMajor).toEqual(1);
-    expect(contentType.versionMinor).toEqual(0);
-  });
-
-  it("creates a string from a content type", () => {
-    const contentType = new ContentTypeId({
+    };
+    const contentType2: ContentTypeId = {
       authorityId: "foo",
       typeId: "bar",
       versionMajor: 1,
       versionMinor: 0,
-    });
-    expect(contentType.toString()).toEqual("foo/bar:1.0");
+    };
+    expect(contentTypesAreEqual(contentType1, contentType2)).toBe(true);
   });
 
-  it("creates a content type from a string", () => {
-    const contentType = ContentTypeId.fromString("foo/bar:1.0");
-    expect(contentType.authorityId).toEqual("foo");
-    expect(contentType.typeId).toEqual("bar");
-    expect(contentType.versionMajor).toEqual(1);
-    expect(contentType.versionMinor).toEqual(0);
-  });
-
-  it("compares two content types", () => {
-    const contentType1 = new ContentTypeId({
+  it("returns false if the content type IDs are not equal", () => {
+    const contentType1: ContentTypeId = {
       authorityId: "foo",
       typeId: "bar",
       versionMajor: 1,
       versionMinor: 0,
-    });
-    const contentType2 = new ContentTypeId({
-      authorityId: "baz",
-      typeId: "qux",
+    };
+    const contentType2: ContentTypeId = {
+      authorityId: "foo",
+      typeId: "baz",
       versionMajor: 1,
       versionMinor: 0,
-    });
-    expect(contentType1.sameAs(contentType2)).toBe(false);
-    expect(contentType1.sameAs(contentType1)).toBe(true);
+    };
+    expect(contentTypesAreEqual(contentType1, contentType2)).toBe(false);
+  });
+});
+
+describe("contentTypeToString", () => {
+  it("returns the string representation of the content type", () => {
+    const contentType: ContentTypeId = {
+      authorityId: "foo",
+      typeId: "bar",
+      versionMajor: 1,
+      versionMinor: 0,
+    };
+    expect(contentTypeToString(contentType)).toBe("foo/bar:1.0");
+  });
+});
+
+describe("contentTypeFromString", () => {
+  it("returns the content type ID from the string", () => {
+    const contentType: ContentTypeId = {
+      authorityId: "foo",
+      typeId: "bar",
+      versionMajor: 1,
+      versionMinor: 0,
+    };
+    expect(contentTypeFromString("foo/bar:1.0")).toEqual(contentType);
+  });
+
+  it("parses content types with dots in authorityId", () => {
+    const contentType: ContentTypeId = {
+      authorityId: "xmtp.org",
+      typeId: "text",
+      versionMajor: 1,
+      versionMinor: 0,
+    };
+    expect(contentTypeFromString("xmtp.org/text:1.0")).toEqual(contentType);
+  });
+
+  it("throws an error for missing version", () => {
+    expect(() => contentTypeFromString("foo/bar")).toThrow(
+      'Invalid content type string: "foo/bar"',
+    );
+  });
+
+  it("throws an error for missing typeId", () => {
+    expect(() => contentTypeFromString("foo:1.0")).toThrow(
+      'Invalid content type string: "foo:1.0"',
+    );
+  });
+
+  it("throws an error for non-numeric version", () => {
+    expect(() => contentTypeFromString("foo/bar:a.b")).toThrow(
+      'Invalid content type string: "foo/bar:a.b"',
+    );
+  });
+
+  it("throws an error for empty string", () => {
+    expect(() => contentTypeFromString("")).toThrow(
+      'Invalid content type string: ""',
+    );
   });
 });

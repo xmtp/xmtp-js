@@ -26,7 +26,7 @@
     "@xmtp/browser-sdk": "workspace:^",
     "@xmtp/content-type-group-updated": "workspace:^",
     "@xmtp/content-type-markdown": "workspace:^",
-    "@xmtp/content-type-primitives": "workspace:^",
+    "@xmtp/content-type-primitives": "2.0.3",
     "@xmtp/content-type-reaction": "workspace:^",
     "@xmtp/content-type-read-receipt": "workspace:^",
     "@xmtp/content-type-remote-attachment": "workspace:^",
