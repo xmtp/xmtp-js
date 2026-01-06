@@ -62,4 +62,38 @@ describe("contentTypeFromString", () => {
     };
     expect(contentTypeFromString("foo/bar:1.0")).toEqual(contentType);
   });
+
+  it("parses content types with dots in authorityId", () => {
+    const contentType: ContentTypeId = {
+      authorityId: "xmtp.org",
+      typeId: "text",
+      versionMajor: 1,
+      versionMinor: 0,
+    };
+    expect(contentTypeFromString("xmtp.org/text:1.0")).toEqual(contentType);
+  });
+
+  it("throws an error for missing version", () => {
+    expect(() => contentTypeFromString("foo/bar")).toThrow(
+      'Invalid content type string: "foo/bar"',
+    );
+  });
+
+  it("throws an error for missing typeId", () => {
+    expect(() => contentTypeFromString("foo:1.0")).toThrow(
+      'Invalid content type string: "foo:1.0"',
+    );
+  });
+
+  it("throws an error for non-numeric version", () => {
+    expect(() => contentTypeFromString("foo/bar:a.b")).toThrow(
+      'Invalid content type string: "foo/bar:a.b"',
+    );
+  });
+
+  it("throws an error for empty string", () => {
+    expect(() => contentTypeFromString("")).toThrow(
+      'Invalid content type string: ""',
+    );
+  });
 });

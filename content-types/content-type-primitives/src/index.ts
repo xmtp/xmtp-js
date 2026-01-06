@@ -27,18 +27,25 @@ export const contentTypesAreEqual = (a: ContentTypeId, b: ContentTypeId) =>
 export const contentTypeToString = (contentType: ContentTypeId) =>
   `${contentType.authorityId}/${contentType.typeId}:${contentType.versionMajor}.${contentType.versionMinor}`;
 
+const contentTypeStringRegex = /^([^/]+)\/([^:]+):(\d+)\.(\d+)$/;
+
 /**
  * Converts a string to a content type ID
  *
  * @param contentTypeString - String representation of the content type ID
  * @returns Content type ID
+ * @throws Error if the string does not match the expected format
  */
 export const contentTypeFromString = (
   contentTypeString: string,
 ): ContentTypeId => {
-  const [idString, versionString] = contentTypeString.split(":");
-  const [authorityId, typeId] = idString.split("/");
-  const [major, minor] = versionString.split(".");
+  const match = contentTypeString.match(contentTypeStringRegex);
+  if (!match) {
+    throw new Error(
+      `Invalid content type string: "${contentTypeString}". Expected format: "authorityId/typeId:majorVersion.minorVersion"`,
+    );
+  }
+  const [, authorityId, typeId, major, minor] = match;
   return {
     authorityId,
     typeId,
