@@ -436,12 +436,11 @@ describe("Client", () => {
     const inboxState = await client3.preferences.fetchInboxState();
     expect(inboxState.installations.length).toBe(3);
 
-    const keyPackageStatuses =
-      await client3.fetchKeyPackageStatuses([
-        client.installationId,
-        client2.installationId,
-        client3.installationId,
-      ]);
+    const keyPackageStatuses = await client3.fetchKeyPackageStatuses([
+      client.installationId,
+      client2.installationId,
+      client3.installationId,
+    ]);
     expect(
       (keyPackageStatuses[client.installationId].lifetime?.notAfter ?? 0n) -
         (keyPackageStatuses[client.installationId].lifetime?.notBefore ?? 0n),

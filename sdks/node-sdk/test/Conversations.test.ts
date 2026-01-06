@@ -55,7 +55,8 @@ describe("Conversations", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     const dm = await client1.conversations.createDm(client2.inboxId);
-    const foundDm = await client1.conversations.fetchDmByIdentifier(identifier2);
+    const foundDm =
+      await client1.conversations.fetchDmByIdentifier(identifier2);
     expect(foundDm).toBeDefined();
     expect(foundDm!.id).toBe(dm.id);
   });
@@ -395,7 +396,10 @@ describe("Conversations", () => {
     expect(keys.length).toBe(2);
     expect(keys).toContain(group.id);
     expect(keys).toContain(dm.id);
-    for (const values of Object.values(hmacKeys) as { key: Uint8Array; epoch: bigint }[][]) {
+    for (const values of Object.values(hmacKeys) as {
+      key: Uint8Array;
+      epoch: bigint;
+    }[][]) {
       expect(values.length).toBe(3);
       for (const value of values) {
         expect(value.key).toBeDefined();

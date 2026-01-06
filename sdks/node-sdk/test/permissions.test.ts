@@ -12,7 +12,9 @@ describe("Group permissions", () => {
     const { signer: signer1 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const group = await client1.conversations.createGroup([]);
-    expect(group.permissions().policyType).toBe(GroupPermissionsOptions.Default);
+    expect(group.permissions().policyType).toBe(
+      GroupPermissionsOptions.Default,
+    );
     expect(group.permissions().policySet).toEqual({
       addMemberPolicy: PermissionPolicy.Allow,
       removeMemberPolicy: PermissionPolicy.Admin,

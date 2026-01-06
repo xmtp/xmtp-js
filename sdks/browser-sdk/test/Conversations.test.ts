@@ -57,7 +57,8 @@ describe("Conversations", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
     const dm = await client1.conversations.createDm(client2.inboxId!);
-    const foundDm = await client1.conversations.fetchDmByIdentifier(identifier2);
+    const foundDm =
+      await client1.conversations.fetchDmByIdentifier(identifier2);
     expect(foundDm).toBeDefined();
     expect(foundDm!.id).toBe(dm.id);
   });
@@ -159,7 +160,9 @@ describe("Conversations", () => {
     const conversation1 = await client1.conversations.createGroup([
       client3.inboxId!,
     ]);
-    const conversation2 = await client2.conversations.createDm(client3.inboxId!);
+    const conversation2 = await client2.conversations.createDm(
+      client3.inboxId!,
+    );
 
     const expectedIds = [conversation1.id, conversation2.id];
     const receivedIds: string[] = [];

@@ -67,10 +67,11 @@ console.log("Creating DM groups...");
 const dmGroups = [];
 
 while (accounts.length > 0) {
-  const dmGroup = await primaryAccountClient.conversations.createDmWithIdentifier({
-    identifierKind: IdentifierKind.Ethereum,
-    identifier: (accounts.pop() as Account).address,
-  });
+  const dmGroup =
+    await primaryAccountClient.conversations.createDmWithIdentifier({
+      identifierKind: IdentifierKind.Ethereum,
+      identifier: (accounts.pop() as Account).address,
+    });
   dmGroups.push(dmGroup);
 }
 
