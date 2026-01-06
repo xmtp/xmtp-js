@@ -146,6 +146,7 @@ export class DecodedMessage<ContentTypes = unknown> {
           console.warn(
             `No codec found for content type "${contentTypeToString(this.contentType)}"`,
           );
+          this.content = undefined;
         }
         break;
       }

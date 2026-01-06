@@ -1112,4 +1112,23 @@ describe("Content types", () => {
     expect(message?.content).toEqual({ test: "test" });
     expect(message?.contentType).toEqual(testCodec.contentType);
   });
+
+  it("should have undefined content when receiving custom content without codec", async () => {
+    const { signer: signer1 } = createSigner();
+    const { signer: signer2 } = createSigner();
+    const testCodec = new TestCodec();
+    const client1 = await createRegisteredClient(signer1, {
+      codecs: [testCodec],
+    });
+    const client2 = await createRegisteredClient(signer2);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
+    await group.send(testCodec.encode({ test: "test" }));
+    await client2.conversations.sync();
+    const group2 = await client2.conversations.getConversationById(group.id);
+    expect(group2).toBeDefined();
+    await group2!.sync();
+    const messages = await group2!.messages();
+    expect(messages[1].content).toBeUndefined();
+    expect(messages[1].contentType).toEqual(testCodec.contentType);
+  });
 });
