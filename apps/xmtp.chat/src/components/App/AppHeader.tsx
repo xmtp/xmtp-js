@@ -96,7 +96,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             </Badge>
           </Menu.Target>
           <Menu.Dropdown miw={200}>
-            <Menu.Label>Network Status</Menu.Label>
+            <Menu.Label>Network</Menu.Label>
             <Menu.Item onClick={handleDisconnect}>Disconnect</Menu.Item>
           </Menu.Dropdown>
         </Menu>
