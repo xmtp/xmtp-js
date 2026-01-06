@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-primitives",
-  "version": "3.0.0-rc1",
+  "version": "3.0.0",
   "description": "Primitives for building custom XMTP content types",
   "keywords": [
     "xmtp",

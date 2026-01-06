@@ -1,8 +1,8 @@
 # @xmtp/content-type-primitives
 
-## 3.0.0-rc1
+## 3.0.0
 
-This release introduces breaking changes and new features. If you've been building on a previous release, this one may require an update to your existing code.
+This release introduces breaking changes and new features to replace previous functionality. If you've been building on a previous release, this will require an update to your existing code.
 
 **BREAKING CHANGES**
 

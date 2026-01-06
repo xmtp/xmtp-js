@@ -4779,7 +4779,25 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-primitives@npm:3.0.0-rc1, @xmtp/content-type-primitives@npm:^3.0.0-rc1, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:3.0.0-rc1":
+  version: 3.0.0-rc1
+  resolution: "@xmtp/content-type-primitives@npm:3.0.0-rc1"
+  dependencies:
+    "@xmtp/node-bindings": "npm:1.7.0-rc2"
+  checksum: 10/c199eb7e8ef0815acf0795942544e59c16f7dbedb5c30f7d37faedf0fe10642d91e0b6cb78b119b34341356cd51cc25b35d47a0aec173a290a5c376c6637ea78
+  languageName: node
+  linkType: hard
+
+"@xmtp/content-type-primitives@npm:^2.0.2":
+  version: 2.0.3
+  resolution: "@xmtp/content-type-primitives@npm:2.0.3"
+  dependencies:
+    "@xmtp/proto": "npm:3.78.0"
+  checksum: 10/effd1a6790acb01093a497ac55f34281e3f60b75f7289375da2abb0cd764f791fb58a040a00b40a125b857e4174e985bb92d83454d0de78c52a4e711cece9f1e
+  languageName: node
+  linkType: hard
+
+"@xmtp/content-type-primitives@npm:^3.0.0-rc1, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
@@ -4795,15 +4813,6 @@ __metadata:
     vitest: "npm:^4.0.3"
   languageName: unknown
   linkType: soft
-
-"@xmtp/content-type-primitives@npm:^2.0.2":
-  version: 2.0.3
-  resolution: "@xmtp/content-type-primitives@npm:2.0.3"
-  dependencies:
-    "@xmtp/proto": "npm:3.78.0"
-  checksum: 10/effd1a6790acb01093a497ac55f34281e3f60b75f7289375da2abb0cd764f791fb58a040a00b40a125b857e4174e985bb92d83454d0de78c52a4e711cece9f1e
-  languageName: node
-  linkType: hard
 
 "@xmtp/content-type-reaction@npm:^2.0.2, @xmtp/content-type-reaction@workspace:^, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
   version: 0.0.0-use.local
