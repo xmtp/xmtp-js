@@ -56,7 +56,9 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
         centered
         withCloseButton={false}
         fullScreen={fullScreen}
-        onClose={() => setDetailsModalOpened(false)}
+        onClose={() => {
+          setDetailsModalOpened(false);
+        }}
         size="auto"
         padding={0}>
         <ContentLayout
@@ -69,7 +71,9 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
               </Text>
               <CloseButton
                 size="md"
-                onClick={() => setDetailsModalOpened(false)}
+                onClick={() => {
+                  setDetailsModalOpened(false);
+                }}
               />
             </Group>
           }>
@@ -142,7 +146,10 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
             )}
           <Menu.Label>Actions</Menu.Label>
           <Menu.Item onClick={onSync}>Sync</Menu.Item>
-          <Menu.Item onClick={() => setDetailsModalOpened(true)}>
+          <Menu.Item
+            onClick={() => {
+              setDetailsModalOpened(true);
+            }}>
             Show Details
           </Menu.Item>
         </Menu.Dropdown>
