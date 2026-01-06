@@ -54,6 +54,7 @@ export const App: React.FC = () => {
               <Route path="new-group" element={<CreateGroupModal />} />
               <Route path="identity" element={<IdentityModal />} />
               <Route path="message/:messageId" element={<MessageModal />} />
+              <Route path="details" element={<ManageDetailsModal />} />
               <Route path="manage">
                 <Route path="consent" element={<ManageConsentModal />} />
                 <Route path="members" element={<ManageMembersModal />} />
@@ -62,7 +63,6 @@ export const App: React.FC = () => {
                   element={<ManagePermissionsModal />}
                 />
                 <Route path="metadata" element={<ManageMetadataModal />} />
-                <Route path="details" element={<ManageDetailsModal />} />
               </Route>
             </Route>
           </Route>

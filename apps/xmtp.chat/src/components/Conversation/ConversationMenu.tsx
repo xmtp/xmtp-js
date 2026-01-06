@@ -93,7 +93,7 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
         <Menu.Item
           onClick={() =>
             void navigate(
-              `/${environment}/conversations/${conversationId}/manage/details`,
+              `/${environment}/conversations/${conversationId}/details`,
             )
           }>
           Show Details
