@@ -15,6 +15,7 @@ import { AppMenu } from "@/components/App/AppMenu";
 import type { ContentTypes } from "@/contexts/XMTPContext";
 import { shortAddress } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
+import { IconChevronDown } from "@/icons/IconChevronDown";
 import classes from "./AppHeader.module.css";
 
 const GlowingCircle = () => {
@@ -92,11 +93,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 <Text size="xs" fw={700}>
                   {environment}
                 </Text>
+                <IconChevronDown size={14} />
               </Group>
             </Badge>
           </Menu.Target>
           <Menu.Dropdown miw={200}>
-            <Menu.Label>Network</Menu.Label>
             <Menu.Item onClick={handleDisconnect}>Disconnect</Menu.Item>
           </Menu.Dropdown>
         </Menu>
