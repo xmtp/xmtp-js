@@ -27,7 +27,7 @@ export const ConversationsMenu: React.FC<ConversationsMenuProps> = ({
           <Stack gap={2}>
             <Text size="sm">Sync</Text>
             <Text size="xs" c="dimmed">
-              Sync new conversations only
+              Sync conversations only
             </Text>
           </Stack>
         </Menu.Item>
@@ -35,7 +35,7 @@ export const ConversationsMenu: React.FC<ConversationsMenuProps> = ({
           <Stack gap={2}>
             <Text size="sm">Sync All</Text>
             <Text size="xs" c="dimmed">
-              Full sync of all conversations and messages
+              Sync conversations and messages
             </Text>
           </Stack>
         </Menu.Item>
