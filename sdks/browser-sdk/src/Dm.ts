@@ -10,6 +10,7 @@ import type { WorkerBridge } from "@/utils/WorkerBridge";
  * This class is not intended to be initialized directly.
  */
 export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
+  #codecRegistry: CodecRegistry;
   #worker: WorkerBridge<ClientWorkerAction>;
   #id: string;
 
@@ -29,6 +30,7 @@ export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
   ) {
     super(worker, codecRegistry, id, data);
     this.#worker = worker;
+    this.#codecRegistry = codecRegistry;
     this.#id = id;
   }
 
@@ -44,8 +46,18 @@ export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
   }
 
   async getDuplicateDms() {
-    return this.#worker.action("dm.getDuplicateDms", {
+    const conversations = await this.#worker.action("dm.getDuplicateDms", {
       id: this.#id,
     });
+
+    return conversations.map(
+      (conversation) =>
+        new Dm<ContentTypes>(
+          this.#worker,
+          this.#codecRegistry,
+          conversation.id,
+          conversation,
+        ),
+    );
   }
 }
