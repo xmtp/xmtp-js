@@ -1,5 +1,36 @@
 # @xmtp/browser-sdk
 
+## 6.0.0
+
+These release notes are a work in progress and will be updated on the final release.
+
+This release introduces breaking changes and new features. If you've been building on a previous release, this one will require an update to your existing code.
+
+**BREAKING CHANGES**
+
+- Removed `uploadDebugArchive` method from `Client.DebugInformation`
+- Removed `debugEventsEnabled` client option
+- Removed deprecated `Client.version`
+- Removed `Conversation.sendOptimistic` method
+- Updated `Conversation.send` method signature
+
+### New features
+
+- Official content types are now built-in and automatically decoded
+- Added `Conversation.sendText` for sending text messages
+- Added `Conversation.sendMarkdown` for sending markdown messages
+- Added `Conversation.sendReaction` for sending reactions
+- Added `Conversation.sendReadReceipt` for sending read receipts
+- Added `Conversation.sendReply` for sending replies
+- Added `Conversation.sendTransactionReference` for sending transaction references
+- Added `Conversation.sendWalletSendCalls` for sending wallet send calls
+- Added `Conversation.sendActions` for sending actions
+- Added `Conversation.sendIntent` for sending intents
+- Added `Conversation.sendAttachment` for sending attachments
+- Added `Conversation.sendRemoteAttachment` for sending remote attachments
+- Added `Conversation.sendMultiRemoteAttachment` for sending multi remote attachments
+- Added `Conversation.lastReadTimes`
+
 ## 5.3.0
 
 This release introduces new features. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements.
