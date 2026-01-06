@@ -4622,7 +4622,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:4.6.0"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.54.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -4641,7 +4641,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:4.6.0"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.54.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -4660,7 +4660,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:4.6.0"
     "@xmtp/proto": "npm:3.78.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:^1.0.1"
     rimraf: "npm:^6.1.2"
@@ -4682,7 +4682,7 @@ __metadata:
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/content-type-remote-attachment": "workspace:^"
     "@xmtp/content-type-text": "workspace:^"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:4.6.0"
     "@xmtp/proto": "npm:3.78.0"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.54.0"
@@ -4718,7 +4718,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:4.6.0"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.54.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -4736,7 +4736,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:4.6.0"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.54.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -4803,7 +4803,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@workspace:^, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:

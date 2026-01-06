@@ -72,7 +72,7 @@
     "@types/node": "^24.9.1",
     "@xmtp/content-type-remote-attachment": "workspace:^",
     "@xmtp/content-type-text": "workspace:^",
-    "@xmtp/node-sdk": "workspace:^",
+    "@xmtp/node-sdk": "4.6.0",
     "rimraf": "^6.1.2",
     "rollup": "^4.54.0",
     "rollup-plugin-dts": "^6.3.0",
