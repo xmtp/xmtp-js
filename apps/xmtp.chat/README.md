@@ -15,7 +15,7 @@ To learn more about XMTP and get answers to frequently asked questions, see the 
 Start a local backend from the repository root:
 
 ```bash
-yarn workspace xmtp-js test:setup
+yarn test:setup
 ```
 
 ### Setup environment
