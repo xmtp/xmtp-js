@@ -72,9 +72,9 @@
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@types/uuid": "^10.0.0",
-    "@vitest/browser": "^4.0.3",
-    "@vitest/browser-playwright": "^4.0.3",
-    "@vitest/coverage-v8": "^4.0.3",
+    "@vitest/browser": "^4.0.16",
+    "@vitest/browser-playwright": "^4.0.16",
+    "@vitest/coverage-v8": "^4.0.16",
     "@web/rollup-plugin-copy": "^0.5.1",
     "playwright": "^1.56.1",
     "rollup": "^4.52.5",
@@ -82,9 +82,9 @@
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "typescript": "^5.9.3",
     "viem": "^2.38.4",
-    "vite": "^7.1.12",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.3"
+    "vite": "^7.3.0",
+    "vite-tsconfig-paths": "^6.0.3",
+    "vitest": "^4.0.16"
   },
   "engines": {
     "node": ">=22"

@@ -72,8 +72,8 @@
     "rollup": "^4.52.5",
     "rollup-plugin-dts": "^6.2.3",
     "typescript": "^5.9.3",
-    "vite": "^7.1.12",
-    "vitest": "^4.0.3"
+    "vite": "^7.3.0",
+    "vitest": "^4.0.16"
   },
   "publishConfig": {
     "access": "public",
