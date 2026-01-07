@@ -45,8 +45,8 @@ export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
     });
   }
 
-  async getDuplicateDms() {
-    const conversations = await this.#worker.action("dm.getDuplicateDms", {
+  async duplicateDms() {
+    const conversations = await this.#worker.action("dm.duplicateDms", {
       id: this.#id,
     });
 

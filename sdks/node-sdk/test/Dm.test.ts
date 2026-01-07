@@ -58,7 +58,7 @@ describe("Dm", () => {
     expect(client2.conversations.listDms().length).toBe(1);
     expect(client2.conversations.listGroups().length).toBe(0);
 
-    const dupeDms = await dm.getDuplicateDms();
+    const dupeDms = await dm.duplicateDms();
     expect(dupeDms.length).toEqual(0);
   });
 

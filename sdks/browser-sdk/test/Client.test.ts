@@ -110,7 +110,7 @@ describe("Client", () => {
   it("should return the correct inbox state", async () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
-    const inboxState = await client.preferences.getInboxState();
+    const inboxState = await client.preferences.inboxState();
     expect(inboxState.inboxId).toBe(client.inboxId);
     expect(inboxState.installations.map((install) => install.id)).toEqual([
       client.installationId,
@@ -147,7 +147,7 @@ describe("Client", () => {
     const { signer: signer2 } = createSigner();
 
     await client.unsafe_addAccount(signer2, true);
-    const inboxState = await client.preferences.getInboxState();
+    const inboxState = await client.preferences.inboxState();
     expect(inboxState.accountIdentifiers.length).toEqual(2);
     expect(inboxState.accountIdentifiers).toContainEqual(
       await signer.getIdentifier(),
@@ -166,7 +166,7 @@ describe("Client", () => {
     await client.unsafe_addAccount(signer2, true);
     await client.removeAccount(await signer2.getIdentifier());
 
-    const inboxState = await client.preferences.getInboxState();
+    const inboxState = await client.preferences.inboxState();
     expect(inboxState.accountIdentifiers).toEqual([
       await signer.getIdentifier(),
     ]);
@@ -308,7 +308,7 @@ describe("Client", () => {
 
     await client.changeRecoveryIdentifier(await signer2.getIdentifier());
 
-    const inboxState = await client.preferences.getInboxState();
+    const inboxState = await client.preferences.inboxState();
     expect(inboxState.recoveryIdentifier).toEqual(
       await signer2.getIdentifier(),
     );

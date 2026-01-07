@@ -320,7 +320,7 @@ export class WorkerConversation {
     return (await this.#group.getDebugInfo()) as ConversationDebugInfo;
   }
 
-  async getDuplicateDms() {
+  async duplicateDms() {
     const dms = await this.#group.findDuplicateDms();
     return dms.map((dm) => new WorkerConversation(this.#client, dm));
   }

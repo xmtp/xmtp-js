@@ -16,7 +16,7 @@ describe("Preferences", () => {
   it("should return the correct inbox state", async () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
-    const inboxState = await client.preferences.getInboxState();
+    const inboxState = await client.preferences.inboxState();
     expect(inboxState.inboxId).toBe(client.inboxId);
     expect(inboxState.installations.map((install) => install.id)).toEqual([
       client.installationId,

@@ -39,7 +39,7 @@ export class Preferences {
    *
    * @returns Promise that resolves with the inbox state
    */
-  async getInboxState() {
+  async inboxState() {
     return this.#worker.action("preferences.inboxState", {
       refreshFromNetwork: false,
     });

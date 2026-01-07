@@ -40,7 +40,7 @@ export class Dm<ContentTypes = unknown> extends Conversation<ContentTypes> {
     return this.#conversation.dmPeerInboxId();
   }
 
-  async getDuplicateDms() {
+  async duplicateDms() {
     const duplicateDms = await this.#conversation.findDuplicateDms();
     return duplicateDms.map(
       (dm) => new Dm<ContentTypes>(this.#client, this.#codecRegistry, dm),

@@ -460,8 +460,8 @@ describe("Conversations", () => {
     expect(dms1[0].id).toBe(dm2.id);
     expect(dms2[0].id).toBe(dm2.id);
 
-    const dupeDms1 = await dms1[0].getDuplicateDms();
-    const dupeDms2 = await dms2[0].getDuplicateDms();
+    const dupeDms1 = await dms1[0].duplicateDms();
+    const dupeDms2 = await dms2[0].duplicateDms();
     expect(dupeDms1.length).toBe(1);
     expect(dupeDms2.length).toBe(1);
     expect(dupeDms1[0].id).toBe(dm1.id);

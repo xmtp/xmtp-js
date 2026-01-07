@@ -967,9 +967,9 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "dm.getDuplicateDms": {
+      case "dm.duplicateDms": {
         const group = getGroup(data.id);
-        const dms = await group.getDuplicateDms();
+        const dms = await group.duplicateDms();
         const result = await Promise.all(
           dms.map((dm) => toSafeConversation(dm)),
         );

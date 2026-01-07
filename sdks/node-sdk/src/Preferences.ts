@@ -40,7 +40,7 @@ export class Preferences {
    *
    * @returns Promise that resolves with the inbox state
    */
-  async getInboxState() {
+  async inboxState() {
     return this.#client.inboxState(false);
   }
 
