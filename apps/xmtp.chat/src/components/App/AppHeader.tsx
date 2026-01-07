@@ -1,11 +1,21 @@
-import { Badge, Box, Burger, Button, Flex, Group, Text } from "@mantine/core";
+import {
+  Badge,
+  Box,
+  Burger,
+  Button,
+  Flex,
+  Group,
+  Menu,
+  Text,
+} from "@mantine/core";
 import type { Client } from "@xmtp/browser-sdk";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { AppMenu } from "@/components/App/AppMenu";
 import type { ContentTypes } from "@/contexts/XMTPContext";
 import { shortAddress } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
+import { IconChevronDown } from "@/icons/IconChevronDown";
 import classes from "./AppHeader.module.css";
 
 const GlowingCircle = () => {
@@ -49,6 +59,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     void navigate(`/${environment}/identity`);
   };
 
+  const handleDisconnect = useCallback(() => {
+    void navigate("/disconnect");
+  }, [navigate]);
+
   return (
     <Flex align="center" justify="space-between">
       <Flex align="center" gap="md" className={classes.header}>
@@ -66,14 +80,27 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         </Flex>
       </Flex>
       <Group align="center" gap="xs">
-        <Badge size="lg" radius="md" variant="default" p={0}>
-          <Group align="center" gap="xs" px="sm">
-            <GlowingCircle />
-            <Text size="xs" fw={700}>
-              {environment}
-            </Text>
-          </Group>
-        </Badge>
+        <Menu shadow="md" position="bottom-end">
+          <Menu.Target>
+            <Badge
+              size="lg"
+              radius="md"
+              variant="default"
+              p={0}
+              style={{ cursor: "pointer" }}>
+              <Group align="center" gap="xs" px="sm">
+                <GlowingCircle />
+                <Text size="xs" fw={700}>
+                  {environment}
+                </Text>
+                <IconChevronDown size={14} />
+              </Group>
+            </Badge>
+          </Menu.Target>
+          <Menu.Dropdown miw={200}>
+            <Menu.Item onClick={handleDisconnect}>Disconnect</Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
         <AppMenu />
       </Group>
     </Flex>

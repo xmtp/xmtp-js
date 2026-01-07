@@ -1,22 +1,17 @@
 import { ActionIcon, Menu } from "@mantine/core";
-import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useSettings } from "@/hooks/useSettings";
-import { IconDots } from "@/icons/IconDots";
+import { IconMessagePlus } from "@/icons/IconMessagePlus";
 
 export const AppMenu: React.FC = () => {
   const navigate = useNavigate();
   const { environment } = useSettings();
 
-  const handleDisconnect = useCallback(() => {
-    void navigate("/disconnect");
-  }, [navigate]);
-
   return (
     <Menu shadow="md" position="bottom-end">
       <Menu.Target>
         <ActionIcon variant="default">
-          <IconDots />
+          <IconMessagePlus />
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown miw={200}>
@@ -31,7 +26,6 @@ export const AppMenu: React.FC = () => {
           }>
           New group
         </Menu.Item>
-        <Menu.Item onClick={handleDisconnect}>Disconnect</Menu.Item>
       </Menu.Dropdown>
     </Menu>
   );
