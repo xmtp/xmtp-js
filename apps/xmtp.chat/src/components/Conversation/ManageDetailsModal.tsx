@@ -2,6 +2,7 @@ import { Badge, CloseButton, Group, Paper, Stack, Text } from "@mantine/core";
 import { ConsentState, Dm, GroupPermissionsOptions } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
+import { never } from "zod";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
 import { Modal } from "@/components/Modal";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
@@ -18,6 +19,8 @@ const consentStateLabel = (state: ConsentState) => {
       return "Allowed";
     case ConsentState.Denied:
       return "Denied";
+    default:
+      throw state satisfies never;
   }
 };
 
@@ -29,6 +32,8 @@ const permissionTypeLabel = (type: GroupPermissionsOptions) => {
       return "Admin Only";
     case GroupPermissionsOptions.CustomPolicy:
       return "Custom Policy";
+    default:
+      throw type satisfies never;
   }
 };
 
