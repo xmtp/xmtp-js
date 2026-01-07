@@ -44,9 +44,10 @@ export type RemoteAttachmentParameters = {
   filename: string;
 };
 
-export class RemoteAttachmentCodec
-  implements ContentCodec<RemoteAttachment, RemoteAttachmentParameters>
-{
+export class RemoteAttachmentCodec implements ContentCodec<
+  RemoteAttachment,
+  RemoteAttachmentParameters
+> {
   static async load<T = unknown>(
     remoteAttachment: RemoteAttachment,
     codecRegistry: CodecRegistry,

@@ -28,9 +28,7 @@ export type WalletSendCallsParams = {
   capabilities?: Record<string, string>;
 };
 
-export class WalletSendCallsCodec
-  implements ContentCodec<WalletSendCallsParams>
-{
+export class WalletSendCallsCodec implements ContentCodec<WalletSendCallsParams> {
   get contentType(): ContentTypeId {
     return ContentTypeWalletSendCalls;
   }

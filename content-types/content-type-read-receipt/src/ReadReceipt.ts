@@ -14,9 +14,10 @@ export type ReadReceipt = Record<string, never>;
 
 export type ReadReceiptParameters = Record<string, never>;
 
-export class ReadReceiptCodec
-  implements ContentCodec<ReadReceipt, ReadReceiptParameters>
-{
+export class ReadReceiptCodec implements ContentCodec<
+  ReadReceipt,
+  ReadReceiptParameters
+> {
   get contentType(): ContentTypeId {
     return ContentTypeReadReceipt;
   }

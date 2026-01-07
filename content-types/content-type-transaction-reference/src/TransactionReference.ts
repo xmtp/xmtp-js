@@ -37,9 +37,7 @@ export type TransactionReference = {
   };
 };
 
-export class TransactionReferenceCodec
-  implements ContentCodec<TransactionReference>
-{
+export class TransactionReferenceCodec implements ContentCodec<TransactionReference> {
   get contentType(): ContentTypeId {
     return ContentTypeTransactionReference;
   }

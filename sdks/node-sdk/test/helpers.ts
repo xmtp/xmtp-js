@@ -137,9 +137,10 @@ export const ContentTypeTest = new ContentTypeId({
   versionMinor: 0,
 });
 
-export class TestCodec
-  implements ContentCodec<Record<string, string>, Record<string, never>>
-{
+export class TestCodec implements ContentCodec<
+  Record<string, string>,
+  Record<string, never>
+> {
   get contentType(): ContentTypeId {
     return ContentTypeTest;
   }

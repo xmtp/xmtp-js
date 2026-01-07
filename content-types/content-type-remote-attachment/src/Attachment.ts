@@ -22,9 +22,10 @@ export type AttachmentParameters = {
   mimeType: string;
 };
 
-export class AttachmentCodec
-  implements ContentCodec<Attachment, AttachmentParameters>
-{
+export class AttachmentCodec implements ContentCodec<
+  Attachment,
+  AttachmentParameters
+> {
   get contentType(): ContentTypeId {
     return ContentTypeAttachment;
   }

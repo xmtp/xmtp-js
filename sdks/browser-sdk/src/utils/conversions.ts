@@ -325,7 +325,7 @@ export const fromSafeCreateGroupOptions = (
     options.description,
     // only include custom policy set if permissions are set to CustomPolicy
     options.customPermissionPolicySet &&
-    options.permissions === GroupPermissionsOptions.CustomPolicy
+      options.permissions === GroupPermissionsOptions.CustomPolicy
       ? fromSafePermissionPolicySet(options.customPermissionPolicySet)
       : undefined,
     options.messageDisappearingSettings
