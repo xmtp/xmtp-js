@@ -1,4 +1,4 @@
-import { Badge, CloseButton, Group, Paper, Stack, Text } from "@mantine/core";
+import { CloseButton, Group, Paper, Stack, Text } from "@mantine/core";
 import { ConsentState, Dm, GroupPermissionsOptions } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
