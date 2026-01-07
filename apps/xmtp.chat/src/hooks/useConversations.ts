@@ -22,19 +22,8 @@ export const useConversations = () => {
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
-  const sync = async (fromNetwork: boolean = false) => {
-    if (fromNetwork) {
-      setSyncing(true);
-
-      try {
-        await client.conversations.sync();
-      } finally {
-        setSyncing(false);
-      }
-    }
-
+  const refreshConversationsList = async () => {
     setLoading(true);
-
     try {
       const convos = await client.conversations.list({
         createdAfterNs: lastCreatedAt,
@@ -47,6 +36,20 @@ export const useConversations = () => {
     }
   };
 
+  const sync = async (fromNetwork: boolean = false) => {
+    if (fromNetwork) {
+      setSyncing(true);
+
+      try {
+        await client.conversations.sync();
+      } finally {
+        setSyncing(false);
+      }
+    }
+
+    await refreshConversationsList();
+  };
+
   const syncAll = async () => {
     setSyncing(true);
 
@@ -55,6 +58,8 @@ export const useConversations = () => {
     } finally {
       setSyncing(false);
     }
+
+    await refreshConversationsList();
   };
 
   const getConversationById = async (conversationId: string) => {
