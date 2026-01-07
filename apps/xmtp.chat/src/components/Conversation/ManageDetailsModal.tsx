@@ -20,7 +20,8 @@ const consentStateLabel = (state: ConsentState) => {
     case ConsentState.Denied:
       return "Denied";
     default:
-      throw state satisfies never;
+      const exhaustiveCheck: never = state;
+      return exhaustiveCheck;
   }
 };
 
@@ -33,7 +34,8 @@ const permissionTypeLabel = (type: GroupPermissionsOptions) => {
     case GroupPermissionsOptions.CustomPolicy:
       return "Custom Policy";
     default:
-      throw type satisfies never;
+      const exhaustiveCheck: never = type;
+      return exhaustiveCheck;
   }
 };
 
