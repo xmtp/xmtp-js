@@ -11,9 +11,9 @@ To learn more about the contents of this repository, see this README and the REA
 
 ### SDKs
 
-- [`agent-sdk`](sdks/agent-sdk): XMTP agent SDK for Node
-- [`browser-sdk`](sdks/browser-sdk): XMTP client SDK for browsers
-- [`node-sdk`](sdks/node-sdk): XMTP client SDK for Node
+- [`agent-sdk`](sdks/agent-sdk): A specialized SDK for building autonomous agents and bots on the XMTP network
+- [`browser-sdk`](sdks/browser-sdk): The core TypeScript client for building web-based XMTP applications
+- [`node-sdk`](sdks/node-sdk): A TypeScript client designed for server-side XMTP implementations and backend services
 
 ### Content types
 
