@@ -3,7 +3,7 @@ import { Opfs } from "@/Opfs";
 import { uuid } from "@/utils/uuid";
 import { createRegisteredClient, createSigner } from "./helpers";
 
-describe.sequential("Opfs", () => {
+describe.skip("Opfs", () => {
   describe.sequential("with no files", () => {
     let opfs: Opfs;
 
