@@ -452,6 +452,12 @@ describe("Content types", () => {
     expect(message).toBeDefined();
     expect(message?.contentType).toEqual(contentTypeReadReceipt());
     expect(message?.content).toEqual({});
+    await client2.conversations.syncAll();
+    const group2 = client2.conversations.listGroups()[0];
+    await group2.sendReadReceipt();
+    const readTimes2 = await group2.lastReadTimes();
+    expect(Object.keys(readTimes2)).toContain(client1.inboxId);
+    expect(Object.keys(readTimes2)).toContain(client2.inboxId);
   });
 
   describe("TransactionReference", () => {
