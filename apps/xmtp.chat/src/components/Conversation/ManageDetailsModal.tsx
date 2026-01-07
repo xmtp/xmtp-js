@@ -64,7 +64,7 @@ export const ManageDetailsModal: React.FC = () => {
   return (
     <Modal
       closeOnClickOutside={false}
-      closeOnEscape={false}
+      closeOnEscape={true}
       withCloseButton={false}
       opened
       centered

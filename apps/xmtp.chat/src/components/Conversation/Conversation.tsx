@@ -2,7 +2,7 @@ import { ActionIcon, Group, Text, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Group as XmtpGroup } from "@xmtp/browser-sdk";
 import { useCallback, useEffect } from "react";
-import { Outlet } from "react-router";
+import { Outlet, useNavigate } from "react-router";
 import { ConversationMenu } from "@/components/Conversation/ConversationMenu";
 import { MembersList } from "@/components/Conversation/MembersList";
 import { Messages } from "@/components/Messages/Messages";
@@ -10,6 +10,8 @@ import { ConversationProvider } from "@/contexts/ConversationContext";
 import { resolveAddresses } from "@/helpers/profiles";
 import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
+import { useSettings } from "@/hooks/useSettings";
+import { IconInfo } from "@/icons/IconInfo";
 import { IconUsers } from "@/icons/IconUsers";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { Composer } from "./Composer";
@@ -22,6 +24,8 @@ export const Conversation: React.FC<ConversationProps> = ({
   conversationId,
 }) => {
   const [opened, { toggle }] = useDisclosure();
+  const navigate = useNavigate();
+  const { environment } = useSettings();
   const {
     conversation,
     name,
@@ -59,6 +63,17 @@ export const Conversation: React.FC<ConversationProps> = ({
           loading={messages.length === 0 && conversationLoading}
           headerActions={
             <Group gap="xxs">
+              <Tooltip label="Conversation Details" fz="xs">
+                <ActionIcon
+                  variant="default"
+                  onClick={() =>
+                    void navigate(
+                      `/${environment}/conversations/${conversationId}/details`,
+                    )
+                  }>
+                  <IconInfo />
+                </ActionIcon>
+              </Tooltip>
               <ConversationMenu
                 conversationId={conversationId}
                 type={conversation instanceof XmtpGroup ? "group" : "dm"}
