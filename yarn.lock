@@ -10576,7 +10576,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier-plugin-packagejson@npm:^2.5.19":
+"prettier-plugin-packagejson@npm:^2.5.20":
   version: 2.5.20
   resolution: "prettier-plugin-packagejson@npm:2.5.20"
   dependencies:
@@ -10600,7 +10600,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.6.2":
+"prettier@npm:^3.7.4":
   version: 3.7.4
   resolution: "prettier@npm:3.7.4"
   bin:
@@ -13676,8 +13676,8 @@ __metadata:
     eslint-config-prettier: "npm:^10.1.8"
     eslint-plugin-prettier: "npm:^5.5.4"
     globals: "npm:^16.5.0"
-    prettier: "npm:^3.6.2"
-    prettier-plugin-packagejson: "npm:^2.5.19"
+    prettier: "npm:^3.7.4"
+    prettier-plugin-packagejson: "npm:^2.5.20"
     rimraf: "npm:^6.1.2"
     turbo: "npm:^2.5.8"
     typescript: "npm:^5.9.3"
