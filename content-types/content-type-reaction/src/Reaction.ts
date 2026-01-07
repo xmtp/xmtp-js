@@ -43,10 +43,10 @@ export type LegacyReactionParameters = Pick<
   encoding: "UTF-8";
 };
 
-export class ReactionCodec
-  implements
-    ContentCodec<Reaction, LegacyReactionParameters | Record<string, never>>
-{
+export class ReactionCodec implements ContentCodec<
+  Reaction,
+  LegacyReactionParameters | Record<string, never>
+> {
   get contentType(): ContentTypeId {
     return ContentTypeReaction;
   }

@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from "vitest";
 import {
   createRemoteAttachment,
   createRemoteAttachmentFromFile,
@@ -9,7 +17,7 @@ import { makeAgent } from "./TestUtil.js";
 
 describe("AttachmentUtil", () => {
   const testUrl = "https://localhost/test_file";
-  let mockFetch: ReturnType<typeof vi.fn>;
+  let mockFetch: Mock;
 
   beforeEach(() => {
     mockFetch = vi.fn();

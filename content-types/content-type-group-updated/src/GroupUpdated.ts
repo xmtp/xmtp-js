@@ -14,9 +14,10 @@ export const ContentTypeGroupUpdated = new ContentTypeId({
 
 export type GroupUpdated = mlsTranscriptMessages.GroupUpdated;
 
-export class GroupUpdatedCodec
-  implements ContentCodec<GroupUpdated, Record<string, never>>
-{
+export class GroupUpdatedCodec implements ContentCodec<
+  GroupUpdated,
+  Record<string, never>
+> {
   get contentType(): ContentTypeId {
     return ContentTypeGroupUpdated;
   }
