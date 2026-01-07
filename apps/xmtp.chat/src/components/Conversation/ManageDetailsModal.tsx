@@ -1,4 +1,4 @@
-import { CloseButton, Group, Paper, Stack, Text } from "@mantine/core";
+import { Badge, CloseButton, Group, Paper, Stack, Text } from "@mantine/core";
 import { ConsentState, Dm, GroupPermissionsOptions } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
@@ -66,7 +66,7 @@ export const ManageDetailsModal: React.FC = () => {
       centered
       fullScreen={fullScreen}
       onClose={handleClose}
-      size="auto"
+      size="600"
       padding={0}>
       <ContentLayout
         maxHeight={contentHeight}
@@ -128,17 +128,17 @@ export const ManageDetailsModal: React.FC = () => {
                 <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>
                   Member Count
                 </Text>
-                <Text flex="1" size="sm">
+                <Badge color="gray" size="lg">
                   {members.size}
-                </Text>
+                </Badge>
               </Group>
               <Group gap="md" wrap="nowrap">
                 <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>
                   Message Count
                 </Text>
-                <Text flex="1" size="sm">
+                <Badge color="gray" size="lg">
                   {messages.length}
-                </Text>
+                </Badge>
               </Group>
             </Stack>
           </Paper>

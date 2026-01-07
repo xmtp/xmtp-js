@@ -42,6 +42,14 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown miw={200}>
+        <Menu.Item
+          onClick={() =>
+            void navigate(
+              `/${environment}/conversations/${conversationId}/details`,
+            )
+          }>
+          Conversation Details
+        </Menu.Item>
         <Menu.Label>Manage</Menu.Label>
         <Menu.Item
           onClick={() =>
@@ -90,14 +98,6 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
           )}
         <Menu.Label>Actions</Menu.Label>
         <Menu.Item onClick={onSync}>Sync</Menu.Item>
-        <Menu.Item
-          onClick={() =>
-            void navigate(
-              `/${environment}/conversations/${conversationId}/details`,
-            )
-          }>
-          Show Details
-        </Menu.Item>
       </Menu.Dropdown>
     </Menu>
   );
