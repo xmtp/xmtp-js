@@ -104,45 +104,41 @@ export const ManageDetailsModal: React.FC = () => {
                 <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>
                   Conversation Type
                 </Text>
-                <Text flex="1" size="sm">
-                  {conversationType}
-                </Text>
+                <BadgeWithCopy value={conversationType} />
               </Group>
               <Group gap="md" wrap="nowrap">
                 <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>
                   Consent State
                 </Text>
-                <Text flex="1" size="sm">
-                  {consentState === null
-                    ? "Loading..."
-                    : consentStateLabel(consentState)}
-                </Text>
+                <BadgeWithCopy
+                  value={
+                    consentState === null
+                      ? "Loading..."
+                      : consentStateLabel(consentState)
+                  }
+                />
               </Group>
               <Group gap="md" wrap="nowrap">
                 <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>
-                  Permission Type
+                  Permission Policy
                 </Text>
-                <Text flex="1" size="sm">
-                  {permissionTypeLabel(
+                <BadgeWithCopy
+                  value={permissionTypeLabel(
                     permissions?.policyType ?? GroupPermissionsOptions.Default,
                   )}
-                </Text>
+                />
               </Group>
               <Group gap="md" wrap="nowrap">
                 <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>
                   Member Count
                 </Text>
-                <Badge color="gray" size="lg">
-                  {members.size}
-                </Badge>
+                <BadgeWithCopy value={members.size.toString()} />
               </Group>
               <Group gap="md" wrap="nowrap">
                 <Text flex="0 0 25%" style={{ whiteSpace: "nowrap" }}>
                   Message Count
                 </Text>
-                <Badge color="gray" size="lg">
-                  {messages.length}
-                </Badge>
+                <BadgeWithCopy value={messages.length.toString()} />
               </Group>
             </Stack>
           </Paper>
