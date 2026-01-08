@@ -50,7 +50,6 @@ export type {
   ReadReceipt,
   RemoteAttachment,
   RemoteAttachmentInfo,
-  Reply,
   SendMessageOpts,
   SignatureRequestHandle,
   TransactionMetadata,

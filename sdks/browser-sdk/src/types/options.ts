@@ -110,10 +110,10 @@ export type ClientOptions = NetworkOptions &
   StorageOptions &
   OtherOptions;
 
-export type Reply<T = unknown> = {
+export type Reply<T = unknown, U = unknown> = {
   referenceId: EnrichedReply["referenceId"];
   content: T;
-  inReplyTo: DecodedMessage<T> | null;
+  inReplyTo: DecodedMessage<U> | null;
 };
 
 export type BuiltInContentTypes =
@@ -134,5 +134,8 @@ export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
   C extends readonly []
     ? BuiltInContentTypes
     : [...C][number] extends ContentCodec<infer T>
-      ? T | BuiltInContentTypes | Reply<T | BuiltInContentTypes>
+      ?
+          | T
+          | BuiltInContentTypes
+          | Reply<T | BuiltInContentTypes, T | BuiltInContentTypes>
       : BuiltInContentTypes;
