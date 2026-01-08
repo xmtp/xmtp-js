@@ -125,7 +125,9 @@ export class Preferences {
     ) => {
       const streamId = uuid();
       // sync the conversation
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       // start the stream
       await this.#worker.action("preferences.streamConsent", {
         streamId,
@@ -153,7 +155,9 @@ export class Preferences {
     ) => {
       const streamId = uuid();
       // sync the conversation
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       // start the stream
       await this.#worker.action("preferences.streamPreferences", {
         streamId,
