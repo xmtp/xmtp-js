@@ -73,7 +73,7 @@ const getContentFromDecodedMessageContent = <T = unknown>(
  * @property {ContentTypeId} contentType - The content type of the message content
  * @property {string} conversationId - Unique identifier for the conversation
  * @property {MessageDeliveryStatus} deliveryStatus - Current delivery status of the message ("unpublished" | "published" | "failed")
- * @property {number} expiresAtNs - Timestamp when the message will expire (in nanoseconds)
+ * @property {bigint} expiresAtNs - Timestamp when the message will expire (in nanoseconds)
  * @property {Date} expiresAt - Timestamp when the message will expire
  * @property {string} [fallback] - Optional fallback text for the message
  * @property {string} id - Unique identifier for the message
@@ -82,7 +82,7 @@ const getContentFromDecodedMessageContent = <T = unknown>(
  * @property {DecodedMessage<Reaction>[]} reactions - Reactions to the message
  * @property {string} senderInboxId - Identifier for the sender's inbox
  * @property {Date} sentAt - Timestamp when the message was sent
- * @property {number} sentAtNs - Timestamp when the message was sent (in nanoseconds)
+ * @property {bigint} sentAtNs - Timestamp when the message was sent (in nanoseconds)
  */
 export class DecodedMessage<ContentTypes = unknown> {
   content: ContentTypes | undefined;
