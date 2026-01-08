@@ -332,16 +332,15 @@ await group.sendIntent({
 For content types not included in the SDK, you can still define custom codecs and use the `send` method to send encoded content. This allows you to extend XMTP with application-specific message formats while maintaining compatibility with the SDK's message handling.
 
 ```ts
-export const ContentTypeTest: ContentTypeId = {
+const ContentTypeTest: ContentTypeId = {
   authorityId: "xmtp.org",
   typeId: "test",
   versionMajor: 1,
   versionMinor: 0,
 };
 
-export class TestCodec implements ContentCodec {
+class TestCodec implements ContentCodec {
   contentType = ContentTypeTest;
-
   encode(content: Record<string, string>): EncodedContent {
     return {
       type: this.contentType,
@@ -349,16 +348,13 @@ export class TestCodec implements ContentCodec {
       content: new TextEncoder().encode(JSON.stringify(content)),
     };
   }
-
   decode(content: EncodedContent): Record<string, string> {
     const decoded = new TextDecoder().decode(content.content);
     return JSON.parse(decoded);
   }
-
   fallback() {
     return undefined;
   }
-
   shouldPush() {
     return false;
   }
@@ -373,7 +369,7 @@ await group.send(
   }),
   {
     // should this message be a push notification?
-    shouldPush: true,
+    shouldPush: testCodec.shouldPush(),
     // should this message be sent optimistically?
     optimistic: false,
   },

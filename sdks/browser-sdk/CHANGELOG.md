@@ -17,7 +17,6 @@ This release introduces breaking changes and new features. If you've been buildi
 - Removed `DecodedMessage.compression` property
 - Removed `DecodedMessage.parameters` property
 - Removed `MessageKind` and `MessageDeliveryStatus` type exports (use `GroupMessageKind` and `DeliveryStatus` enums instead)
-- Removed `Utils` class (use standalone `generateInboxId` and `getInboxIdForIdentifier` functions instead)
 - Removed most `Safe*` conversion types and functions from exports (these were mostly for internal usage and are no longer necessary):
   - Types: `SafeContentTypeId`, `SafeEncodedContent`, `SafeMessage`, `SafeListMessagesOptions`, `SafeSendMessageOpts`, `SafeListConversationsOptions`, `SafePermissionPolicySet`, `SafeCreateGroupOptions`, `SafeCreateDmOptions`, `SafeInstallation`, `SafeInboxState`, `SafeConsent`, `SafeGroupMember`, `SafeHmacKey`, `SafeHmacKeys`, `SafeMessageDisappearingSettings`, `SafeKeyPackageStatus`, `SafeXMTPCursor`, `SafeConversationDebugInfo`, `SafeApiStats`, `SafeIdentityStats`
   - Functions: `toContentTypeId`, `fromContentTypeId`, `toSafeContentTypeId`, `fromSafeContentTypeId`, `toEncodedContent`, `fromEncodedContent`, `toSafeEncodedContent`, `fromSafeEncodedContent`, `toSafeMessage`, `toSafeListMessagesOptions`, `fromSafeListMessagesOptions`, `toSafeSendMessageOpts`, `fromSafeSendMessageOpts`, `toSafeListConversationsOptions`, `fromSafeListConversationsOptions`, `toSafePermissionPolicySet`, `fromSafePermissionPolicySet`, `toSafeCreateGroupOptions`, `fromSafeCreateGroupOptions`, `toSafeCreateDmOptions`, `fromSafeCreateDmOptions`, `toSafeInstallation`, `toSafeInboxState`, `toSafeConsent`, `fromSafeConsent`, `toSafeGroupMember`, `fromSafeGroupMember`, `toSafeHmacKey`, `toSafeMessageDisappearingSettings`, `fromSafeMessageDisappearingSettings`, `toSafeKeyPackageStatus`, `toSafeConversationDebugInfo`, `toSafeApiStats`, `toSafeIdentityStats`
@@ -185,8 +184,6 @@ Previously, sending non-text messages required installing separate content type 
 
 Supported content types include: text, markdown, reactions, replies, read receipts, transaction references, wallet send calls, actions, intents, attachments, remote attachments, and multiple remote attachments.
 
-**Note:** In the browser SDK, content type functions like `contentTypeReply()` and encode functions like `encodeText()` are async and must be awaited. This is because they require WASM initialization before use.
-
 #### Enriched messages
 
 To make it easier to build rich messaging experiences, messages now include additional context. Each message includes the number of replies it has received and an array of reaction messages. This eliminates the need for separate queries to count replies or fetch reactions for a message thread.
@@ -349,7 +346,6 @@ export const ContentTypeTest: ContentTypeId = {
 
 export class TestCodec implements ContentCodec {
   contentType = ContentTypeTest;
-
   encode(content: Record<string, string>): EncodedContent {
     return {
       type: this.contentType,
@@ -357,16 +353,13 @@ export class TestCodec implements ContentCodec {
       content: new TextEncoder().encode(JSON.stringify(content)),
     };
   }
-
   decode(content: EncodedContent): Record<string, string> {
     const decoded = new TextDecoder().decode(content.content);
     return JSON.parse(decoded);
   }
-
   fallback() {
     return undefined;
   }
-
   shouldPush() {
     return false;
   }
@@ -381,7 +374,7 @@ await group.send(
   }),
   {
     // should this message be a push notification?
-    shouldPush: true,
+    shouldPush: testCodec.shouldPush(),
     // should this message be sent optimistically?
     optimistic: false,
   },
@@ -412,11 +405,11 @@ const existingInboxId = await getInboxIdForIdentifier(identifier, env);
 Building read status indicators is now easier. When participants send read receipt messages, you can query a conversation to see when each member last read the conversation. This enables features like showing which messages are unread or displaying "seen by" indicators.
 
 ```ts
-// returns an object keyed by inbox ID
+// returns a map keyed by inbox ID
 const lastReadTimes = await group.lastReadTimes();
 
 // get the last read time of an inbox in nanoseconds
-const inboxLastReadTimeNs = lastReadTimes[inboxId];
+const inboxLastReadTimeNs = lastReadTimes.get(inboxId);
 ```
 
 ### OPFS file management
