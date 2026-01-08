@@ -80,6 +80,6 @@ export {
   ReactionSchema,
   SortDirection,
 } from "@xmtp/wasm-bindings";
-export type { Signer, EOASigner, SCWSigner } from "./utils/signer";
+export * from "./utils/signer";
 export * from "./utils/errors";
 export type * from "./utils/streams";
