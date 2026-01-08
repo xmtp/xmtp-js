@@ -1,35 +1,409 @@
 # @xmtp/node-sdk
 
-## 5.0.0-rc1
-
-These release notes are a work in progress and will be updated on the final release.
+## 5.0.0
 
 This release introduces breaking changes and new features. If you've been building on a previous release, this one will require an update to your existing code.
 
-**BREAKING CHANGES**
+### BREAKING CHANGES
+
+#### Removed features
 
 - Removed `uploadDebugArchive` method from `Client.DebugInformation`
 - Removed `debugEventsEnabled` client option
-- Removed deprecated `Client.version`
-- Removed `Conversation.sendOptimistic` method
+- Removed deprecated `Client.version` static property (use `Client.libxmtpVersion` instead)
+- Removed `Conversation.sendOptimistic` method (use dedicated send methods with the `optimistic` parameter instead)
+- Removed `codecFor`, `encodeContent`, `decodeContent`, and `prepareForSend` client methods (content encoding is now handled by dedicated send methods)
+- Removed `Conversation.isCommitLogForked` property
+- Removed `DecodedMessage.compression` property
+- Removed `DecodedMessage.parameters` property
+- Removed `MessageKind` and `MessageDeliveryStatus` type exports (use `GroupMessageKind` and `DeliveryStatus` enums instead)
+
+#### Type updates
+
+- `DecodedMessage.sentAtNs` is now `bigint`
+- `DecodedMessage.kind` and `DecodedMessage.deliveryStatus` fields now use enum values instead of strings
+- `DecodedMessage.contentType` is no longer optional
+- Message disappearing settings are now `bigint`
+- `LogLevel` enum variant casing changed (e.g., `LogLevel.off` → `LogLevel.Off`)
+- Conversation type value is now an enum in metadata
+
+```ts
+// DecodedMessage.sentAtNs is now bigint
+
+// OLD
+const sentAtNs: number = message.sentAtNs;
+
+// NEW
+const sentAtNs: bigint = message.sentAtNs;
+
+// DecodedMessage.kind and deliveryStatus now use enums
+
+// OLD
+if (message.kind === "application") { ... }
+if (message.deliveryStatus === "published") { ... }
+
+// NEW
+import { GroupMessageKind, DeliveryStatus } from "@xmtp/node-sdk";
+
+if (message.kind === GroupMessageKind.Application) { ... }
+if (message.deliveryStatus === DeliveryStatus.Published) { ... }
+
+// Message disappearing settings are now bigint
+
+// OLD
+await conversation.updateMessageDisappearingSettings(0, 86400000000000);
+
+// NEW
+await conversation.updateMessageDisappearingSettings(0n, 86400000000000n);
+
+// LogLevel enum variants casing changed
+import { LogLevel } from "@xmtp/node-sdk";
+
+// OLD
+const client = await Client.create(signer, { loggingLevel: LogLevel.off });
+
+// NEW
+const client = await Client.create(signer, { loggingLevel: LogLevel.Off });
+
+// Conversation type value is now an enum in metadata
+
+// OLD
+const metadata = await conversation.metadata();
+if (metadata.conversationType() === "group") { ... }
+
+// NEW
+import { ConversationType } from "@xmtp/node-sdk";
+
+const metadata = await conversation.metadata();
+if (metadata.conversationType() === ConversationType.Group) { ... }
+```
+
+#### Refactored or renamed functions
+
+Method names have been updated to follow a consistent naming convention across the SDK. Methods that make network requests now use `fetch` prefix to distinguish them from local operations. Conversation creation methods now use `create` prefix for clarity. Several properties that could return variable internal state have been converted to functions.
+
 - Updated `Conversation.send` method signature
+- Renamed `Client.getKeyPackageStatusesForInstallationIds` to `Client.fetchKeyPackageStatuses`
+- Renamed `Client.getInboxIdByIdentifier` to `Client.fetchInboxIdByIdentifier`
+- Renamed static `Client.inboxStateFromInboxIds` to static `Client.fetchInboxStates`
+- Renamed `Conversation.getHmacKeys` to `Conversation.hmacKeys`
+- `Conversation.consentState` is now a function
+- Renamed `Conversations.getDmByIdentifier` to `Conversations.fetchDmByIdentifier`
+- Renamed `Conversations.newGroupOptimistic` to `Conversations.createGroupOptimistic`
+- Renamed `Conversations.newGroupWithIdentifiers` to `Conversations.createGroupWithIdentifiers`
+- Renamed `Conversations.newDmWithIdentifier` to `Conversations.createDmWithIdentifier`
+- Renamed `Conversations.newGroup` to `Conversations.createGroup`
+- Renamed `Conversations.newDm` to `Conversations.createDm`
+- `Group.permissions` is now a function
+- `Group.isPendingRemoval` is now a function
+- `Group.admins` property is now `Group.listAdmins` function
+- `Group.superAdmins` property is now `Group.listSuperAdmins` function
+- Removed `Preferences.getLatestInboxState`
+- Refactored `Preferences.inboxState`
+- Added `Preferences.fetchInboxState`
+- Refactored `Preferences.inboxStateFromInboxIds` into `Preferences.getInboxStates` and `Preferences.fetchInboxStates`
+- Renamed `Dm.getDuplicateDms` to `Dm.duplicateDms`
 
-### New features
+```ts
+// Conversation.send method signature changed
 
-- Official content types are now built-in and automatically decoded
-- Added `Conversation.sendText` for sending text messages
-- Added `Conversation.sendMarkdown` for sending markdown messages
-- Added `Conversation.sendReaction` for sending reactions
-- Added `Conversation.sendReadReceipt` for sending read receipts
-- Added `Conversation.sendReply` for sending replies
-- Added `Conversation.sendTransactionReference` for sending transaction references
-- Added `Conversation.sendWalletSendCalls` for sending wallet send calls
-- Added `Conversation.sendActions` for sending actions
-- Added `Conversation.sendIntent` for sending intents
-- Added `Conversation.sendAttachment` for sending attachments
-- Added `Conversation.sendRemoteAttachment` for sending remote attachments
-- Added `Conversation.sendMultiRemoteAttachment` for sending multi remote attachments
-- Added `Conversation.lastReadTimes`
+// OLD
+await conversation.send("hello");
+await conversation.send(reactionContent, ContentTypeReaction);
+
+// NEW - use dedicated send methods for built-in content types (see below for more details)
+await conversation.sendText("hello");
+await conversation.sendReaction(reaction);
+
+// NEW - use send() for custom content types with EncodedContent
+await conversation.send(encodedContent, {
+  shouldPush: true,
+  optimistic: false,
+});
+
+// Properties that are now functions
+
+// OLD
+const consentState = conversation.consentState;
+const permissions = group.permissions;
+const isPendingRemoval = group.isPendingRemoval;
+const admins = group.admins;
+const superAdmins = group.superAdmins;
+
+// NEW
+const consentState = conversation.consentState();
+const permissions = group.permissions();
+const isPendingRemoval = group.isPendingRemoval();
+const admins = group.listAdmins();
+const superAdmins = group.listSuperAdmins();
+
+// Creating conversations
+
+// OLD
+const group = await client.conversations.newGroup(inboxIds);
+const dm = await client.conversations.newDm(inboxId);
+const groupWithIdentifiers =
+  await client.conversations.newGroupWithIdentifiers(identifiers);
+
+// NEW
+const group = await client.conversations.createGroup(inboxIds);
+const dm = await client.conversations.createDm(inboxId);
+const groupWithIdentifiers =
+  await client.conversations.createGroupWithIdentifiers(identifiers);
+
+// Preferences inbox state methods
+
+// OLD
+const inboxState = await client.preferences.inboxState();
+const latestInboxState = await client.preferences.inboxState(true);
+const latestInboxStateForInboxId =
+  await client.preferences.getLatestInboxState(inboxId); // this function removed
+const inboxStates = await client.preferences.inboxStateFromInboxIds(
+  inboxIds,
+  false,
+);
+const latestInboxStates = await client.preferences.inboxStateFromInboxIds(
+  inboxIds,
+  true,
+);
+
+// NEW
+const inboxState = await client.preferences.inboxState();
+const latestInboxState = await client.preferences.fetchInboxState();
+const inboxStates = await client.preferences.getInboxStates(inboxIds);
+const latestInboxStates = await client.preferences.fetchInboxStates(inboxIds);
+```
+
+### Built-in content types
+
+Previously, sending non-text messages required installing separate content type packages and registering codecs with the client. This release simplifies messaging by including all official content types directly in the SDK. You no longer need to manage codec registration, just use the dedicated send methods for each content type.
+
+Supported content types include: text, markdown, reactions, replies, read receipts, transaction references, wallet send calls, actions, intents, attachments, remote attachments, and multiple remote attachments.
+
+#### Enriched messages
+
+To make it easier to build rich messaging experiences, messages now include additional context. Each message includes the number of replies it has received and an array of reaction messages. This eliminates the need for separate queries to count replies or fetch reactions for a message thread.
+
+Reply messages also include the original message being replied to, allowing you to display the parent message context without an additional lookup.
+
+```ts
+import { contentTypeReply, type Reply } from "@xmtp/node-sdk";
+import { contentTypesAreEqual } from "@xmtp/content-type-primitives";
+
+const messages = await group.messages();
+
+for (const message of messages) {
+  // number of replies to a message
+  console.log(`message ${message.id} has ${message.numReplies} replies`);
+
+  // message.reactions is an array of reaction messages
+  console.log(
+    `message ${message.id} has ${message.reactions.length} reactions`,
+  );
+
+  // reply messages include the original message
+  if (contentTypesAreEqual(message.contentType, contentTypeReply)) {
+    const reply = message.content as Reply;
+    // the decoded content of the reply
+    console.log(reply.content);
+    // ID of message being replied to
+    console.log(reply.referenceId);
+    // the original message being replied to
+    console.log(reply.inReplyTo);
+  }
+}
+```
+
+#### Send messages with different content types
+
+Each content type now has its own dedicated send method, making it easier to send different types of messages without manually encoding content or specifying content types. The second, optional parameter for each method is a boolean that indicates if it should be sent optimistically (stored locally before network confirmation).
+
+```ts
+// send a text message
+const textMessageId = await group.sendText("gm");
+
+// send a markdown message
+await group.sendMarkdown("# gm");
+
+// send a reaction
+await group.sendReaction({
+  reference: textMessageId,
+  referenceInboxId: client.inboxId,
+  action: ReactionAction.Added,
+  content: "👍",
+  schema: ReactionSchema.Unicode,
+});
+
+// send a read receipt
+await group.sendReadReceipt();
+
+// send a reply
+await group.sendReply({
+  content: encodeText("This is a text reply"),
+  reference: textMessageId,
+  referenceInboxId: client.inboxId,
+});
+
+// send an attachment
+await group.sendAttachment({
+  filename: "gm.txt",
+  mimeType: "text/plain",
+  content: new Uint8Array([103, 109]),
+});
+
+// send a remote attachment
+const attachment: Attachment = {
+  filename: "gm.txt",
+  mimeType: "text/plain",
+  content: new Uint8Array([103, 109]),
+};
+// must encrypt attachment first
+const encryptedAttachment = encryptAttachment(attachment);
+const remoteAttachment: RemoteAttachment = {
+  // upload URL
+  url: "https://example.com/gm.txt",
+  contentDigest: encryptedAttachment.contentDigest,
+  secret: encryptedAttachment.secret,
+  salt: encryptedAttachment.salt,
+  nonce: encryptedAttachment.nonce,
+  scheme: "https",
+  contentLength: encryptedAttachment.contentLength,
+  filename: encryptedAttachment.filename,
+};
+await group.sendRemoteAttachment(remoteAttachment);
+
+// decrypt attachment
+const decryptedAttachment = decryptAttachment(
+  // downloaded from remote attachment URL
+  encryptedBytes,
+  remoteAttachment,
+);
+
+// send multiple remote attachments
+await group.sendMultiRemoteAttachment({
+  attachments: [remoteAttachment],
+});
+
+// send a transaction reference
+await group.sendTransactionReference({
+  // eth mainnet
+  networkId: "1",
+  reference: "1234567890",
+});
+
+// send a wallet send call
+await group.sendWalletSendCalls({
+  version: "1.0",
+  chainId: "1",
+  from: "0x1234567890",
+  calls: [
+    {
+      to: "0x4567891230",
+      value: "1",
+    },
+  ],
+});
+
+// send actions
+await group.sendActions({
+  id: "actions-1",
+  description: "Choose an option",
+  actions: [
+    {
+      id: "opt-1",
+      label: "Option 1",
+    },
+    {
+      id: "opt-2",
+      label: "Option 2",
+    },
+  ],
+});
+
+// send intent
+await group.sendIntent({
+  id: "intent-1",
+  actionId: "opt-1",
+});
+```
+
+#### Send custom content
+
+For content types not included in the SDK, you can still define custom codecs and use the `send` method to send encoded content. This allows you to extend XMTP with application-specific message formats while maintaining compatibility with the SDK's message handling.
+
+```ts
+export const ContentTypeTest: ContentTypeId = {
+  authorityId: "xmtp.org",
+  typeId: "test",
+  versionMajor: 1,
+  versionMinor: 0,
+};
+
+export class TestCodec implements ContentCodec {
+  contentType = ContentTypeTest;
+
+  encode(content: Record<string, string>): EncodedContent {
+    return {
+      type: this.contentType,
+      parameters: {},
+      content: new TextEncoder().encode(JSON.stringify(content)),
+    };
+  }
+
+  decode(content: EncodedContent): Record<string, string> {
+    const decoded = new TextDecoder().decode(content.content);
+    return JSON.parse(decoded);
+  }
+
+  fallback() {
+    return undefined;
+  }
+
+  shouldPush() {
+    return false;
+  }
+}
+
+const testCodec = new TestCodec();
+
+// send custom content with options
+await group.send(
+  testCodec.encode({
+    foo: "bar",
+  }),
+  {
+    // should this message be a push notification?
+    shouldPush: true,
+    // should this message be sent optimistically?
+    optimistic: false,
+  },
+);
+```
+
+### Last read times
+
+Building read status indicators is now easier. When participants send read receipt messages, you can query a conversation to see when each member last read the conversation. This enables features like showing which messages are unread or displaying "seen by" indicators.
+
+```ts
+// returns an object keyed by inbox ID
+const lastReadTimes = await group.lastReadTimes();
+
+// get the last read time of an inbox in nanoseconds
+const inboxLastReadTimeNs = lastReadTimes[inboxId];
+```
+
+### Message expiration timestamp
+
+For conversations with disappearing messages enabled, messages now include an expiration timestamp. This allows you to display countdown timers or visual indicators showing when a message will be automatically removed.
+
+```ts
+// message is disappearing
+if (message.expiresAtNs !== undefined) {
+  // schedule an effect when message is about the expire
+}
+```
+
+To learn more, see [Access message expiration timestamps](https://docs.xmtp.org/chat-apps/core-messaging/disappearing-messages#access-disappearing-message-expiration-timestamps)
 
 ## 4.6.0
 
@@ -150,7 +524,7 @@ To learn more, see [Paginate messages by insertion time](https://docs.xmtp.org/c
 
 ### More details on sync
 
-The return value of `conversations.syncAllConversations` is now an object that includes both the number of conversations, and the number that needed to be synced.
+The return value of `conversations.syncAll` is now an object that includes both the number of conversations, and the number that needed to be synced.
 
 ### Updates for disappearing messages
 
