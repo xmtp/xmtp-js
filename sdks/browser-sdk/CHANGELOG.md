@@ -2,7 +2,7 @@
 
 ## 6.0.0
 
-This release introduces breaking changes and new features. If you've been building on a previous release, this one will require an update to your existing code.
+This release introduces breaking changes and new features. If you've been building on a previous release, updating your app to use this release will require changes to your existing code.
 
 ### BREAKING CHANGES
 
@@ -21,7 +21,7 @@ This release introduces breaking changes and new features. If you've been buildi
   - Types: `SafeContentTypeId`, `SafeEncodedContent`, `SafeMessage`, `SafeListMessagesOptions`, `SafeSendMessageOpts`, `SafeListConversationsOptions`, `SafePermissionPolicySet`, `SafeCreateGroupOptions`, `SafeCreateDmOptions`, `SafeInstallation`, `SafeInboxState`, `SafeConsent`, `SafeGroupMember`, `SafeHmacKey`, `SafeHmacKeys`, `SafeMessageDisappearingSettings`, `SafeKeyPackageStatus`, `SafeXMTPCursor`, `SafeConversationDebugInfo`, `SafeApiStats`, `SafeIdentityStats`
   - Functions: `toContentTypeId`, `fromContentTypeId`, `toSafeContentTypeId`, `fromSafeContentTypeId`, `toEncodedContent`, `fromEncodedContent`, `toSafeEncodedContent`, `fromSafeEncodedContent`, `toSafeMessage`, `toSafeListMessagesOptions`, `fromSafeListMessagesOptions`, `toSafeSendMessageOpts`, `fromSafeSendMessageOpts`, `toSafeListConversationsOptions`, `fromSafeListConversationsOptions`, `toSafePermissionPolicySet`, `fromSafePermissionPolicySet`, `toSafeCreateGroupOptions`, `fromSafeCreateGroupOptions`, `toSafeCreateDmOptions`, `fromSafeCreateDmOptions`, `toSafeInstallation`, `toSafeInboxState`, `toSafeConsent`, `fromSafeConsent`, `toSafeGroupMember`, `fromSafeGroupMember`, `toSafeHmacKey`, `toSafeMessageDisappearingSettings`, `fromSafeMessageDisappearingSettings`, `toSafeKeyPackageStatus`, `toSafeConversationDebugInfo`, `toSafeApiStats`, `toSafeIdentityStats`
 
-#### Type updates
+#### Updated types
 
 Many types that were previously string literals or interfaces are now numeric enums.
 
@@ -43,7 +43,7 @@ The following types are now numeric enums:
 - `PermissionUpdateType`
 - `SortDirection`
 
-Other type changes:
+Other type updates:
 
 - `DecodedMessage.kind` and `deliveryStatus` fields now use enum values instead of strings
 - Conversation type value is now an enum in metadata
@@ -178,7 +178,9 @@ const inboxStates = await client.preferences.getInboxStates(inboxIds);
 const latestInboxStates = await client.preferences.fetchInboxStates(inboxIds);
 ```
 
-### Built-in content types
+### NEW FEATURES
+
+#### Built-in content types
 
 Previously, sending non-text messages required installing separate content type packages and registering codecs with the client. This release simplifies messaging by including all official content types directly in the SDK. You no longer need to manage codec registration, just use the dedicated send methods for each content type.
 
@@ -334,7 +336,7 @@ await group.sendIntent({
 
 #### Send custom content
 
-For content types not included in the SDK, you can still define custom codecs and use the `send` method to send encoded content. This allows you to extend XMTP with application-specific message formats while maintaining compatibility with the SDK's message handling.
+For content types not included in the SDK, you can still define custom codecs and use the `send` method to send encoded content. This allows you to extend XMTP with app-specific message formats while maintaining compatibility with the SDK's message handling.
 
 ```ts
 export const ContentTypeTest: ContentTypeId = {
@@ -400,7 +402,7 @@ const inboxId = await generateInboxId(identifier);
 const existingInboxId = await getInboxIdForIdentifier(identifier, env);
 ```
 
-### Last read times
+#### Last read times
 
 Building read status indicators is now easier. When participants send read receipt messages, you can query a conversation to see when each member last read the conversation. This enables features like showing which messages are unread or displaying "seen by" indicators.
 
@@ -412,7 +414,7 @@ const lastReadTimes = await group.lastReadTimes();
 const inboxLastReadTimeNs = lastReadTimes.get(inboxId);
 ```
 
-### OPFS file management
+#### OPFS file management
 
 A new `Opfs` class provides direct access to manage files in the Origin Private File System, where the browser SDK stores its database. This is useful for debugging, exporting/importing databases, or cleaning up storage.
 
@@ -443,7 +445,7 @@ await opfs.clearAll();
 opfs.close();
 ```
 
-### Message expiration timestamp
+#### Message expiration timestamp
 
 For conversations with disappearing messages enabled, messages now include an expiration timestamp. This allows you to display countdown timers or visual indicators showing when a message will be automatically removed.
 
@@ -1398,12 +1400,14 @@ The move to an inbox-based identity model means the following shift in approach 
 > These function changes (address → inbox ID) won't trigger errors since both parameters are strings. Your code will pass a type-check but may fail at runtime. Pay special attention to these changes when upgrading.
 
 - The previous methods that allowed the use of an inbox ID have been removed in favor of the above methods
+
   - ~`addMembersByInboxIds(inboxIds)`~
   - ~`removeMembersByInboxIds(inboxIds)`~
   - ~`newGroupByInboxIds(inboxIds)`~
   - ~`newDmByInboxId(inboxId)`~
 
 - New methods have been added to allow the use of addresses with the `Identifier` type
+
   - `addMembersByIdentifiers(Identifier[])`
   - `removeMembersByIdentifiers(Identifier[])`
   - `newGroupByIdentifiers(Identifier[])`

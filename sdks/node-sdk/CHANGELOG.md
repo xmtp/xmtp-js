@@ -2,7 +2,7 @@
 
 ## 5.0.0
 
-This release introduces breaking changes and new features. If you've been building on a previous release, this one will require an update to your existing code.
+This release introduces breaking changes and new features. If you've been building on a previous release, updating your app to use this release will require changes to your existing code.
 
 ### BREAKING CHANGES
 
@@ -18,7 +18,7 @@ This release introduces breaking changes and new features. If you've been buildi
 - Removed `DecodedMessage.parameters` property
 - Removed `MessageKind` and `MessageDeliveryStatus` type exports (use `GroupMessageKind` and `DeliveryStatus` enums instead)
 
-#### Type updates
+#### Updated types
 
 - `DecodedMessage.sentAtNs` is now `bigint`
 - `DecodedMessage.kind` and `DecodedMessage.deliveryStatus` fields now use enum values instead of strings
@@ -174,7 +174,9 @@ const inboxStates = await client.preferences.getInboxStates(inboxIds);
 const latestInboxStates = await client.preferences.fetchInboxStates(inboxIds);
 ```
 
-### Built-in content types
+### NEW FEATURES
+
+#### Built-in content types
 
 Previously, sending non-text messages required installing separate content type packages and registering codecs with the client. This release simplifies messaging by including all official content types directly in the SDK. You no longer need to manage codec registration, just use the dedicated send methods for each content type.
 
@@ -329,7 +331,7 @@ await group.sendIntent({
 
 #### Send custom content
 
-For content types not included in the SDK, you can still define custom codecs and use the `send` method to send encoded content. This allows you to extend XMTP with application-specific message formats while maintaining compatibility with the SDK's message handling.
+For content types not included in the SDK, you can still define custom codecs and use the `send` method to send encoded content. This allows you to extend XMTP with app-specific message formats while maintaining compatibility with the SDK's message handling.
 
 ```ts
 const ContentTypeTest: ContentTypeId = {
@@ -376,7 +378,7 @@ await group.send(
 );
 ```
 
-### Last read times
+#### Last read times
 
 Building read status indicators is now easier. When participants send read receipt messages, you can query a conversation to see when each member last read the conversation. This enables features like showing which messages are unread or displaying "seen by" indicators.
 
@@ -388,7 +390,7 @@ const lastReadTimes = await group.lastReadTimes();
 const inboxLastReadTimeNs = lastReadTimes[inboxId];
 ```
 
-### Message expiration timestamp
+#### Message expiration timestamp
 
 For conversations with disappearing messages enabled, messages now include an expiration timestamp. This allows you to display countdown timers or visual indicators showing when a message will be automatically removed.
 
