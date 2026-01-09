@@ -177,7 +177,7 @@ export class Conversation<ContentTypes = unknown> {
    * @param sendOptions - Options for sending the message
    * @param sendOptions.shouldPush - Indicates whether this message should be
    * included in push notifications
-   * @param sendOptions.optimistic - Indicates whether this message should be
+   * @param sendOptions.isOptimistic - Indicates whether this message should be
    * sent optimistically and published later via `publishMessages`
    * @returns Promise that resolves with the message ID after it has been sent
    */
@@ -195,71 +195,71 @@ export class Conversation<ContentTypes = unknown> {
    * Sends a text message
    *
    * @param text - The text to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
-  async sendText(text: string, optimistic?: boolean) {
-    return this.#conversation.sendText(text, optimistic);
+  async sendText(text: string, isOptimistic?: boolean) {
+    return this.#conversation.sendText(text, isOptimistic);
   }
 
   /**
    * Sends a markdown message
    *
    * @param markdown - The markdown to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
-  async sendMarkdown(markdown: string, optimistic?: boolean) {
-    return this.#conversation.sendMarkdown(markdown, optimistic);
+  async sendMarkdown(markdown: string, isOptimistic?: boolean) {
+    return this.#conversation.sendMarkdown(markdown, isOptimistic);
   }
 
   /**
    * Sends a reaction message
    *
    * @param reaction - The reaction to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
-  async sendReaction(reaction: Reaction, optimistic?: boolean) {
-    return this.#conversation.sendReaction(reaction, optimistic);
+  async sendReaction(reaction: Reaction, isOptimistic?: boolean) {
+    return this.#conversation.sendReaction(reaction, isOptimistic);
   }
 
   /**
    * Sends a read receipt message
    *
    * @param readReceipt - The read receipt to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
-  async sendReadReceipt(optimistic?: boolean) {
-    return this.#conversation.sendReadReceipt(optimistic);
+  async sendReadReceipt(isOptimistic?: boolean) {
+    return this.#conversation.sendReadReceipt(isOptimistic);
   }
 
   /**
    * Sends a reply message
    *
    * @param reply - The reply to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
-  async sendReply(reply: Reply, optimistic?: boolean) {
-    return this.#conversation.sendReply(reply, optimistic);
+  async sendReply(reply: Reply, isOptimistic?: boolean) {
+    return this.#conversation.sendReply(reply, isOptimistic);
   }
 
   /**
    * Sends a transaction reference message
    *
    * @param transactionReference - The transaction reference to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendTransactionReference(
     transactionReference: TransactionReference,
-    optimistic?: boolean,
+    isOptimistic?: boolean,
   ) {
     return this.#conversation.sendTransactionReference(
       transactionReference,
-      optimistic,
+      isOptimistic,
     );
   }
 
@@ -267,63 +267,66 @@ export class Conversation<ContentTypes = unknown> {
    * Sends a wallet send calls message
    *
    * @param walletSendCalls - The wallet send calls to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendWalletSendCalls(
     walletSendCalls: WalletSendCalls,
-    optimistic?: boolean,
+    isOptimistic?: boolean,
   ) {
-    return this.#conversation.sendWalletSendCalls(walletSendCalls, optimistic);
+    return this.#conversation.sendWalletSendCalls(
+      walletSendCalls,
+      isOptimistic,
+    );
   }
 
   /**
    * Sends a actions message
    *
    * @param actions - The actions to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
-  async sendActions(actions: Actions, optimistic?: boolean) {
-    return this.#conversation.sendActions(actions, optimistic);
+  async sendActions(actions: Actions, isOptimistic?: boolean) {
+    return this.#conversation.sendActions(actions, isOptimistic);
   }
 
   /**
    * Sends a intent message
    *
    * @param intent - The intent to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
-  async sendIntent(intent: Intent, optimistic?: boolean) {
-    return this.#conversation.sendIntent(intent, optimistic);
+  async sendIntent(intent: Intent, isOptimistic?: boolean) {
+    return this.#conversation.sendIntent(intent, isOptimistic);
   }
 
   /**
    * Sends an attachment message
    *
    * @param attachment - The attachment to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
-  async sendAttachment(attachment: Attachment, optimistic?: boolean) {
-    return this.#conversation.sendAttachment(attachment, optimistic);
+  async sendAttachment(attachment: Attachment, isOptimistic?: boolean) {
+    return this.#conversation.sendAttachment(attachment, isOptimistic);
   }
 
   /**
    * Sends a multi remote attachment message
    *
    * @param multiRemoteAttachment - The multi remote attachment to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendMultiRemoteAttachment(
     multiRemoteAttachment: MultiRemoteAttachment,
-    optimistic?: boolean,
+    isOptimistic?: boolean,
   ) {
     return this.#conversation.sendMultiRemoteAttachment(
       multiRemoteAttachment,
-      optimistic,
+      isOptimistic,
     );
   }
 
@@ -331,16 +334,16 @@ export class Conversation<ContentTypes = unknown> {
    * Sends a remote attachment message
    *
    * @param remoteAttachment - The remote attachment to send
-   * @param optimistic - Whether to send the message optimistically
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
    */
   async sendRemoteAttachment(
     remoteAttachment: RemoteAttachment,
-    optimistic?: boolean,
+    isOptimistic?: boolean,
   ) {
     return this.#conversation.sendRemoteAttachment(
       remoteAttachment,
-      optimistic,
+      isOptimistic,
     );
   }
 

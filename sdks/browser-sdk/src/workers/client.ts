@@ -990,31 +990,37 @@ self.onmessage = async (
       }
       case "conversation.sendText": {
         const group = getGroup(data.id);
-        const result = await group.sendText(data.text, data.optimistic);
+        const result = await group.sendText(data.text, data.isOptimistic);
         postMessage({ id, action, result });
         break;
       }
       case "conversation.sendMarkdown": {
         const group = getGroup(data.id);
-        const result = await group.sendMarkdown(data.markdown, data.optimistic);
+        const result = await group.sendMarkdown(
+          data.markdown,
+          data.isOptimistic,
+        );
         postMessage({ id, action, result });
         break;
       }
       case "conversation.sendReaction": {
         const group = getGroup(data.id);
-        const result = await group.sendReaction(data.reaction, data.optimistic);
+        const result = await group.sendReaction(
+          data.reaction,
+          data.isOptimistic,
+        );
         postMessage({ id, action, result });
         break;
       }
       case "conversation.sendReadReceipt": {
         const group = getGroup(data.id);
-        const result = await group.sendReadReceipt(data.optimistic);
+        const result = await group.sendReadReceipt(data.isOptimistic);
         postMessage({ id, action, result });
         break;
       }
       case "conversation.sendReply": {
         const group = getGroup(data.id);
-        const result = await group.sendReply(data.reply, data.optimistic);
+        const result = await group.sendReply(data.reply, data.isOptimistic);
         postMessage({ id, action, result });
         break;
       }
@@ -1022,7 +1028,7 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const result = await group.sendTransactionReference(
           data.transactionReference,
-          data.optimistic,
+          data.isOptimistic,
         );
         postMessage({ id, action, result });
         break;
@@ -1031,20 +1037,20 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const result = await group.sendWalletSendCalls(
           data.walletSendCalls,
-          data.optimistic,
+          data.isOptimistic,
         );
         postMessage({ id, action, result });
         break;
       }
       case "conversation.sendActions": {
         const group = getGroup(data.id);
-        const result = await group.sendActions(data.actions, data.optimistic);
+        const result = await group.sendActions(data.actions, data.isOptimistic);
         postMessage({ id, action, result });
         break;
       }
       case "conversation.sendIntent": {
         const group = getGroup(data.id);
-        const result = await group.sendIntent(data.intent, data.optimistic);
+        const result = await group.sendIntent(data.intent, data.isOptimistic);
         postMessage({ id, action, result });
         break;
       }
@@ -1052,7 +1058,7 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const result = await group.sendAttachment(
           data.attachment,
-          data.optimistic,
+          data.isOptimistic,
         );
         postMessage({ id, action, result });
         break;
@@ -1061,7 +1067,7 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const result = await group.sendMultiRemoteAttachment(
           data.multiRemoteAttachment,
-          data.optimistic,
+          data.isOptimistic,
         );
         postMessage({ id, action, result });
         break;
@@ -1070,7 +1076,7 @@ self.onmessage = async (
         const group = getGroup(data.id);
         const result = await group.sendRemoteAttachment(
           data.remoteAttachment,
-          data.optimistic,
+          data.isOptimistic,
         );
         postMessage({ id, action, result });
         break;

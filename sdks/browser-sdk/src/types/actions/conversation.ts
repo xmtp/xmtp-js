@@ -189,7 +189,7 @@ export type ConversationAction =
       data: {
         id: string;
         text: string;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     }
   | {
@@ -199,7 +199,7 @@ export type ConversationAction =
       data: {
         id: string;
         markdown: string;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     }
   | {
@@ -209,7 +209,7 @@ export type ConversationAction =
       data: {
         id: string;
         reaction: Reaction;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     }
   | {
@@ -218,7 +218,7 @@ export type ConversationAction =
       result: string;
       data: {
         id: string;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     }
   | {
@@ -228,7 +228,7 @@ export type ConversationAction =
       data: {
         id: string;
         reply: Reply;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     }
   | {
@@ -238,7 +238,7 @@ export type ConversationAction =
       data: {
         id: string;
         transactionReference: TransactionReference;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     }
   | {
@@ -248,7 +248,7 @@ export type ConversationAction =
       data: {
         id: string;
         walletSendCalls: WalletSendCalls;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     }
   | {
@@ -258,7 +258,7 @@ export type ConversationAction =
       data: {
         id: string;
         actions: Actions;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     }
   | {
@@ -268,7 +268,7 @@ export type ConversationAction =
       data: {
         id: string;
         intent: Intent;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     }
   | {
@@ -278,7 +278,7 @@ export type ConversationAction =
       data: {
         id: string;
         attachment: Attachment;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     }
   | {
@@ -288,7 +288,7 @@ export type ConversationAction =
       data: {
         id: string;
         multiRemoteAttachment: MultiRemoteAttachment;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     }
   | {
@@ -298,6 +298,6 @@ export type ConversationAction =
       data: {
         id: string;
         remoteAttachment: RemoteAttachment;
-        optimistic?: boolean;
+        isOptimistic?: boolean;
       };
     };
