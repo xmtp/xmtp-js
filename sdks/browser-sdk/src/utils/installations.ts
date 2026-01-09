@@ -85,7 +85,7 @@ export const revokeInstallations = async (
       break;
     case "SCW":
       await signatureRequest.addScwSignature(
-        await signer.getIdentifier(),
+        identifier,
         signature,
         signer.getChainId(),
         signer.getBlockNumber?.(),
