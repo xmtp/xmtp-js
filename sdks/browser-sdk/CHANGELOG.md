@@ -1400,14 +1400,12 @@ The move to an inbox-based identity model means the following shift in approach 
 > These function changes (address → inbox ID) won't trigger errors since both parameters are strings. Your code will pass a type-check but may fail at runtime. Pay special attention to these changes when upgrading.
 
 - The previous methods that allowed the use of an inbox ID have been removed in favor of the above methods
-
   - ~`addMembersByInboxIds(inboxIds)`~
   - ~`removeMembersByInboxIds(inboxIds)`~
   - ~`newGroupByInboxIds(inboxIds)`~
   - ~`newDmByInboxId(inboxId)`~
 
 - New methods have been added to allow the use of addresses with the `Identifier` type
-
   - `addMembersByIdentifiers(Identifier[])`
   - `removeMembersByIdentifiers(Identifier[])`
   - `newGroupByIdentifiers(Identifier[])`
