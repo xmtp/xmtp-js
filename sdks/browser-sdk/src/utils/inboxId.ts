@@ -6,8 +6,6 @@ import init, {
 import { ApiUrls } from "@/constants";
 import type { XmtpEnv } from "@/types/options";
 
-const initPromise = init();
-
 /**
  * Generates an inbox ID for a given identifier
  *
@@ -19,7 +17,7 @@ export const generateInboxId = async (
   identifier: Identifier,
   nonce?: bigint,
 ): Promise<string> => {
-  await initPromise;
+  await init();
   return wasmGenerateInboxId(identifier, nonce);
 };
 
@@ -36,7 +34,7 @@ export const getInboxIdForIdentifier = async (
   env?: XmtpEnv,
   gatewayHost?: string,
 ): Promise<string | undefined> => {
-  await initPromise;
+  await init();
   const host = env ? ApiUrls[env] : ApiUrls.dev;
   const isSecure = host.startsWith("https");
   return wasmGetInboxIdForIdentifier(

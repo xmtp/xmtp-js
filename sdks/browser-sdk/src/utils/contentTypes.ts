@@ -28,12 +28,10 @@ import init, {
   encryptAttachment as wasmEncryptAttachment,
 } from "@xmtp/wasm-bindings";
 
-const initPromise = init();
-
 const wrap =
   <T extends (...args: never[]) => unknown>(fn: T) =>
   async (...args: Parameters<T>): Promise<ReturnType<T>> => {
-    await initPromise;
+    await init();
     return fn(...args) as ReturnType<T>;
   };
 
