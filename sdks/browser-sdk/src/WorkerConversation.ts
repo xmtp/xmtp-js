@@ -92,7 +92,7 @@ export class WorkerConversation {
     return this.#group.createdAtNs();
   }
 
-  async lastMessage(): Promise<DecodedMessage | undefined> {
+  async lastMessage() {
     const messages = await this.messages({
       limit: 1n,
       direction: SortDirection.Descending,
