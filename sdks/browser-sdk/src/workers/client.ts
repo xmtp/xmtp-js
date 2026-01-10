@@ -542,11 +542,14 @@ self.onmessage = async (
             void client.conversations
               .getMessageById(value.id)
               .then((enrichedMessage) => {
-                postStreamMessage({
-                  action: "stream.message",
-                  streamId: data.streamId,
-                  result: enrichedMessage,
-                });
+                // guard against any edge cases where the message is not found
+                if (enrichedMessage) {
+                  postStreamMessage({
+                    action: "stream.message",
+                    streamId: data.streamId,
+                    result: enrichedMessage,
+                  });
+                }
               });
           }
         };
@@ -935,11 +938,14 @@ self.onmessage = async (
             void client.conversations
               .getMessageById(value.id)
               .then((enrichedMessage) => {
-                postStreamMessage({
-                  action: "stream.message",
-                  streamId: data.streamId,
-                  result: enrichedMessage,
-                });
+                // guard against any edge cases where the message is not found
+                if (enrichedMessage) {
+                  postStreamMessage({
+                    action: "stream.message",
+                    streamId: data.streamId,
+                    result: enrichedMessage,
+                  });
+                }
               });
           }
         };
