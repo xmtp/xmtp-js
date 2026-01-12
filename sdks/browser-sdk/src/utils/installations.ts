@@ -8,8 +8,6 @@ import { ApiUrls } from "@/constants";
 import type { XmtpEnv } from "@/types/options";
 import type { Signer } from "@/utils/signer";
 
-const initPromise = init();
-
 /**
  * Creates signature text for revoking installations
  *
@@ -36,7 +34,7 @@ export const revokeInstallationsSignatureText = async (
   signatureText: string;
   signatureRequest: SignatureRequestHandle;
 }> => {
-  await initPromise;
+  await init();
   const host = ApiUrls[env ?? "dev"];
   const signatureRequest = revokeInstallationsSignatureRequest(
     host,
@@ -66,7 +64,7 @@ export const revokeInstallations = async (
   env?: XmtpEnv,
   gatewayHost?: string,
 ): Promise<void> => {
-  await initPromise;
+  await init();
   const identifier = await signer.getIdentifier();
   const { signatureText, signatureRequest } =
     await revokeInstallationsSignatureText(
