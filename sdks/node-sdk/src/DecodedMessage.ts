@@ -62,8 +62,10 @@ const getContentFromDecodedMessageContent = <T = unknown>(
     case DecodedMessageContentType.Custom: {
       return content.custom as T;
     }
+    default:
+      content.type satisfies never;
+      return null as T;
   }
-  return null as T;
 };
 
 /**

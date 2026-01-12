@@ -62,8 +62,10 @@ const getContentFromDecodedMessageContent = <T = unknown>(
     case "custom": {
       return content.content as T;
     }
+    default:
+      content satisfies never;
+      return null as T;
   }
-  return null as T;
 };
 
 /**
