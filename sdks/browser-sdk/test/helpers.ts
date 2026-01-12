@@ -144,3 +144,32 @@ export class TestCodec implements ContentCodec {
     return false;
   }
 }
+
+export class DecodeFailureCodec implements ContentCodec {
+  contentType = {
+    authorityId: "test",
+    typeId: "decode-failure",
+    versionMajor: 1,
+    versionMinor: 0,
+  };
+
+  encode(content: string): EncodedContent {
+    return {
+      type: this.contentType,
+      parameters: {},
+      content: new TextEncoder().encode(content),
+    };
+  }
+
+  decode(_content: EncodedContent): string {
+    throw new Error("Decode failure");
+  }
+
+  fallback() {
+    return undefined;
+  }
+
+  shouldPush() {
+    return false;
+  }
+}

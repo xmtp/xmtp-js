@@ -1,3 +1,4 @@
+import { contentTypeToString } from "@xmtp/content-type-primitives";
 import {
   ActionStyle,
   contentTypeActions,
@@ -31,9 +32,14 @@ import {
   type WalletSendCalls,
   type Reply as XmtpReply,
 } from "@xmtp/node-bindings";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, type Mock } from "vitest";
 import type { Reply } from "@/types";
-import { createRegisteredClient, createSigner, TestCodec } from "@test/helpers";
+import {
+  createRegisteredClient,
+  createSigner,
+  DecodeFailureCodec,
+  TestCodec,
+} from "@test/helpers";
 
 describe("Content types", () => {
   it("should send and receive text content", async () => {
@@ -1098,48 +1104,91 @@ describe("Content types", () => {
     });
   });
 
-  it("should send and receive custom content", async () => {
-    const { signer: signer1 } = createSigner();
-    const { signer: signer2 } = createSigner();
-    const testCodec = new TestCodec();
-    const clientWithCodec = await createRegisteredClient(signer1, {
-      codecs: [testCodec],
-    });
-    const client = await createRegisteredClient(signer2);
-    const group = await clientWithCodec.conversations.createGroup([
-      client.inboxId,
-    ]);
-    const customContentId = await group.send(
-      testCodec.encode({ test: "test" }),
-    );
-    const messages = await group.messages();
-    expect(messages[1].content).toEqual({ test: "test" });
-    expect(messages[1].contentType).toEqual(testCodec.contentType);
-    const message =
-      clientWithCodec.conversations.getMessageById(customContentId);
-    expect(message).toBeDefined();
-    expect(message?.content).toEqual({ test: "test" });
-    expect(message?.contentType).toEqual(testCodec.contentType);
-  });
+  describe("Custom content types", () => {
+    let consoleWarnSpy: Mock;
 
-  it("should have undefined content when receiving custom content without codec", async () => {
-    const { signer: signer1 } = createSigner();
-    const { signer: signer2 } = createSigner();
-    const testCodec = new TestCodec();
-    const clientWithCodec = await createRegisteredClient(signer1, {
-      codecs: [testCodec],
+    beforeEach(() => {
+      consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     });
-    const client = await createRegisteredClient(signer2);
-    const group = await clientWithCodec.conversations.createGroup([
-      client.inboxId,
-    ]);
-    await group.send(testCodec.encode({ test: "test" }));
-    await client.conversations.sync();
-    const group2 = await client.conversations.getConversationById(group.id);
-    expect(group2).toBeDefined();
-    await group2!.sync();
-    const messages = await group2!.messages();
-    expect(messages[1].content).toBeUndefined();
-    expect(messages[1].contentType).toEqual(testCodec.contentType);
+
+    afterEach(() => {
+      consoleWarnSpy.mockRestore();
+    });
+
+    it("should send and receive custom content", async () => {
+      const { signer: signer1 } = createSigner();
+      const { signer: signer2 } = createSigner();
+      const testCodec = new TestCodec();
+      const clientWithCodec = await createRegisteredClient(signer1, {
+        codecs: [testCodec],
+      });
+      const client = await createRegisteredClient(signer2);
+      const group = await clientWithCodec.conversations.createGroup([
+        client.inboxId,
+      ]);
+      const customContentId = await group.send(
+        testCodec.encode({ test: "test" }),
+      );
+      const messages = await group.messages();
+      expect(messages[1].content).toEqual({ test: "test" });
+      expect(messages[1].contentType).toEqual(testCodec.contentType);
+      const message =
+        clientWithCodec.conversations.getMessageById(customContentId);
+      expect(message).toBeDefined();
+      expect(message?.content).toEqual({ test: "test" });
+      expect(message?.contentType).toEqual(testCodec.contentType);
+    });
+
+    it("should have undefined content when receiving custom content without codec", async () => {
+      const { signer: signer1 } = createSigner();
+      const { signer: signer2 } = createSigner();
+      const testCodec = new TestCodec();
+      const clientWithCodec = await createRegisteredClient(signer1, {
+        codecs: [testCodec],
+      });
+      const client = await createRegisteredClient(signer2);
+      const group = await clientWithCodec.conversations.createGroup([
+        client.inboxId,
+      ]);
+      await group.send(testCodec.encode({ test: "test" }));
+      await client.conversations.sync();
+      const group2 = await client.conversations.getConversationById(group.id);
+      expect(group2).toBeDefined();
+      await group2!.sync();
+      const messages = await group2!.messages();
+      expect(messages[1].content).toBeUndefined();
+      expect(messages[1].contentType).toEqual(testCodec.contentType);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        `No codec found for content type "${contentTypeToString(testCodec.contentType)}"`,
+      );
+    });
+
+    it("should have undefined content when receiving custom content with decode failure", async () => {
+      const { signer: signer1 } = createSigner();
+      const { signer: signer2 } = createSigner();
+      const decodeFailureCodec = new DecodeFailureCodec();
+      const clientWithCodec = await createRegisteredClient(signer1, {
+        codecs: [decodeFailureCodec],
+      });
+      const client2WithCodec = await createRegisteredClient(signer2, {
+        codecs: [decodeFailureCodec],
+      });
+      const group = await clientWithCodec.conversations.createGroup([
+        client2WithCodec.inboxId,
+      ]);
+      await group.send(decodeFailureCodec.encode("test"));
+      await client2WithCodec.conversations.sync();
+      const group2 = await client2WithCodec.conversations.getConversationById(
+        group.id,
+      );
+      expect(group2).toBeDefined();
+      await group2!.sync();
+      const messages = await group2!.messages();
+      expect(messages[1].content).toBeUndefined();
+      expect(messages[1].contentType).toEqual(decodeFailureCodec.contentType);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        "Error decoding custom content: Decode failure",
+      );
+    });
   });
 });
