@@ -267,6 +267,36 @@ describe("Content types", () => {
       expect(replyContent.inReplyTo?.content).toBe("Original message");
       expect(replyMessage.fallback).toBe(`Replied to an earlier message`);
     });
+
+    it("should send and receive reply with custom content", async () => {
+      const { signer: signer1 } = createSigner();
+      const { signer: signer2 } = createSigner();
+      const testCodec = new TestCodec();
+      const client1 = await createRegisteredClient(signer1, {
+        codecs: [testCodec],
+      });
+      const client2 = await createRegisteredClient(signer2, {
+        codecs: [testCodec],
+      });
+      const group = await client1.conversations.createGroup([client2.inboxId]);
+      const textMessageId = await group.sendText("Original message");
+      const reply: XmtpReply = {
+        content: testCodec.encode({ test: "test" }),
+        reference: textMessageId,
+        referenceInboxId: client1.inboxId,
+      };
+      await group.sendReply(reply);
+      const messages = await group.messages();
+      const replyMessage = messages[2];
+      expect(replyMessage.contentType).toEqual(contentTypeReply());
+      const replyContent = replyMessage.content as Reply<{ test: string }>;
+      expect(replyContent.referenceId).toBe(textMessageId);
+      expect(replyContent.content).toEqual({ test: "test" });
+      expect(replyContent.inReplyTo).toBeDefined();
+      expect(replyContent.inReplyTo?.id).toBe(textMessageId);
+      expect(replyContent.inReplyTo?.content).toBe("Original message");
+      expect(replyMessage.fallback).toBe(`Replied to an earlier message`);
+    });
   });
 
   describe("Attachment", () => {

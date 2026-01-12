@@ -133,7 +133,9 @@ export class DecodedMessage<ContentTypes = unknown> {
           reply.content,
         );
         if (reply.content.type === "custom") {
-          const codec = codecRegistry.getCodec<ContentTypes>(this.contentType);
+          const codec = codecRegistry.getCodec<ContentTypes>(
+            reply.content.content.type as ContentTypeId,
+          );
           if (codec) {
             try {
               replyContent = codec.decode(replyContent as EncodedContent);
