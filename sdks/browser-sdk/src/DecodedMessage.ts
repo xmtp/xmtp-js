@@ -144,7 +144,11 @@ export class DecodedMessage<ContentTypes = unknown> {
           try {
             this.content = codec.decode(encodedContent);
           } catch (error) {
-            console.warn(`Error decoding custom content: ${error as Error}`);
+            if (error instanceof Error) {
+              console.warn(`Error decoding custom content: ${error.message}`);
+            } else {
+              console.warn(`Error decoding custom content`);
+            }
             this.content = undefined;
           }
         } else {
