@@ -4,8 +4,6 @@ import init, {
 import { ApiUrls } from "@/constants";
 import type { XmtpEnv } from "@/types/options";
 
-const initPromise = init();
-
 /**
  * Gets the inbox state for the specified inbox IDs without a client
  *
@@ -19,7 +17,7 @@ export const inboxStateFromInboxIds = async (
   env?: XmtpEnv,
   gatewayHost?: string,
 ) => {
-  await initPromise;
+  await init();
   const host = ApiUrls[env ?? "dev"];
   return wasmInboxStateFromInboxIds(host, gatewayHost ?? null, inboxIds);
 };
