@@ -1099,18 +1099,21 @@ describe("Content types", () => {
     const { signer: signer1 } = createSigner();
     const { signer: signer2 } = createSigner();
     const testCodec = new TestCodec();
-    const client1 = await createRegisteredClient(signer1, {
+    const clientWithCodec = await createRegisteredClient(signer1, {
       codecs: [testCodec],
     });
-    const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.createGroup([client2.inboxId!]);
+    const client = await createRegisteredClient(signer2);
+    const group = await clientWithCodec.conversations.createGroup([
+      client.inboxId!,
+    ]);
     const customContentId = await group.send(
       testCodec.encode({ test: "test" }),
     );
     const messages = await group.messages();
     expect(messages[1].content).toEqual({ test: "test" });
     expect(messages[1].contentType).toEqual(testCodec.contentType);
-    const message = await client1.conversations.getMessageById(customContentId);
+    const message =
+      await clientWithCodec.conversations.getMessageById(customContentId);
     expect(message).toBeDefined();
     expect(message?.content).toEqual({ test: "test" });
     expect(message?.contentType).toEqual(testCodec.contentType);
@@ -1120,14 +1123,16 @@ describe("Content types", () => {
     const { signer: signer1 } = createSigner();
     const { signer: signer2 } = createSigner();
     const testCodec = new TestCodec();
-    const client1 = await createRegisteredClient(signer1, {
+    const clientWithCodec = await createRegisteredClient(signer1, {
       codecs: [testCodec],
     });
-    const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.createGroup([client2.inboxId!]);
+    const client = await createRegisteredClient(signer2);
+    const group = await clientWithCodec.conversations.createGroup([
+      client.inboxId!,
+    ]);
     await group.send(testCodec.encode({ test: "test" }));
-    await client2.conversations.sync();
-    const group2 = await client2.conversations.getConversationById(group.id);
+    await client.conversations.sync();
+    const group2 = await client.conversations.getConversationById(group.id);
     expect(group2).toBeDefined();
     await group2!.sync();
     const messages = await group2!.messages();
