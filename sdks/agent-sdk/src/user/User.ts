@@ -32,7 +32,7 @@ export const createSigner = (
     getIdentifier: () => identifier,
     signMessage: async (message: string) => {
       const signature = await wallet.signMessage({
-        account: wallet.account!,
+        account: wallet.account,
         message,
       });
       return toBytes(signature);
