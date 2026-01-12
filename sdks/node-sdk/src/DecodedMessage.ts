@@ -4,6 +4,7 @@ import {
   type ContentTypeId,
   type DecodedMessageContent,
   type DeliveryStatus,
+  type EncodedContent,
   type EnrichedReply,
   type GroupMessageKind,
   type Reaction,
@@ -127,11 +128,26 @@ export class DecodedMessage<ContentTypes = unknown> {
     switch (message.content.type) {
       case DecodedMessageContentType.Reply: {
         const reply = message.content.reply as EnrichedReply;
+        let replyContent = getContentFromDecodedMessageContent<ContentTypes>(
+          reply.content,
+        );
+        if (reply.content.type === DecodedMessageContentType.Custom) {
+          const codec = codecRegistry.getCodec<ContentTypes>(this.contentType);
+          if (codec) {
+            try {
+              replyContent = codec.decode(replyContent as EncodedContent);
+            } catch (error) {
+              if (error instanceof Error) {
+                console.warn(`Error decoding custom content: ${error.message}`);
+              } else {
+                console.warn(`Error decoding custom content`);
+              }
+            }
+          }
+        }
         this.content = {
           referenceId: reply.referenceId,
-          content: getContentFromDecodedMessageContent<ContentTypes>(
-            reply.content,
-          ),
+          content: replyContent,
           inReplyTo: reply.inReplyTo
             ? new DecodedMessage<ContentTypes>(codecRegistry, reply.inReplyTo)
             : null,

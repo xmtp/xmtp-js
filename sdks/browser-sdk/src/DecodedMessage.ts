@@ -1,4 +1,7 @@
-import { contentTypeToString } from "@xmtp/content-type-primitives";
+import {
+  contentTypeToString,
+  type EncodedContent,
+} from "@xmtp/content-type-primitives";
 import type {
   ContentTypeId,
   DecodedMessageContent,
@@ -126,11 +129,26 @@ export class DecodedMessage<ContentTypes = unknown> {
     switch (message.content.type) {
       case "reply": {
         const reply = message.content.content;
+        let replyContent = getContentFromDecodedMessageContent<ContentTypes>(
+          reply.content,
+        );
+        if (reply.content.type === "custom") {
+          const codec = codecRegistry.getCodec<ContentTypes>(this.contentType);
+          if (codec) {
+            try {
+              replyContent = codec.decode(replyContent as EncodedContent);
+            } catch (error) {
+              if (error instanceof Error) {
+                console.warn(`Error decoding custom content: ${error.message}`);
+              } else {
+                console.warn(`Error decoding custom content`);
+              }
+            }
+          }
+        }
         this.content = {
           referenceId: reply.referenceId,
-          content: getContentFromDecodedMessageContent<ContentTypes>(
-            reply.content,
-          ),
+          content: replyContent,
           inReplyTo: reply.inReplyTo
             ? new DecodedMessage<ContentTypes>(codecRegistry, reply.inReplyTo)
             : null,
