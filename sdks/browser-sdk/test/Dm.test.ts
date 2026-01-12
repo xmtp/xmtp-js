@@ -3,12 +3,12 @@ import {
   ContentType,
   ConversationType,
   MetadataField,
-  metadataFieldName,
   type GroupUpdated,
   type MessageDisappearingSettings,
 } from "@xmtp/wasm-bindings";
 import { describe, expect, it } from "vitest";
 import type { DecodedMessage } from "@/DecodedMessage";
+import { metadataFieldName } from "@/utils/metadata";
 import { createRegisteredClient, createSigner, sleep } from "@test/helpers";
 
 describe("Dm", () => {
@@ -291,7 +291,7 @@ describe("Dm", () => {
     expect(fieldChange1.content?.metadataFieldChanges).toBeDefined();
     expect(fieldChange1.content?.metadataFieldChanges.length).toBe(1);
     expect(fieldChange1.content?.metadataFieldChanges[0].fieldName).toBe(
-      metadataFieldName(MetadataField.MessageExpirationFromNs),
+      await metadataFieldName(MetadataField.MessageExpirationFromNs),
     );
     expect(fieldChange1.content?.metadataFieldChanges[0].oldValue).toBe("1");
     expect(fieldChange1.content?.metadataFieldChanges[0].newValue).toBe("0");
@@ -300,7 +300,7 @@ describe("Dm", () => {
     expect(fieldChange2.content?.metadataFieldChanges).toBeDefined();
     expect(fieldChange2.content?.metadataFieldChanges.length).toBe(1);
     expect(fieldChange2.content?.metadataFieldChanges[0].fieldName).toBe(
-      metadataFieldName(MetadataField.MessageExpirationInNs),
+      await metadataFieldName(MetadataField.MessageExpirationInNs),
     );
     expect(fieldChange2.content?.metadataFieldChanges[0].oldValue).toBe(
       "2000000000",

@@ -6,7 +6,6 @@ import {
   encodeText,
   GroupMessageKind,
   MetadataField,
-  metadataFieldName,
   ReactionAction,
   ReactionSchema,
   SortDirection,
@@ -19,6 +18,7 @@ import {
   contentTypeGroupUpdated,
   contentTypeLeaveRequest,
 } from "@/utils/contentTypes";
+import { metadataFieldName } from "@/utils/metadata";
 import {
   createRegisteredClient,
   createSigner,
@@ -210,7 +210,7 @@ describe("Group", () => {
     const message = messages[0] as DecodedMessage<GroupUpdated>;
     expect(message.content!.metadataFieldChanges).toHaveLength(1);
     expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
-      metadataFieldName(MetadataField.GroupName),
+      await metadataFieldName(MetadataField.GroupName),
     );
     expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
     expect(message.content!.metadataFieldChanges[0].newValue).toBe(newName);
@@ -229,7 +229,7 @@ describe("Group", () => {
     const message = messages[0] as DecodedMessage<GroupUpdated>;
     expect(message.content!.metadataFieldChanges).toHaveLength(1);
     expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
-      metadataFieldName(MetadataField.GroupImageUrlSquare),
+      await metadataFieldName(MetadataField.GroupImageUrlSquare),
     );
     expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
     expect(message.content!.metadataFieldChanges[0].newValue).toBe(imageUrl);
@@ -248,7 +248,7 @@ describe("Group", () => {
     const message = messages[0] as DecodedMessage<GroupUpdated>;
     expect(message.content!.metadataFieldChanges).toHaveLength(1);
     expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
-      metadataFieldName(MetadataField.Description),
+      await metadataFieldName(MetadataField.Description),
     );
     expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
     expect(message.content!.metadataFieldChanges[0].newValue).toBe(
@@ -269,7 +269,7 @@ describe("Group", () => {
     const message = messages[0] as DecodedMessage<GroupUpdated>;
     expect(message.content!.metadataFieldChanges).toHaveLength(1);
     expect(message.content!.metadataFieldChanges[0].fieldName).toBe(
-      metadataFieldName(MetadataField.AppData),
+      await metadataFieldName(MetadataField.AppData),
     );
     expect(message.content!.metadataFieldChanges[0].oldValue).toBe("");
     expect(message.content!.metadataFieldChanges[0].newValue).toBe(appData);
@@ -809,7 +809,7 @@ describe("Group", () => {
     expect(fieldChange1.content?.metadataFieldChanges).toBeDefined();
     expect(fieldChange1.content?.metadataFieldChanges.length).toBe(1);
     expect(fieldChange1.content?.metadataFieldChanges[0].fieldName).toBe(
-      metadataFieldName(MetadataField.MessageExpirationFromNs),
+      await metadataFieldName(MetadataField.MessageExpirationFromNs),
     );
     expect(fieldChange1.content?.metadataFieldChanges[0].oldValue).toBe("1");
     expect(fieldChange1.content?.metadataFieldChanges[0].newValue).toBe("0");
@@ -818,7 +818,7 @@ describe("Group", () => {
     expect(fieldChange2.content?.metadataFieldChanges).toBeDefined();
     expect(fieldChange2.content?.metadataFieldChanges.length).toBe(1);
     expect(fieldChange2.content?.metadataFieldChanges[0].fieldName).toBe(
-      metadataFieldName(MetadataField.MessageExpirationInNs),
+      await metadataFieldName(MetadataField.MessageExpirationInNs),
     );
     expect(fieldChange2.content?.metadataFieldChanges[0].oldValue).toBe(
       "2000000000",

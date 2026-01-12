@@ -6,6 +6,7 @@ export { Dm } from "./Dm";
 export { Group } from "./Group";
 export { DecodedMessage } from "./DecodedMessage";
 export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";
+export { metadataFieldName } from "./utils/metadata";
 export { ApiUrls, HistorySyncUrls } from "./constants";
 export type * from "./types/options";
 export * from "./utils/conversions";
