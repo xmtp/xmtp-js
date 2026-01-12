@@ -143,7 +143,12 @@ export class DecodedMessage<ContentTypes = unknown> {
         if (customContent !== null) {
           const codec = codecRegistry.getCodec<ContentTypes>(this.contentType);
           if (codec) {
-            this.content = codec.decode(customContent);
+            try {
+              this.content = codec.decode(customContent);
+            } catch (error) {
+              console.warn(`Error decoding custom content: ${error as Error}`);
+              this.content = undefined;
+            }
           } else {
             console.warn(
               `No codec found for content type "${contentTypeToString(this.contentType)}"`,
