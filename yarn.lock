@@ -4522,7 +4522,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^4.0.16"
     "@web/rollup-plugin-copy": "npm:^0.5.1"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/wasm-bindings": "npm:1.8.0"
+    "@xmtp/wasm-bindings": "npm:1.8.1"
     playwright: "npm:^1.57.0"
     rollup: "npm:^4.54.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -4617,7 +4617,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
-    "@xmtp/node-bindings": "npm:1.8.0"
+    "@xmtp/node-bindings": "npm:1.8.1"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.54.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -4773,10 +4773,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-bindings@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@xmtp/node-bindings@npm:1.8.0"
-  checksum: 10/bd9678d21f5e2ab12350ad12f500d2e7d9b4b7c479e38d4ddc45c5691d226460b2aa024c1eed21934d63ea600103dd0e267d04a4b25972b6c7cb68bc2045a892
+"@xmtp/node-bindings@npm:1.8.1":
+  version: 1.8.1
+  resolution: "@xmtp/node-bindings@npm:1.8.1"
+  checksum: 10/fd777dc3c52e4acbbd0b15b2b08bcd328c9e10e16ab14cbc586c433dd453766588563da080ae81ecbb5305e0eca321bcc09f959e02f0cf7c54e9f5f1434bf547
   languageName: node
   linkType: hard
 
@@ -4825,7 +4825,7 @@ __metadata:
     "@types/node": "npm:^24.9.1"
     "@vitest/coverage-v8": "npm:^4.0.16"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/node-bindings": "npm:1.8.0"
+    "@xmtp/node-bindings": "npm:1.8.1"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.54.0"
@@ -4873,10 +4873,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@xmtp/wasm-bindings@npm:1.8.0"
-  checksum: 10/b7d0d83033094dc7f481a77104badf5ecf73d94cce70dbb071c341ddf86d396932269e6d297c4024fb350de63bd10174bc8fbb03f64e009e11fe7548abc056cb
+"@xmtp/wasm-bindings@npm:1.8.1":
+  version: 1.8.1
+  resolution: "@xmtp/wasm-bindings@npm:1.8.1"
+  checksum: 10/e06d4fdafbc4ab8a6da1c926016045f3dd2ad3bf1ff4a6e704cd78a488da53d7bebecb84d4066812048b96eace24e334fb634e55598d9f6facfbe2753c3862d9
   languageName: node
   linkType: hard
 
