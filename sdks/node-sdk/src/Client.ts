@@ -821,4 +821,17 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       installation,
     );
   }
+
+  /**
+   * Send a sync request to other devices on the network
+   *
+   * @returns Promise that resolves when the sync request is sent
+   */
+  async sendSyncRequest() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.sendSyncRequest();
+  }
 }

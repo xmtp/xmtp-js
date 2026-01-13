@@ -211,4 +211,10 @@ export type ClientAction =
       data: {
         installationIds: string[];
       };
+    }
+  | {
+      action: "client.sendSyncRequest";
+      id: string;
+      result: undefined;
+      data: undefined;
     };

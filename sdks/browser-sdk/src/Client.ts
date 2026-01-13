@@ -712,4 +712,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       installationIds,
     });
   }
+
+  /**
+   * Send a sync request to other devices on the network
+   *
+   * @returns Promise that resolves when the sync request is sent
+   */
+  async sendSyncRequest() {
+    return this.#worker.action("client.sendSyncRequest");
+  }
 }

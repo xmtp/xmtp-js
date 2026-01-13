@@ -143,10 +143,6 @@ export class WorkerClient {
     await this.#client.registerIdentity(signatureRequest);
   }
 
-  async sendSyncRequest() {
-    return this.#client.sendSyncRequest();
-  }
-
   async getInboxIdByIdentifier(identifier: Identifier) {
     return this.#client.findInboxIdByIdentifier(identifier);
   }
@@ -187,5 +183,9 @@ export class WorkerClient {
     return this.#client.getKeyPackageStatusesForInstallationIds(
       installationIds,
     ) as Promise<Map<string, KeyPackageStatus>>;
+  }
+
+  async sendSyncRequest() {
+    return this.#client.sendSyncRequest();
   }
 }
