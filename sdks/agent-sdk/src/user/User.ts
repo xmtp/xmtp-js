@@ -1,4 +1,4 @@
-import { IdentifierKind, Signer, type HexString } from "@xmtp/node-sdk";
+import { IdentifierKind, type HexString, type Signer } from "@xmtp/node-sdk";
 import {
   createWalletClient,
   http,
@@ -10,7 +10,7 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 
-export const createUser = (key?: HexString, chain: Chain = sepolia) => {
+export const createWallet = (key?: HexString, chain: Chain = sepolia) => {
   const accountKey = key ?? generatePrivateKey();
   const account = privateKeyToAccount(accountKey);
   return createWalletClient({

@@ -6,7 +6,7 @@ import { getTestUrl, logDetails } from "./debug/log.js";
 import { isHexString } from "./index.js";
 import { CommandRouter } from "./middleware/CommandRouter.js";
 import { createNameResolver } from "./user.js";
-import { createEOASigner, createUser } from "./user/User.js";
+import { createEOASigner, createWallet } from "./user/User.js";
 
 try {
   loadEnvFile(".env");
@@ -15,7 +15,7 @@ try {
 
 const agent = process.env.XMTP_WALLET_KEY
   ? await Agent.createFromEnv()
-  : await Agent.create(createEOASigner(createUser()), {
+  : await Agent.create(createEOASigner(createWallet()), {
       dbPath: null,
     });
 

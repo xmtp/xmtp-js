@@ -33,7 +33,7 @@ import {
 } from "@xmtp/node-sdk";
 import { filter } from "@/core/filter.js";
 import { getInstallationInfo } from "@/debug.js";
-import { createEOASigner, createUser } from "@/user/User.js";
+import { createEOASigner, createWallet } from "@/user/User.js";
 import { AgentError, AgentStreamingError } from "./AgentError.js";
 import { ClientContext } from "./ClientContext.js";
 import { ConversationContext } from "./ConversationContext.js";
@@ -228,7 +228,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       );
     }
 
-    const signer = createEOASigner(createUser(XMTP_WALLET_KEY));
+    const signer = createEOASigner(createWallet(XMTP_WALLET_KEY));
 
     const initializedOptions = { ...(options ?? {}) };
 
