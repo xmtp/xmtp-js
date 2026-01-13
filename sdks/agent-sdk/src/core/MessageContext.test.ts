@@ -1,10 +1,9 @@
 import {
-  ContentTypeReply,
-  ReplyCodec,
+  contentTypeReply,
+  contentTypeText,
+  Dm,
   type Reply,
-} from "@xmtp/content-type-reply";
-import { ContentTypeText } from "@xmtp/content-type-text";
-import { Dm } from "@xmtp/node-sdk";
+} from "@xmtp/node-sdk";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   createMockMessage,
@@ -23,12 +22,16 @@ describe("MessageContext", () => {
       const replyMessage = createMockMessage<Reply>({
         id: "reply-message-id",
         senderInboxId: "other-inbox-id",
-        contentType: ContentTypeReply,
+        contentType: contentTypeReply(),
         content: {
           content: "This is a reply",
-          reference: "original-message-id",
-          referenceInboxId: "original-sender-inbox-id",
-          contentType: ContentTypeText,
+          referenceId: "original-message-id",
+          inReplyTo: createMockMessage({
+            id: "original-message-id",
+            senderInboxId: "other-inbox-id",
+            contentType: contentTypeText(),
+            content: "This is a text message",
+          }),
         },
       });
 
@@ -38,29 +41,10 @@ describe("MessageContext", () => {
         client: mockClient,
       });
 
-      expect(messageContext.usesCodec(ReplyCodec)).toBe(true);
       const typedContext = messageContext as MessageContext<Reply>;
       expectTypeOf(typedContext.message.content).toEqualTypeOf<Reply>();
       const { content } = typedContext.message;
       expect(content.content).toBe(replyMessage.content.content);
-    });
-
-    it("should return false for ReplyCodec when message is not a reply", () => {
-      const textMessage = createMockMessage({
-        id: "text-message-id",
-        senderInboxId: "sender-inbox-id",
-        contentType: ContentTypeText,
-        content: "This is just a regular text message",
-      });
-
-      const messageContext = new MessageContext<CurrentClientTypes>({
-        message: textMessage,
-        conversation: mockDm,
-        client: mockClient,
-      });
-
-      const isReplyCodec = messageContext.usesCodec(ReplyCodec);
-      expect(isReplyCodec).toBe(false);
     });
   });
 });

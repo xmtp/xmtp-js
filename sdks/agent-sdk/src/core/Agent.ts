@@ -1,22 +1,11 @@
 import EventEmitter from "node:events";
 import fs from "node:fs";
 import path from "node:path";
-import type { GroupUpdatedCodec } from "@xmtp/content-type-group-updated";
-import { MarkdownCodec } from "@xmtp/content-type-markdown";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
-import { ReactionCodec } from "@xmtp/content-type-reaction";
-import { ReadReceiptCodec } from "@xmtp/content-type-read-receipt";
-import {
-  AttachmentCodec,
-  RemoteAttachmentCodec,
-} from "@xmtp/content-type-remote-attachment";
-import { ReplyCodec } from "@xmtp/content-type-reply";
-import type { TextCodec } from "@xmtp/content-type-text";
-import { TransactionReferenceCodec } from "@xmtp/content-type-transaction-reference";
-import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import {
   ApiUrls,
   Client,
+  DecodedMessage,
   Dm,
   Group,
   IdentifierKind,
@@ -26,9 +15,15 @@ import {
   type Conversation,
   type CreateDmOptions,
   type CreateGroupOptions,
-  type DecodedMessage,
+  type GroupUpdated,
   type HexString,
+  type Reaction,
+  type ReadReceipt,
+  type RemoteAttachment,
+  type Reply,
   type StreamOptions,
+  type TransactionReference,
+  type WalletSendCalls,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
 import { filter } from "@/core/filter.js";
@@ -48,31 +43,23 @@ type MessageStream<ContentTypes> = Awaited<
 >;
 
 type EventHandlerMap<ContentTypes> = {
-  attachment: [
-    ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
-  ];
+  attachment: [ctx: MessageContext<RemoteAttachment>];
   conversation: [ctx: ConversationContext<ContentTypes>];
-  "group-update": [
-    ctx: MessageContext<ReturnType<GroupUpdatedCodec["decode"]>>,
-  ];
+  "group-update": [ctx: MessageContext<GroupUpdated>];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
-  markdown: [ctx: MessageContext<ReturnType<MarkdownCodec["decode"]>>];
+  markdown: [ctx: MessageContext<string>];
   message: [ctx: MessageContext<ContentTypes>];
-  reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
-  "read-receipt": [ctx: MessageContext<ReturnType<ReadReceiptCodec["decode"]>>];
-  reply: [ctx: MessageContext<ReturnType<ReplyCodec["decode"]>>];
+  reaction: [ctx: MessageContext<Reaction>];
+  "read-receipt": [ctx: MessageContext<ReadReceipt>];
+  reply: [ctx: MessageContext<Reply>];
   start: [ctx: ClientContext<ContentTypes>];
   stop: [ctx: ClientContext<ContentTypes>];
-  text: [ctx: MessageContext<ReturnType<TextCodec["decode"]>>];
-  "transaction-reference": [
-    ctx: MessageContext<ReturnType<TransactionReferenceCodec["decode"]>>,
-  ];
+  text: [ctx: MessageContext<string>];
+  "transaction-reference": [ctx: MessageContext<TransactionReference>];
   unhandledError: [error: Error];
   unknownMessage: [ctx: MessageContext<ContentTypes>];
-  "wallet-send-calls": [
-    ctx: MessageContext<ReturnType<WalletSendCallsCodec["decode"]>>,
-  ];
+  "wallet-send-calls": [ctx: MessageContext<WalletSendCalls>];
 };
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
@@ -176,21 +163,10 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     initializedOptions.appVersion ??= "agent-sdk/alpha";
     initializedOptions.disableDeviceSync ??= true;
 
-    const upgradedCodecs = [
-      ...(initializedOptions.codecs ?? []),
-      new AttachmentCodec(),
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReadReceiptCodec(),
-      new RemoteAttachmentCodec(),
-      new ReplyCodec(),
-      new TransactionReferenceCodec(),
-      new WalletSendCallsCodec(),
-    ];
+    const upgradedCodecs = [...(initializedOptions.codecs ?? [])];
 
     if (process.env.XMTP_FORCE_DEBUG) {
-      const loggingLevel = process.env.XMTP_FORCE_DEBUG_LEVEL || LogLevel.warn;
-      initializedOptions.debugEventsEnabled = true;
+      const loggingLevel = process.env.XMTP_FORCE_DEBUG_LEVEL || LogLevel.Warn;
       initializedOptions.loggingLevel = loggingLevel as LogLevel;
       initializedOptions.structuredLogging = true;
     }
@@ -372,6 +348,11 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       this.#messageStream = await this.#client.conversations.streamAllMessages({
         ...options,
         onValue: async (message) => {
+          // this case should not happen,
+          // but we must handle it for proper types
+          if (!(message instanceof DecodedMessage)) {
+            return;
+          }
           try {
             switch (true) {
               case filter.isGroupUpdate(message):
@@ -582,7 +563,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   createDmWithAddress(address: EthAddress, options?: CreateDmOptions) {
-    return this.#client.conversations.newDmWithIdentifier(
+    return this.#client.conversations.createDmWithIdentifier(
       {
         identifier: address,
         identifierKind: IdentifierKind.Ethereum,
@@ -601,7 +582,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         identifierKind: IdentifierKind.Ethereum,
       };
     });
-    return this.#client.conversations.newGroupWithIdentifiers(
+    return this.#client.conversations.createGroupWithIdentifiers(
       identifiers,
       options,
     );

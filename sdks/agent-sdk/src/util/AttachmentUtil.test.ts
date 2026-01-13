@@ -13,7 +13,6 @@ import {
   downloadRemoteAttachment,
   encryptAttachment,
 } from "./AttachmentUtil.js";
-import { makeAgent } from "./TestUtil.js";
 
 describe("AttachmentUtil", () => {
   const testUrl = "https://localhost/test_file";
@@ -59,9 +58,9 @@ describe("AttachmentUtil", () => {
       const arrayBuffer = await unencryptedFile.arrayBuffer();
       const attachment = new Uint8Array(arrayBuffer);
 
-      const encryptedAttachment = await encryptAttachment({
+      const encryptedAttachment = encryptAttachment({
         filename: unencryptedFile.name,
-        data: attachment,
+        content: attachment,
         mimeType: unencryptedFile.type,
       });
 
@@ -80,13 +79,8 @@ describe("AttachmentUtil", () => {
       expect(remoteAttachment.url).toBe(testUrl);
       expect(remoteAttachment.filename).toBe(fileName);
 
-      // Create agent with the mock client
-      const { agent } = makeAgent();
-
-      const receivedAttachment = await downloadRemoteAttachment(
-        remoteAttachment,
-        agent,
-      );
+      const receivedAttachment =
+        await downloadRemoteAttachment(remoteAttachment);
 
       // Verify fetch was called with the correct URL
       expect(mockFetch).toHaveBeenCalledWith(testUrl);
@@ -94,11 +88,11 @@ describe("AttachmentUtil", () => {
       // Verify the decrypted attachment matches the original
       expect(receivedAttachment.filename).toBe(fileName);
       expect(receivedAttachment.mimeType).toBe(mimeType);
-      expect(receivedAttachment.data).toEqual(attachment);
+      expect(receivedAttachment.content).toEqual(attachment);
 
       // Verify the content matches
       const decryptedContent = new TextDecoder().decode(
-        receivedAttachment.data,
+        receivedAttachment.content,
       );
       expect(decryptedContent).toBe(fileContent);
     });

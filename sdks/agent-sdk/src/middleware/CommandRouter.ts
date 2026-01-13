@@ -1,4 +1,3 @@
-import type { TextCodec } from "@xmtp/content-type-text";
 import {
   type AgentMessageHandler,
   type AgentMiddleware,
@@ -6,7 +5,7 @@ import {
 import type { MessageContext } from "@/core/MessageContext.js";
 
 /** Content type supported by the "CommandRouter" */
-type SupportedType = ReturnType<TextCodec["decode"]>;
+type SupportedType = string;
 
 export class CommandRouter {
   #commandMap = new Map<string, AgentMessageHandler<SupportedType>>();

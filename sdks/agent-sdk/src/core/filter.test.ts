@@ -1,11 +1,17 @@
 import {
-  ContentTypeReaction,
-  ReactionCodec,
+  contentTypeReaction,
+  contentTypeReply,
+  contentTypeText,
+  Dm,
+  encodeReaction,
+  encodeText,
+  Group,
+  ReactionAction,
+  ReactionSchema,
+  type Client,
+  type DecodedMessage,
   type Reaction,
-} from "@xmtp/content-type-reaction";
-import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
-import { ContentTypeText, TextCodec } from "@xmtp/content-type-text";
-import { Dm, Group, type Client, type DecodedMessage } from "@xmtp/node-sdk";
+} from "@xmtp/node-sdk";
 import { describe, expect, it, vi } from "vitest";
 import { filter } from "@/core/filter.js";
 
@@ -49,7 +55,7 @@ const createMockGroup = (
 const createMockMessage = (overrides: Partial<DecodedMessage> = {}) =>
   ({
     senderInboxId: "my-inbox-id",
-    contentType: ContentTypeText,
+    contentType: contentTypeText(),
     content: "Test message",
     ...overrides,
   }) as DecodedMessage;
@@ -186,16 +192,16 @@ describe("Filters", () => {
   describe("isReaction", () => {
     it("should return true for reaction messages", () => {
       const reaction: Reaction = {
-        action: "added",
+        action: ReactionAction.Added,
         reference: "message-id",
         referenceInboxId: "sender-inbox-id",
-        schema: "unicode",
+        schema: ReactionSchema.Unicode,
         content: "👍",
       };
 
       const message = createMockMessage({
         content: reaction,
-        contentType: ContentTypeReaction,
+        contentType: contentTypeReaction(),
       });
 
       const result = filter.isReaction(message);
@@ -203,7 +209,7 @@ describe("Filters", () => {
     });
 
     it("should return false for non-reaction messages", () => {
-      const message = createMockMessage({ contentType: ContentTypeText });
+      const message = createMockMessage({ contentType: contentTypeText() });
       const result = filter.isReaction(message);
       expect(result).toBe(false);
     });
@@ -211,16 +217,13 @@ describe("Filters", () => {
 
   describe("isReply", () => {
     it("should return true for reply messages", () => {
-      const reply: Reply = {
-        reference: "message-id",
-        referenceInboxId: "sender-inbox-id",
-        contentType: ContentTypeText,
-        content: "This is a reply",
-      };
-
       const message = createMockMessage({
-        content: reply,
-        contentType: ContentTypeReply,
+        content: {
+          reference: "message-id",
+          referenceInboxId: "sender-inbox-id",
+          content: encodeText("This is a reply"),
+        },
+        contentType: contentTypeReply(),
       });
 
       const result = filter.isReply(message);
@@ -228,7 +231,7 @@ describe("Filters", () => {
     });
 
     it("should return false for non-reply messages", () => {
-      const message = createMockMessage({ contentType: ContentTypeText });
+      const message = createMockMessage({ contentType: contentTypeText() });
       const result = filter.isReply(message);
       expect(result).toBe(false);
     });
@@ -236,13 +239,13 @@ describe("Filters", () => {
 
   describe("isText", () => {
     it("should return true for text messages", () => {
-      const message = createMockMessage({ contentType: ContentTypeText });
+      const message = createMockMessage({ contentType: contentTypeText() });
       const result = filter.isText(message);
       expect(result).toBe(true);
     });
 
     it("should return false for non-text messages", () => {
-      const message = createMockMessage({ contentType: ContentTypeReply });
+      const message = createMockMessage({ contentType: contentTypeReply() });
       const result = filter.isText(message);
       expect(result).toBe(false);
     });
@@ -250,16 +253,13 @@ describe("Filters", () => {
 
   describe("isTextReply", () => {
     it("should return true for text reply messages", () => {
-      const reply: Reply = {
-        reference: "message-id",
-        referenceInboxId: "sender-inbox-id",
-        contentType: ContentTypeText,
-        content: "string",
-      };
-
       const message = createMockMessage({
-        content: reply,
-        contentType: ContentTypeReply,
+        content: {
+          reference: "message-id",
+          referenceInboxId: "sender-inbox-id",
+          content: "string",
+        },
+        contentType: contentTypeReply(),
       });
 
       const result = filter.isTextReply(message);
@@ -267,75 +267,29 @@ describe("Filters", () => {
     });
 
     it("should return false for non-reply messages", () => {
-      const message = createMockMessage({ contentType: ContentTypeText });
+      const message = createMockMessage({ contentType: contentTypeText() });
       const result = filter.isTextReply(message);
       expect(result).toBe(false);
     });
 
     it("should return false for non-text reply messages", () => {
-      const reply: Reply = {
-        reference: "message-id",
-        referenceInboxId: "sender-inbox-id",
-        contentType: ContentTypeReaction,
-        content: {
-          action: "added",
-          reference: "ref",
-          referenceInboxId: "id",
-          schema: "unicode",
-          content: "👍",
-        },
-      };
-
       const message = createMockMessage({
-        content: reply,
-        contentType: ContentTypeReply,
+        content: {
+          reference: "message-id",
+          referenceInboxId: "sender-inbox-id",
+          content: encodeReaction({
+            action: ReactionAction.Added,
+            reference: "ref",
+            referenceInboxId: "id",
+            schema: ReactionSchema.Unicode,
+            content: "👍",
+          }),
+        },
+        contentType: contentTypeReply(),
       });
 
       const result = filter.isTextReply(message);
       expect(result).toBe(false);
-    });
-  });
-
-  describe("usesCodec", () => {
-    it("should return true when message uses the specified codec", () => {
-      const message = createMockMessage({
-        content: "Hello world",
-        contentType: ContentTypeText,
-      });
-
-      const usesCodec = filter.usesCodec(message, TextCodec);
-      expect(usesCodec).toBe(true);
-    });
-
-    it("should return false when message does not use the specified codec", () => {
-      const message = createMockMessage({
-        content: "Hello world",
-        contentType: ContentTypeText,
-      });
-
-      const usesCodec = filter.usesCodec(message, ReactionCodec);
-      expect(usesCodec).toBe(false);
-    });
-
-    it("should type guard message content to the codec's decoded type", () => {
-      const reaction: Reaction = {
-        action: "added",
-        reference: "message-id",
-        referenceInboxId: "sender-inbox-id",
-        schema: "unicode",
-        content: "👍",
-      };
-
-      const message = createMockMessage({
-        content: reaction,
-        contentType: ContentTypeReaction,
-      });
-
-      if (filter.usesCodec(message, ReactionCodec)) {
-        expectTypeOf(message.content).toEqualTypeOf<Reaction>();
-      } else {
-        expect.fail("Expected message content to be Reaction");
-      }
     });
   });
 });

@@ -1,15 +1,19 @@
 import {
-  ContentTypeGroupUpdated,
+  contentTypeGroupUpdated,
+  contentTypeReaction,
+  contentTypeReply,
+  contentTypeText,
+  Dm,
+  Group,
+  ReactionAction,
+  ReactionSchema,
+  type Client,
+  type Conversation,
   type GroupUpdated,
-} from "@xmtp/content-type-group-updated";
-import {
-  ContentTypeReaction,
   type Reaction,
-} from "@xmtp/content-type-reaction";
-import type { RemoteAttachment } from "@xmtp/content-type-remote-attachment";
-import { ContentTypeReply, type Reply } from "@xmtp/content-type-reply";
-import { ContentTypeText } from "@xmtp/content-type-text";
-import { Dm, Group, type Client, type Conversation } from "@xmtp/node-sdk";
+  type RemoteAttachment,
+  type Reply,
+} from "@xmtp/node-sdk";
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { filter } from "@/core/filter.js";
 import {
@@ -53,7 +57,7 @@ describe("Agent", () => {
     // Create a mock agent for type testing without making API calls
     const ephemeralAgent = new Agent({
       client: mockClient as unknown as Client,
-    }) as Agent<CurrentClientTypes>;
+    });
 
     it("infers additional content types from given codecs", () => {
       expectTypeOf(ephemeralAgent).toEqualTypeOf<Agent<CurrentClientTypes>>();
@@ -254,24 +258,26 @@ describe("Agent", () => {
       const reactionFromSelf = createMockMessage<Reaction>({
         id: "reaction-id-self",
         senderInboxId: mockClient.inboxId,
-        contentType: ContentTypeReaction,
+        contentType: contentTypeReaction(),
         content: {
           content: "👍",
           reference: "message-ref-1",
-          action: "added",
-          schema: "unicode",
+          referenceInboxId: mockClient.inboxId,
+          action: ReactionAction.Added,
+          schema: ReactionSchema.Unicode,
         },
       });
 
       const reactionFromOther = createMockMessage<Reaction>({
         id: "reaction-id-other",
         senderInboxId: "other-inbox-id",
-        contentType: ContentTypeReaction,
+        contentType: contentTypeReaction(),
         content: {
           content: "👍",
           reference: "message-ref-1",
-          action: "added",
-          schema: "unicode",
+          referenceInboxId: mockClient.inboxId,
+          action: ReactionAction.Added,
+          schema: ReactionSchema.Unicode,
         },
       });
 
@@ -309,11 +315,16 @@ describe("Agent", () => {
 
     it("should emit 'group-update' events for group update messages", async () => {
       const groupUpdateMessage = createMockMessage<GroupUpdated>({
-        contentType: ContentTypeGroupUpdated,
+        contentType: contentTypeGroupUpdated(),
         content: {
           initiatedByInboxId: "initiator-inbox-id",
           addedInboxes: [{ inboxId: "added-inbox-id" }],
           removedInboxes: [{ inboxId: "removed-inbox-id" }],
+          leftInboxes: [],
+          addedAdminInboxes: [],
+          removedAdminInboxes: [],
+          addedSuperAdminInboxes: [],
+          removedSuperAdminInboxes: [],
           metadataFieldChanges: [],
         },
       });
@@ -331,7 +342,7 @@ describe("Agent", () => {
       expect(groupUpdateEventSpy).toHaveBeenCalledWith(
         expect.objectContaining(
           expectMessage({
-            contentType: ContentTypeGroupUpdated,
+            contentType: contentTypeGroupUpdated(),
           }),
         ),
       );
@@ -341,39 +352,45 @@ describe("Agent", () => {
       const textMessage = createMockMessage({
         id: "text-message-id",
         senderInboxId: "other-inbox-id",
-        contentType: ContentTypeText,
+        contentType: contentTypeText(),
         content: "Hello world",
       });
 
       const reactionMessage = createMockMessage<Reaction>({
         id: "reaction-message-id",
         senderInboxId: "other-inbox-id",
-        contentType: ContentTypeReaction,
+        contentType: contentTypeReaction(),
         content: {
           content: "👍",
           reference: "message-ref-1",
-          action: "added",
-          schema: "unicode",
+          referenceInboxId: mockClient.inboxId,
+          action: ReactionAction.Added,
+          schema: ReactionSchema.Unicode,
         },
       });
 
       const replyMessage = createMockMessage<Reply>({
         id: "reply-message-id",
         senderInboxId: "other-inbox-id",
-        contentType: ContentTypeReply,
+        contentType: contentTypeReply(),
         content: {
           content: "This is a reply",
-          reference: textMessage.id,
-          contentType: ContentTypeText,
+          referenceId: textMessage.id,
+          inReplyTo: textMessage,
         },
       });
 
       const groupUpdateMessage = createMockMessage<GroupUpdated>({
-        contentType: ContentTypeGroupUpdated,
+        contentType: contentTypeGroupUpdated(),
         content: {
           initiatedByInboxId: "inbox-id",
           addedInboxes: [],
           removedInboxes: [],
+          leftInboxes: [],
+          addedAdminInboxes: [],
+          removedAdminInboxes: [],
+          addedSuperAdminInboxes: [],
+          removedSuperAdminInboxes: [],
           metadataFieldChanges: [],
         },
       });
@@ -687,7 +704,7 @@ describe("Agent", () => {
         id: "second-message",
         senderInboxId: "user-2",
         content: "Second message",
-        contentType: ContentTypeReply,
+        contentType: contentTypeReply(),
       });
 
       const middlewareCalls: string[] = [];
@@ -753,7 +770,7 @@ describe("Agent", () => {
       await contextSend?.("Test response");
       expect(mockConversation.send).toHaveBeenCalledWith(
         "Test response",
-        ContentTypeText,
+        contentTypeText(),
       );
     });
   });

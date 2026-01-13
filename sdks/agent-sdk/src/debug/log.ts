@@ -21,8 +21,9 @@ export const logDetails = async <ContentTypes>(agent: Agent<ContentTypes>) => {
 
   const conversations = await client.conversations.list();
   const inboxState = await client.preferences.inboxState();
-  const keyPackageStatuses =
-    await client.getKeyPackageStatusesForInstallationIds([installationId]);
+  const keyPackageStatuses = await client.fetchKeyPackageStatuses([
+    installationId,
+  ]);
 
   let createdDate = new Date();
   let expiryDate = new Date();
@@ -74,7 +75,7 @@ export const getInstallationInfo = async <ContentTypes>(
   const myInboxId = client.inboxId;
   const myInstallationId = client.installationId;
 
-  const inboxStates = await Client.inboxStateFromInboxIds(
+  const inboxStates = await Client.fetchInboxStates(
     [myInboxId],
     client.options?.env,
   );

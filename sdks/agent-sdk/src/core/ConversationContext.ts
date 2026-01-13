@@ -1,6 +1,3 @@
-import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
-import { ContentTypeRemoteAttachment } from "@xmtp/content-type-remote-attachment";
-import { ContentTypeText } from "@xmtp/content-type-text";
 import {
   ConsentState,
   type Client,
@@ -42,11 +39,11 @@ export class ConversationContext<
 
   // Send methods, which don't need a message context, are in ConversationContext to make them available in both dm and group event handlers
   async sendMarkdown(markdown: string): Promise<void> {
-    await this.conversation.send(markdown, ContentTypeMarkdown);
+    await this.#conversation.sendMarkdown(markdown);
   }
 
   async sendText(text: string): Promise<void> {
-    await this.conversation.send(text, ContentTypeText);
+    await this.#conversation.sendText(text);
   }
 
   async sendRemoteAttachment(
@@ -57,7 +54,7 @@ export class ConversationContext<
       unencryptedFile,
       uploadCallback,
     );
-    await this.conversation.send(remoteAttachment, ContentTypeRemoteAttachment);
+    await this.#conversation.sendRemoteAttachment(remoteAttachment);
   }
 
   get conversation() {
@@ -65,14 +62,14 @@ export class ConversationContext<
   }
 
   get isAllowed() {
-    return this.#conversation.consentState === ConsentState.Allowed;
+    return this.#conversation.consentState() === ConsentState.Allowed;
   }
 
   get isDenied() {
-    return this.#conversation.consentState === ConsentState.Denied;
+    return this.#conversation.consentState() === ConsentState.Denied;
   }
 
   get isUnknown() {
-    return this.#conversation.consentState === ConsentState.Unknown;
+    return this.#conversation.consentState() === ConsentState.Unknown;
   }
 }

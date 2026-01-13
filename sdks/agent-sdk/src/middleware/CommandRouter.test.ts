@@ -1,5 +1,4 @@
-import { ContentTypeText } from "@xmtp/content-type-text";
-import { Dm, type Client } from "@xmtp/node-sdk";
+import { contentTypeText, Dm, type Client } from "@xmtp/node-sdk";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import { MessageContext } from "@/core/MessageContext.js";
 import {
@@ -32,7 +31,7 @@ describe("CommandRouter", () => {
       const message = createMockMessage({
         id: "test-message",
         senderInboxId: "sender-inbox-id",
-        contentType: ContentTypeText,
+        contentType: contentTypeText(),
         content: "/tx 0.1",
       });
 
@@ -62,7 +61,7 @@ describe("CommandRouter", () => {
       const message = createMockMessage({
         id: "test-message",
         senderInboxId: "sender-inbox-id",
-        contentType: ContentTypeText,
+        contentType: contentTypeText(),
         content: "/balance",
       });
 
@@ -92,7 +91,7 @@ describe("CommandRouter", () => {
       const message = createMockMessage({
         id: "test-message",
         senderInboxId: "sender-inbox-id",
-        contentType: ContentTypeText,
+        contentType: contentTypeText(),
         content: "/send 5 USDC to Alix",
       });
 

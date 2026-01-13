@@ -1,5 +1,4 @@
 import { loadEnvFile } from "node:process";
-import { TextCodec } from "@xmtp/content-type-text";
 import { downloadRemoteAttachment } from "@/util/AttachmentUtil.js";
 import { Agent, AgentError } from "./core/index.js";
 import { getTestUrl, logDetails } from "./debug/log.js";
@@ -22,7 +21,7 @@ const agent = process.env.XMTP_WALLET_KEY
 const router = new CommandRouter();
 
 router.command("/version", async (ctx) => {
-  await ctx.conversation.send(`v${process.env.npm_package_version}`);
+  await ctx.conversation.sendText(`v${process.env.npm_package_version}`);
 });
 
 agent.use(router.middleware());
@@ -30,7 +29,6 @@ agent.use(router.middleware());
 agent.on("attachment", async (ctx) => {
   const receivedAttachment = await downloadRemoteAttachment(
     ctx.message.content,
-    agent,
   );
   console.log(`Received attachment: ${receivedAttachment.filename}`);
 });
@@ -49,7 +47,7 @@ agent.on("reply", (ctx) => {
 
 agent.on("text", async (ctx) => {
   if (ctx.message.content.startsWith("@agent")) {
-    await ctx.conversation.send("How can I help you?");
+    await ctx.conversation.sendText("How can I help you?");
   }
 });
 
@@ -89,14 +87,6 @@ agent.on("start", (ctx) => {
 
 agent.on("stop", (ctx) => {
   console.log("Agent stopped", ctx);
-});
-
-agent.on("unknownMessage", (ctx) => {
-  // Narrow down by codec
-  if (ctx.usesCodec(TextCodec)) {
-    const content = ctx.message.content;
-    console.log(`Text content: ${content.toUpperCase()}`);
-  }
 });
 
 agent.on("group", async (ctx) => {

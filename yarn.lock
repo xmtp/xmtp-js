@@ -4477,15 +4477,8 @@ __metadata:
     "@arethetypeswrong/cli": "npm:^0.18.2"
     "@types/node": "npm:^24.9.1"
     "@vitest/coverage-v8": "npm:^4.0.16"
-    "@xmtp/content-type-markdown": "npm:^1.0.0"
-    "@xmtp/content-type-reaction": "npm:^2.0.2"
-    "@xmtp/content-type-read-receipt": "npm:^2.0.2"
-    "@xmtp/content-type-remote-attachment": "npm:^2.0.4"
-    "@xmtp/content-type-reply": "npm:^2.0.2"
-    "@xmtp/content-type-text": "npm:^2.0.2"
-    "@xmtp/content-type-transaction-reference": "npm:^2.0.2"
-    "@xmtp/content-type-wallet-send-calls": "npm:^2.0.0"
-    "@xmtp/node-sdk": "npm:4.6.0"
+    "@xmtp/content-type-primitives": "npm:^3.0.0"
+    "@xmtp/node-sdk": "npm:5.1.0"
     tsc-alias: "npm:^1.8.16"
     tsx: "npm:^4.21.0"
     typescript: "npm:^5.9.3"
@@ -4588,7 +4581,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-primitives@npm:3.0.0, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:3.0.0, @xmtp/content-type-primitives@npm:^3.0.0, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
@@ -4651,7 +4644,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-remote-attachment@npm:^2.0.2, @xmtp/content-type-remote-attachment@npm:^2.0.4, @xmtp/content-type-remote-attachment@workspace:^, @xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment":
+"@xmtp/content-type-remote-attachment@npm:^2.0.2, @xmtp/content-type-remote-attachment@workspace:^, @xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-remote-attachment@workspace:content-types/content-type-remote-attachment"
   dependencies:
@@ -4803,7 +4796,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:5.1.0, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
