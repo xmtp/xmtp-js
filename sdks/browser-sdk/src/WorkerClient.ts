@@ -184,4 +184,8 @@ export class WorkerClient {
       installationIds,
     ) as Promise<Map<string, KeyPackageStatus>>;
   }
+
+  async sendSyncRequest() {
+    return this.#client.sendSyncRequest();
+  }
 }

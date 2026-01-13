@@ -336,6 +336,11 @@ self.onmessage = async (
         });
         break;
       }
+      case "client.sendSyncRequest": {
+        await client.sendSyncRequest();
+        postMessage({ id, action, result: undefined });
+        break;
+      }
       /**
        * Debug information actions
        */

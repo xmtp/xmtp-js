@@ -1,5 +1,18 @@
 # @xmtp/node-sdk
 
+## 5.1.0
+
+This release introduces a new feature. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of this new feature.
+
+### Send sync requests
+
+When a device installation comes online, it automatically sends a request to other devices on the network to sync conversations and messages. In some cases, this process may be interrupted. To remedy this, it's now possible to re-request a sync.
+
+```ts
+// send a sync request
+await client.sendSyncRequest();
+```
+
 ## 5.0.1
 
 Fixed reply content type exports
