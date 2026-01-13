@@ -10,7 +10,7 @@ export type DmAction =
       };
     }
   | {
-      action: "dm.getDuplicateDms";
+      action: "dm.duplicateDms";
       id: string;
       result: SafeConversation[];
       data: {

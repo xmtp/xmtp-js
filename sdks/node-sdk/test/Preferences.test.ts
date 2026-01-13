@@ -1,18 +1,20 @@
-import { ConsentEntityType, ConsentState } from "@xmtp/node-bindings";
-import { v4 } from "uuid";
+import {
+  ConsentEntityType,
+  ConsentState,
+  type UserPreferenceUpdate,
+} from "@xmtp/node-bindings";
 import { describe, expect, it } from "vitest";
+import { uuid } from "@/utils/uuid";
 import {
   createClient,
   createRegisteredClient,
   createSigner,
-  createUser,
   sleep,
 } from "@test/helpers";
 
 describe("Preferences", () => {
   it("should return the correct inbox state", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
     const inboxState = await client.preferences.inboxState();
     expect(inboxState.inboxId).toBe(client.inboxId);
@@ -24,12 +26,12 @@ describe("Preferences", () => {
       await signer.getIdentifier(),
     );
 
-    const user2 = createUser();
-    const signer2 = createSigner(user2);
+    const { signer: signer2 } = createSigner();
     const client2 = await createClient(signer2);
-    const inboxState2 = await client2.preferences.getLatestInboxState(
+    const inboxStates = await client2.preferences.fetchInboxStates([
       client.inboxId,
-    );
+    ]);
+    const inboxState2 = inboxStates[0];
     expect(inboxState2.inboxId).toBe(client.inboxId);
     expect(inboxState.installations.length).toBe(1);
     expect(inboxState.installations[0].id).toBe(client.installationId);
@@ -40,23 +42,20 @@ describe("Preferences", () => {
   });
 
   it("should get inbox states from inbox IDs", async () => {
-    const user = createUser();
-    const user2 = createUser();
-    const signer = createSigner(user);
-    const signer2 = createSigner(user2);
+    const { signer } = createSigner();
+    const { signer: signer2 } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer2);
-    const inboxStates = await client.preferences.inboxStateFromInboxIds([
+    const inboxStates = await client.preferences.getInboxStates([
       client.inboxId,
     ]);
     expect(inboxStates.length).toBe(1);
     expect(inboxStates[0].inboxId).toBe(client.inboxId);
     expect(inboxStates[0].identifiers).toEqual([await signer.getIdentifier()]);
 
-    const inboxStates2 = await client2.preferences.inboxStateFromInboxIds(
-      [client2.inboxId],
-      true,
-    );
+    const inboxStates2 = await client2.preferences.fetchInboxStates([
+      client2.inboxId,
+    ]);
     expect(inboxStates2.length).toBe(1);
     expect(inboxStates2[0].inboxId).toBe(client2.inboxId);
     expect(inboxStates2[0].identifiers).toEqual([
@@ -65,13 +64,11 @@ describe("Preferences", () => {
   });
 
   it("should manage consent states", async () => {
-    const user1 = createUser();
-    const user2 = createUser();
-    const signer1 = createSigner(user1);
-    const signer2 = createSigner(user2);
+    const { signer: signer1 } = createSigner();
+    const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client1.conversations.newGroup([client2.inboxId]);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
 
     await client2.conversations.sync();
     const group2 = await client2.conversations.getConversationById(group.id);
@@ -100,7 +97,7 @@ describe("Preferences", () => {
       ),
     ).toBe(ConsentState.Allowed);
 
-    expect(group2!.consentState).toBe(ConsentState.Allowed);
+    expect(group2!.consentState()).toBe(ConsentState.Allowed);
 
     group2!.updateConsentState(ConsentState.Denied);
 
@@ -113,13 +110,11 @@ describe("Preferences", () => {
   });
 
   it("should stream consent updates", async () => {
-    const user = createUser();
-    const user2 = createUser();
-    const signer = createSigner(user);
-    const signer2 = createSigner(user2);
+    const { signer } = createSigner();
+    const { signer: signer2 } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer2);
-    const group = await client.conversations.newGroup([client2.inboxId]);
+    const group = await client.conversations.createGroup([client2.inboxId]);
     const stream = await client.preferences.streamConsent();
 
     await sleep(1000);
@@ -179,43 +174,77 @@ describe("Preferences", () => {
   });
 
   it("should stream preferences", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const client = await createRegisteredClient(signer);
-    const stream = await client.preferences.streamPreferences();
+    const { signer } = createSigner();
+    const client1 = await createRegisteredClient(signer);
+    const { signer: signer2 } = createSigner();
+    const clientB = await createRegisteredClient(signer2);
+    const group = await client1.conversations.createGroup([clientB.inboxId]);
+    const stream = await client1.preferences.streamPreferences();
 
-    await sleep(2000);
+    group.updateConsentState(ConsentState.Denied);
+    await client1.preferences.setConsentStates([
+      {
+        entity: clientB.inboxId,
+        entityType: ConsentEntityType.InboxId,
+        state: ConsentState.Denied,
+      },
+    ]);
 
     const client2 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
     const client3 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
     await client3.conversations.syncAll();
-    await sleep(2000);
-    await client.conversations.syncAll();
-    await sleep(2000);
+    await sleep(1000);
+    await client1.conversations.syncAll();
+    await sleep(1000);
     await client2.conversations.syncAll();
-    await sleep(2000);
+    await sleep(1000);
 
     setTimeout(() => {
       void stream.end();
-    }, 2000);
+    }, 100);
 
-    let count = 0;
-    for await (const preferences of stream) {
-      count++;
-      expect(preferences).toBeDefined();
-      expect(preferences.length).toBe(1);
-      expect(preferences[0].type).toBe("HmacKeyUpdate");
-      // for proper typing
-      if (preferences[0].type === "HmacKeyUpdate") {
-        expect(preferences[0].key).toBeDefined();
-      }
+    const preferences: UserPreferenceUpdate[] = [];
+    for await (const update of stream) {
+      preferences.push(...update);
     }
-    expect(count).toBe(2);
+    expect(preferences.length).toBe(4);
+    const consentUpdate1 = preferences[0] as Extract<
+      UserPreferenceUpdate,
+      { type: "ConsentUpdate" }
+    >;
+    expect(consentUpdate1.type).toBe("ConsentUpdate");
+    expect(consentUpdate1.consent).toEqual({
+      entity: group.id,
+      entityType: ConsentEntityType.GroupId,
+      state: ConsentState.Denied,
+    });
+    const consentUpdate2 = preferences[1] as Extract<
+      UserPreferenceUpdate,
+      { type: "ConsentUpdate" }
+    >;
+    expect(consentUpdate2.type).toBe("ConsentUpdate");
+    expect(consentUpdate2.consent).toEqual({
+      entity: clientB.inboxId,
+      entityType: ConsentEntityType.InboxId,
+      state: ConsentState.Denied,
+    });
+    const hmacKeyUpdate1 = preferences[2] as Extract<
+      UserPreferenceUpdate,
+      { type: "HmacKeyUpdate" }
+    >;
+    expect(hmacKeyUpdate1.type).toBe("HmacKeyUpdate");
+    expect(hmacKeyUpdate1.key).toBeInstanceOf(Uint8Array);
+    const hmacKeyUpdate2 = preferences[3] as Extract<
+      UserPreferenceUpdate,
+      { type: "HmacKeyUpdate" }
+    >;
+    expect(hmacKeyUpdate2.type).toBe("HmacKeyUpdate");
+    expect(hmacKeyUpdate2.key).toBeInstanceOf(Uint8Array);
   });
 });

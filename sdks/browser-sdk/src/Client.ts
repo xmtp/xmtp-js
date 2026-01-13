@@ -1,56 +1,45 @@
-import {
-  ContentTypeGroupUpdated,
-  GroupUpdatedCodec,
-} from "@xmtp/content-type-group-updated";
-import type {
-  ContentCodec,
-  ContentTypeId,
-} from "@xmtp/content-type-primitives";
-import { TextCodec } from "@xmtp/content-type-text";
-import { GroupMessageKind, type Identifier } from "@xmtp/wasm-bindings";
-import { v4 } from "uuid";
-import { ClientWorkerClass } from "@/ClientWorkerClass";
+import { type ContentCodec } from "@xmtp/content-type-primitives";
+import { LogLevel, type Identifier } from "@xmtp/wasm-bindings";
+import { CodecRegistry } from "@/CodecRegistry";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
-import type { ClientOptions, XmtpEnv } from "@/types/options";
-import { Utils } from "@/Utils";
-import {
-  fromSafeEncodedContent,
-  toSafeEncodedContent,
-  type SafeMessage,
-} from "@/utils/conversions";
+import type { ClientWorkerAction } from "@/types/actions";
+import type {
+  ClientOptions,
+  ExtractCodecContentTypes,
+  XmtpEnv,
+} from "@/types/options";
 import {
   AccountAlreadyAssociatedError,
-  CodecNotFoundError,
   InboxReassignError,
-  InvalidGroupMembershipChangeError,
   SignerUnavailableError,
 } from "@/utils/errors";
+import { getInboxIdForIdentifier } from "@/utils/inboxId";
+import { inboxStateFromInboxIds as utilsInboxStateFromInboxIds } from "@/utils/inboxState";
+import { revokeInstallations as utilsRevokeInstallations } from "@/utils/installations";
 import { toSafeSigner, type SafeSigner, type Signer } from "@/utils/signer";
-
-export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
-  [...C, GroupUpdatedCodec, TextCodec][number] extends ContentCodec<infer T>
-    ? T
-    : never;
+import { uuid } from "@/utils/uuid";
+import { WorkerBridge } from "@/utils/WorkerBridge";
 
 /**
  * Client for interacting with the XMTP network
  */
-export class Client<
-  ContentTypes = ExtractCodecContentTypes,
-> extends ClientWorkerClass {
-  #codecs: Map<string, ContentCodec>;
+export class Client<ContentTypes = ExtractCodecContentTypes> {
+  #appVersion?: string;
+  #codecRegistry: CodecRegistry;
   #conversations: Conversations<ContentTypes>;
-  #debugInformation: DebugInformation<ContentTypes>;
+  #debugInformation: DebugInformation;
   #identifier?: Identifier;
-  #inboxId: string | undefined;
-  #installationId: string | undefined;
-  #installationIdBytes: Uint8Array | undefined;
+  #inboxId?: string;
+  #installationId?: string;
+  #installationIdBytes?: Uint8Array;
   #isReady = false;
-  #preferences: Preferences<ContentTypes>;
-  #signer?: Signer;
+  #libxmtpVersion?: string;
   #options?: ClientOptions;
+  #preferences: Preferences;
+  #signer?: Signer;
+  #worker: WorkerBridge<ClientWorkerAction>;
 
   /**
    * Creates a new XMTP client instance
@@ -64,22 +53,15 @@ export class Client<
     const worker = new Worker(new URL("./workers/client", import.meta.url), {
       type: "module",
     });
-    super(
-      worker,
-      options?.loggingLevel !== undefined && options.loggingLevel !== "off",
-    );
+    const enableLogging =
+      options?.loggingLevel !== undefined &&
+      options.loggingLevel !== LogLevel.Off;
+    this.#worker = new WorkerBridge<ClientWorkerAction>(worker, enableLogging);
     this.#options = options;
-    this.#conversations = new Conversations(this);
-    this.#debugInformation = new DebugInformation(this);
-    this.#preferences = new Preferences(this);
-    const codecs = [
-      new GroupUpdatedCodec(),
-      new TextCodec(),
-      ...(options?.codecs ?? []),
-    ];
-    this.#codecs = new Map(
-      codecs.map((codec) => [codec.contentType.toString(), codec]),
-    );
+    this.#codecRegistry = new CodecRegistry([...(options?.codecs ?? [])]);
+    this.#conversations = new Conversations(this.#worker, this.#codecRegistry);
+    this.#debugInformation = new DebugInformation(this.#worker);
+    this.#preferences = new Preferences(this.#worker);
   }
 
   /**
@@ -91,15 +73,25 @@ export class Client<
    * @param identifier - The identifier to initialize the client with
    */
   async init(identifier: Identifier) {
-    const result = await this.sendMessage("client.init", {
+    const result = await this.#worker.action("client.init", {
       identifier,
       options: this.#options,
     });
+    this.#appVersion = result.appVersion;
     this.#identifier = identifier;
     this.#inboxId = result.inboxId;
     this.#installationId = result.installationId;
     this.#installationIdBytes = result.installationIdBytes;
+    this.#libxmtpVersion = result.libxmtpVersion;
     this.#isReady = true;
+  }
+
+  /**
+   * Shutdown the client
+   */
+  close() {
+    this.#worker.close();
+    this.#isReady = false;
   }
 
   /**
@@ -224,15 +216,15 @@ export class Client<
   /**
    * Gets the version of libxmtp used in the bindings
    */
-  async libxmtpVersion() {
-    return this.sendMessage("client.libxmtpVersion", undefined);
+  get libxmtpVersion() {
+    return this.#libxmtpVersion;
   }
 
   /**
    * Gets the app version used by the client
    */
-  async appVersion() {
-    return this.sendMessage("client.appVersion", undefined);
+  get appVersion() {
+    return this.#appVersion;
   }
 
   /**
@@ -247,8 +239,8 @@ export class Client<
    * @returns The signature text and signature request ID
    */
   async unsafe_createInboxSignatureText() {
-    return this.sendMessage("client.createInboxSignatureText", {
-      signatureRequestId: v4(),
+    return this.#worker.action("client.createInboxSignatureText", {
+      signatureRequestId: uuid(),
     });
   }
 
@@ -274,9 +266,9 @@ export class Client<
       throw new InboxReassignError();
     }
 
-    return this.sendMessage("client.addAccountSignatureText", {
+    return this.#worker.action("client.addAccountSignatureText", {
       newIdentifier,
-      signatureRequestId: v4(),
+      signatureRequestId: uuid(),
     });
   }
 
@@ -293,9 +285,9 @@ export class Client<
    * @returns The signature text and signature request ID
    */
   async unsafe_removeAccountSignatureText(identifier: Identifier) {
-    return this.sendMessage("client.removeAccountSignatureText", {
+    return this.#worker.action("client.removeAccountSignatureText", {
       identifier,
-      signatureRequestId: v4(),
+      signatureRequestId: uuid(),
     });
   }
 
@@ -312,9 +304,12 @@ export class Client<
    * @returns The signature text and signature request ID
    */
   async unsafe_revokeAllOtherInstallationsSignatureText() {
-    return this.sendMessage("client.revokeAllOtherInstallationsSignatureText", {
-      signatureRequestId: v4(),
-    });
+    return this.#worker.action(
+      "client.revokeAllOtherInstallationsSignatureText",
+      {
+        signatureRequestId: uuid(),
+      },
+    );
   }
 
   /**
@@ -331,9 +326,9 @@ export class Client<
    * @returns The signature text and signature request ID
    */
   async unsafe_revokeInstallationsSignatureText(installationIds: Uint8Array[]) {
-    return this.sendMessage("client.revokeInstallationsSignatureText", {
+    return this.#worker.action("client.revokeInstallationsSignatureText", {
       installationIds,
-      signatureRequestId: v4(),
+      signatureRequestId: uuid(),
     });
   }
 
@@ -351,9 +346,9 @@ export class Client<
    * @returns The signature text and signature request ID
    */
   async unsafe_changeRecoveryIdentifierSignatureText(identifier: Identifier) {
-    return this.sendMessage("client.changeRecoveryIdentifierSignatureText", {
+    return this.#worker.action("client.changeRecoveryIdentifierSignatureText", {
       identifier,
-      signatureRequestId: v4(),
+      signatureRequestId: uuid(),
     });
   }
 
@@ -375,7 +370,7 @@ export class Client<
     signer: SafeSigner,
     signatureRequestId: string,
   ) {
-    return this.sendMessage("client.applySignatureRequest", {
+    return this.#worker.action("client.applySignatureRequest", {
       signer,
       signatureRequestId,
     });
@@ -404,7 +399,7 @@ export class Client<
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 
-    return this.sendMessage("client.registerIdentity", {
+    return this.#worker.action("client.registerIdentity", {
       signer,
       signatureRequestId,
     });
@@ -441,7 +436,7 @@ export class Client<
     }
 
     // check for existing inbox id
-    const existingInboxId = await this.findInboxIdByIdentifier(
+    const existingInboxId = await this.fetchInboxIdByIdentifier(
       await newAccountSigner.getIdentifier(),
     );
 
@@ -456,7 +451,7 @@ export class Client<
       );
     const signature = await newAccountSigner.signMessage(signatureText);
     const signer = await toSafeSigner(newAccountSigner, signature);
-    return this.sendMessage("client.addAccount", {
+    return this.#worker.action("client.addAccount", {
       identifier: signer.identifier,
       signer,
       signatureRequestId,
@@ -481,7 +476,7 @@ export class Client<
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 
-    return this.sendMessage("client.removeAccount", {
+    return this.#worker.action("client.removeAccount", {
       identifier,
       signer,
       signatureRequestId,
@@ -511,7 +506,7 @@ export class Client<
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 
-    return this.sendMessage("client.revokeAllOtherInstallations", {
+    return this.#worker.action("client.revokeAllOtherInstallations", {
       signer,
       signatureRequestId,
     });
@@ -535,7 +530,7 @@ export class Client<
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 
-    return this.sendMessage("client.revokeInstallations", {
+    return this.#worker.action("client.revokeInstallations", {
       installationIds,
       signer,
       signatureRequestId,
@@ -556,42 +551,30 @@ export class Client<
     installationIds: Uint8Array[],
     env?: XmtpEnv,
     gatewayHost?: string,
-    enableLogging?: boolean,
   ) {
-    const utils = new Utils(enableLogging);
-    await utils.init();
-    await utils.revokeInstallations(
+    await utilsRevokeInstallations(
       signer,
       inboxId,
       installationIds,
       env,
       gatewayHost,
     );
-    utils.close();
   }
 
   /**
-   * Gets the inbox state for the specified inbox IDs without a client
+   * Fetches the inbox states for the specified inbox IDs from the network
+   * without a client
    *
    * @param inboxIds - The inbox IDs to get the state for
    * @param env - The environment to use
-   * @returns The inbox state for the specified inbox IDs
+   * @returns The inbox states for the specified inbox IDs
    */
-  static async inboxStateFromInboxIds(
+  static async fetchInboxStates(
     inboxIds: string[],
     env?: XmtpEnv,
-    enableLogging?: boolean,
     gatewayHost?: string,
   ) {
-    const utils = new Utils(enableLogging);
-    await utils.init();
-    const result = await utils.inboxStateFromInboxIds(
-      inboxIds,
-      env,
-      gatewayHost,
-    );
-    utils.close();
-    return result;
+    return utilsInboxStateFromInboxIds(inboxIds, env, gatewayHost);
   }
 
   /**
@@ -612,7 +595,7 @@ export class Client<
     const signature = await this.#signer.signMessage(signatureText);
     const signer = await toSafeSigner(this.#signer, signature);
 
-    return this.sendMessage("client.changeRecoveryIdentifier", {
+    return this.#worker.action("client.changeRecoveryIdentifier", {
       identifier,
       signer,
       signatureRequestId,
@@ -625,7 +608,7 @@ export class Client<
    * @returns Whether the client is registered
    */
   async isRegistered() {
-    return this.sendMessage("client.isRegistered", undefined);
+    return this.#worker.action("client.isRegistered");
   }
 
   /**
@@ -635,7 +618,7 @@ export class Client<
    * @returns Whether the client can message the identifiers
    */
   async canMessage(identifiers: Identifier[]) {
-    return this.sendMessage("client.canMessage", { identifiers });
+    return this.#worker.action("client.canMessage", { identifiers });
   }
 
   /**
@@ -647,136 +630,25 @@ export class Client<
    */
   static async canMessage(identifiers: Identifier[], env?: XmtpEnv) {
     const canMessageMap = new Map<string, boolean>();
-    const utils = new Utils();
     for (const identifier of identifiers) {
-      const inboxId = await utils.getInboxIdForIdentifier(identifier, env);
+      const inboxId = await getInboxIdForIdentifier(identifier, env);
       canMessageMap.set(
         identifier.identifier.toLowerCase(),
         inboxId !== undefined,
       );
     }
-    utils.close();
     return canMessageMap;
   }
 
   /**
-   * Finds the inbox ID for a given identifier
+   * Fetches the inbox ID for a given identifier from the local database
+   * If not found, fetches from the network
    *
    * @param identifier - The identifier to look up
    * @returns The inbox ID, if found
    */
-  async findInboxIdByIdentifier(identifier: Identifier) {
-    return this.sendMessage("client.findInboxIdByIdentifier", { identifier });
-  }
-
-  /**
-   * Gets the codec for a given content type
-   *
-   * @param contentType - The content type to get the codec for
-   * @returns The codec, if found
-   */
-  codecFor<ContentType = unknown>(contentType: ContentTypeId) {
-    return this.#codecs.get(contentType.toString()) as
-      | ContentCodec<ContentType>
-      | undefined;
-  }
-
-  /**
-   * Encodes content for a given content type
-   *
-   * @param content - The content to encode
-   * @param contentType - The content type to encode for
-   * @returns The encoded content
-   * @throws {CodecNotFoundError} if no codec is found for the content type
-   */
-  encodeContent(content: ContentTypes, contentType: ContentTypeId) {
-    const codec = this.codecFor(contentType);
-    if (!codec) {
-      throw new CodecNotFoundError(contentType);
-    }
-
-    return this.#encodeWithCodec(content, codec);
-  }
-
-  /**
-   * Prepares content for sending by encoding it and generating send options from the codec
-   *
-   * @param content - The message content to prepare for sending
-   * @param contentType - The content type identifier for the appropriate codec
-   * @returns An object containing the encoded content and send options
-   * @throws {CodecNotFoundError} When no codec is registered for the specified content type
-   */
-  prepareForSend(content: ContentTypes, contentType: ContentTypeId) {
-    const codec = this.codecFor(contentType);
-    if (!codec) {
-      throw new CodecNotFoundError(contentType);
-    }
-
-    return {
-      encodedContent: this.#encodeWithCodec(content, codec),
-      sendOptions: this.#sendMessageOpts(content, codec),
-    };
-  }
-
-  /**
-   * Encodes content using a specific codec and adds fallback information if available
-   *
-   * @param content - The content to encode
-   * @param codec - The codec to use for encoding
-   * @returns The encoded content with optional fallback
-   */
-  #encodeWithCodec(content: ContentTypes, codec: ContentCodec) {
-    const encoded = codec.encode(content, this);
-    const fallback = codec.fallback(content);
-    if (fallback) {
-      encoded.fallback = fallback;
-    }
-    return toSafeEncodedContent(encoded);
-  }
-
-  /**
-   * Generates send options based on the content and codec
-   *
-   * @param content - The content being sent
-   * @param codec - The codec used for the content
-   * @returns Send options including whether to push notify recipients
-   */
-  #sendMessageOpts(
-    content: ContentTypes,
-    codec: ContentCodec,
-  ): { shouldPush: boolean } {
-    return { shouldPush: codec.shouldPush(content) };
-  }
-
-  /**
-   * Decodes a message for a given content type
-   *
-   * @param message - The message to decode
-   * @param contentType - The content type to decode for
-   * @returns The decoded content
-   * @throws {CodecNotFoundError} if no codec is found for the content type
-   * @throws {InvalidGroupMembershipChangeError} if the message is an invalid group membership change
-   */
-  decodeContent<ContentType = unknown>(
-    message: SafeMessage,
-    contentType: ContentTypeId,
-  ) {
-    const codec = this.codecFor<ContentType>(contentType);
-    if (!codec) {
-      throw new CodecNotFoundError(contentType);
-    }
-
-    // throw an error if there's an invalid group membership change message
-    if (
-      contentType.sameAs(ContentTypeGroupUpdated) &&
-      message.kind !== GroupMessageKind.MembershipChange
-    ) {
-      throw new InvalidGroupMembershipChangeError(message.id);
-    }
-
-    const encodedContent = fromSafeEncodedContent(message.content);
-
-    return codec.decode(encodedContent, this);
+  async fetchInboxIdByIdentifier(identifier: Identifier) {
+    return this.#worker.action("client.getInboxIdByIdentifier", { identifier });
   }
 
   /**
@@ -786,7 +658,7 @@ export class Client<
    * @returns The signature
    */
   signWithInstallationKey(signatureText: string) {
-    return this.sendMessage("client.signWithInstallationKey", {
+    return this.#worker.action("client.signWithInstallationKey", {
       signatureText,
     });
   }
@@ -802,7 +674,7 @@ export class Client<
     signatureText: string,
     signatureBytes: Uint8Array,
   ) {
-    return this.sendMessage("client.verifySignedWithInstallationKey", {
+    return this.#worker.action("client.verifySignedWithInstallationKey", {
       signatureText,
       signatureBytes,
     });
@@ -821,7 +693,7 @@ export class Client<
     signatureBytes: Uint8Array,
     publicKey: Uint8Array,
   ) {
-    return this.sendMessage("client.verifySignedWithPublicKey", {
+    return this.#worker.action("client.verifySignedWithPublicKey", {
       signatureText,
       signatureBytes,
       publicKey,
@@ -829,13 +701,14 @@ export class Client<
   }
 
   /**
-   * Gets the key package statuses for the specified installation IDs
+   * Fetches the key package statuses from the network for the specified
+   * installation IDs
    *
    * @param installationIds - The installation IDs to check
    * @returns The key package statuses
    */
-  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
-    return this.sendMessage("client.getKeyPackageStatusesForInstallationIds", {
+  async fetchKeyPackageStatuses(installationIds: string[]) {
+    return this.#worker.action("client.fetchKeyPackageStatuses", {
       installationIds,
     });
   }

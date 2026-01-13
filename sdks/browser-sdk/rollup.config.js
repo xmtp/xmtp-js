@@ -43,9 +43,9 @@ export default defineConfig([
     external,
   },
   {
-    input: "src/workers/utils.ts",
+    input: "src/workers/opfs.ts",
     output: {
-      file: "dist/workers/utils.js",
+      file: "dist/workers/opfs.js",
       format: "es",
       sourcemap: true,
     },

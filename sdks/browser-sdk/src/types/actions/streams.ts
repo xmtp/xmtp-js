@@ -1,15 +1,15 @@
-import type { UserPreference } from "@xmtp/wasm-bindings";
 import type {
-  SafeConsent,
-  SafeConversation,
-  SafeMessage,
-} from "@/utils/conversions";
+  Consent,
+  DecodedMessage,
+  UserPreferenceUpdate,
+} from "@xmtp/wasm-bindings";
+import type { SafeConversation } from "@/utils/conversions";
 
 export type StreamAction =
   | {
       action: "stream.message";
       streamId: string;
-      result: SafeMessage | undefined;
+      result: DecodedMessage | undefined;
     }
   | {
       action: "stream.conversation";
@@ -19,12 +19,12 @@ export type StreamAction =
   | {
       action: "stream.consent";
       streamId: string;
-      result: SafeConsent[] | undefined;
+      result: Consent[] | undefined;
     }
   | {
       action: "stream.preferences";
       streamId: string;
-      result: UserPreference[] | undefined;
+      result: UserPreferenceUpdate[] | undefined;
     }
   | {
       action: "stream.messageDeleted";

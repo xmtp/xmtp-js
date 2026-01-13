@@ -1,13 +1,23 @@
-import type { ContentTypeId } from "@xmtp/content-type-primitives";
-import { ContentTypeText } from "@xmtp/content-type-text";
 import {
   SortDirection,
+  type Actions,
+  type Attachment,
   type ConsentState,
+  type EncodedContent,
+  type Intent,
   type ListMessagesOptions,
   type Message,
+  type MultiRemoteAttachment,
+  type Reaction,
+  type RemoteAttachment,
+  type Reply,
+  type SendMessageOpts,
+  type TransactionReference,
+  type WalletSendCalls,
   type Conversation as XmtpConversation,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { DecodedMessage } from "@/DecodedMessage";
 import { nsToDate } from "@/utils/date";
 import { MissingContentTypeError } from "@/utils/errors";
@@ -24,24 +34,24 @@ import {
  */
 export class Conversation<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
+  #codecRegistry: CodecRegistry;
   #conversation: XmtpConversation;
-  #isCommitLogForked: boolean | null = null;
 
   /**
    * Creates a new conversation instance
    *
    * @param client - The client instance managing the conversation
+   * @param codecRegistry - The codec registry instance
    * @param conversation - The underlying conversation instance
-   * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
+    codecRegistry: CodecRegistry,
     conversation: XmtpConversation,
-    isCommitLogForked?: boolean | null,
   ) {
     this.#client = client;
+    this.#codecRegistry = codecRegistry;
     this.#conversation = conversation;
-    this.#isCommitLogForked = isCommitLogForked ?? null;
   }
 
   /**
@@ -56,10 +66,6 @@ export class Conversation<ContentTypes = unknown> {
    */
   get isActive() {
     return this.#conversation.isActive();
-  }
-
-  get isCommitLogForked() {
-    return this.#isCommitLogForked;
   }
 
   /**
@@ -81,6 +87,19 @@ export class Conversation<ContentTypes = unknown> {
    */
   get createdAt() {
     return nsToDate(this.createdAtNs);
+  }
+
+  pausedForVersion() {
+    return this.#conversation.pausedForVersion() ?? undefined;
+  }
+
+  /**
+   * Gets HMAC keys for this conversation
+   *
+   * @returns The HMAC keys for this conversation
+   */
+  hmacKeys() {
+    return this.#conversation.getHmacKeys();
   }
 
   /**
@@ -120,7 +139,9 @@ export class Conversation<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @returns Stream instance for new messages
    */
-  async stream(options?: StreamOptions<Message, DecodedMessage<ContentTypes>>) {
+  async stream(
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message>,
+  ) {
     const stream = async (
       callback: StreamCallback<Message>,
       onFail: () => void,
@@ -131,7 +152,10 @@ export class Conversation<ContentTypes = unknown> {
       return this.#conversation.stream(callback, onFail);
     };
     const convertMessage = (value: Message) => {
-      return new DecodedMessage(this.#client, value);
+      const enrichedMessage = this.#client.conversations.getMessageById(
+        value.id,
+      );
+      return enrichedMessage ?? value;
     };
 
     return createStream(stream, convertMessage, options);
@@ -147,47 +171,180 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   /**
-   * Prepares a message to be published
+   * Sends a message with configurable delivery behavior
    *
-   * @param content - The content to send
-   * @param contentType - Optional content type of the message content
-   * @returns Promise that resolves with the message ID
-   * @throws {MissingContentTypeError} if content type is required but not provided
+   * @param encodedContent - The encoded content to send
+   * @param sendOptions - Options for sending the message
+   * @param sendOptions.shouldPush - Indicates whether this message should be
+   * included in push notifications
+   * @param sendOptions.isOptimistic - Indicates whether this message should be
+   * sent optimistically and published later via `publishMessages`
+   * @returns Promise that resolves with the message ID after it has been sent
    */
-  sendOptimistic(content: ContentTypes, contentType?: ContentTypeId) {
-    if (typeof content !== "string" && !contentType) {
+  async send(encodedContent: EncodedContent, sendOptions?: SendMessageOpts) {
+    if (!encodedContent.type) {
       throw new MissingContentTypeError();
     }
-
-    const { encodedContent, sendOptions } =
-      typeof content === "string"
-        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
-        : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.prepareForSend(content, contentType!);
-
-    return this.#conversation.sendOptimistic(encodedContent, sendOptions);
+    return this.#conversation.send(
+      encodedContent,
+      sendOptions ?? { shouldPush: false },
+    );
   }
 
   /**
-   * Publishes a new message
+   * Sends a text message
    *
-   * @param content - The content to send
-   * @param contentType - Optional content type of the message content
+   * @param text - The text to send
+   * @param isOptimistic - Whether to send the message optimistically
    * @returns Promise that resolves with the message ID after it has been sent
-   * @throws {MissingContentTypeError} if content type is required but not provided
    */
-  async send(content: ContentTypes, contentType?: ContentTypeId) {
-    if (typeof content !== "string" && !contentType) {
-      throw new MissingContentTypeError();
-    }
+  async sendText(text: string, isOptimistic?: boolean) {
+    return this.#conversation.sendText(text, isOptimistic);
+  }
 
-    const { encodedContent, sendOptions } =
-      typeof content === "string"
-        ? this.#client.prepareForSend(content, contentType ?? ContentTypeText)
-        : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this.#client.prepareForSend(content, contentType!);
+  /**
+   * Sends a markdown message
+   *
+   * @param markdown - The markdown to send
+   * @param isOptimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendMarkdown(markdown: string, isOptimistic?: boolean) {
+    return this.#conversation.sendMarkdown(markdown, isOptimistic);
+  }
 
-    return this.#conversation.send(encodedContent, sendOptions);
+  /**
+   * Sends a reaction message
+   *
+   * @param reaction - The reaction to send
+   * @param isOptimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendReaction(reaction: Reaction, isOptimistic?: boolean) {
+    return this.#conversation.sendReaction(reaction, isOptimistic);
+  }
+
+  /**
+   * Sends a read receipt message
+   *
+   * @param readReceipt - The read receipt to send
+   * @param isOptimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendReadReceipt(isOptimistic?: boolean) {
+    return this.#conversation.sendReadReceipt(isOptimistic);
+  }
+
+  /**
+   * Sends a reply message
+   *
+   * @param reply - The reply to send
+   * @param isOptimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendReply(reply: Reply, isOptimistic?: boolean) {
+    return this.#conversation.sendReply(reply, isOptimistic);
+  }
+
+  /**
+   * Sends a transaction reference message
+   *
+   * @param transactionReference - The transaction reference to send
+   * @param isOptimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendTransactionReference(
+    transactionReference: TransactionReference,
+    isOptimistic?: boolean,
+  ) {
+    return this.#conversation.sendTransactionReference(
+      transactionReference,
+      isOptimistic,
+    );
+  }
+
+  /**
+   * Sends a wallet send calls message
+   *
+   * @param walletSendCalls - The wallet send calls to send
+   * @param isOptimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendWalletSendCalls(
+    walletSendCalls: WalletSendCalls,
+    isOptimistic?: boolean,
+  ) {
+    return this.#conversation.sendWalletSendCalls(
+      walletSendCalls,
+      isOptimistic,
+    );
+  }
+
+  /**
+   * Sends a actions message
+   *
+   * @param actions - The actions to send
+   * @param isOptimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendActions(actions: Actions, isOptimistic?: boolean) {
+    return this.#conversation.sendActions(actions, isOptimistic);
+  }
+
+  /**
+   * Sends a intent message
+   *
+   * @param intent - The intent to send
+   * @param isOptimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendIntent(intent: Intent, isOptimistic?: boolean) {
+    return this.#conversation.sendIntent(intent, isOptimistic);
+  }
+
+  /**
+   * Sends an attachment message
+   *
+   * @param attachment - The attachment to send
+   * @param isOptimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendAttachment(attachment: Attachment, isOptimistic?: boolean) {
+    return this.#conversation.sendAttachment(attachment, isOptimistic);
+  }
+
+  /**
+   * Sends a multi remote attachment message
+   *
+   * @param multiRemoteAttachment - The multi remote attachment to send
+   * @param isOptimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendMultiRemoteAttachment(
+    multiRemoteAttachment: MultiRemoteAttachment,
+    isOptimistic?: boolean,
+  ) {
+    return this.#conversation.sendMultiRemoteAttachment(
+      multiRemoteAttachment,
+      isOptimistic,
+    );
+  }
+
+  /**
+   * Sends a remote attachment message
+   *
+   * @param remoteAttachment - The remote attachment to send
+   * @param isOptimistic - Whether to send the message optimistically
+   * @returns Promise that resolves with the message ID after it has been sent
+   */
+  async sendRemoteAttachment(
+    remoteAttachment: RemoteAttachment,
+    isOptimistic?: boolean,
+  ) {
+    return this.#conversation.sendRemoteAttachment(
+      remoteAttachment,
+      isOptimistic,
+    );
   }
 
   /**
@@ -197,8 +354,11 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with an array of decoded messages
    */
   async messages(options?: ListMessagesOptions) {
-    const messages = await this.#conversation.findMessages(options);
-    return messages.map((message) => new DecodedMessage(this.#client, message));
+    const messages = await this.#conversation.findEnrichedMessages(options);
+    return messages.map(
+      (message) =>
+        new DecodedMessage<ContentTypes>(this.#codecRegistry, message),
+    );
   }
 
   /**
@@ -233,7 +393,7 @@ export class Conversation<ContentTypes = unknown> {
   /**
    * Gets the consent state for this conversation
    */
-  get consentState() {
+  consentState() {
     return this.#conversation.consentState();
   }
 
@@ -262,7 +422,7 @@ export class Conversation<ContentTypes = unknown> {
    * @param inNs - The duration after which messages should disappear
    * @returns Promise that resolves when the update is complete
    */
-  async updateMessageDisappearingSettings(fromNs: number, inNs: number) {
+  async updateMessageDisappearingSettings(fromNs: bigint, inNs: bigint) {
     return this.#conversation.updateMessageDisappearingSettings({
       fromNs,
       inNs,
@@ -287,19 +447,6 @@ export class Conversation<ContentTypes = unknown> {
     return this.#conversation.isMessageDisappearingEnabled();
   }
 
-  pausedForVersion() {
-    return this.#conversation.pausedForVersion() ?? undefined;
-  }
-
-  /**
-   * Retrieves HMAC keys for this conversation
-   *
-   * @returns The HMAC keys for this conversation
-   */
-  getHmacKeys() {
-    return this.#conversation.getHmacKeys();
-  }
-
   /**
    * Retrieves information for this conversation to help with debugging
    *
@@ -307,5 +454,15 @@ export class Conversation<ContentTypes = unknown> {
    */
   async debugInfo() {
     return this.#conversation.debugInfo();
+  }
+
+  /**
+   * Retrieves the last read times for this conversation
+   *
+   * @returns A map keyed by inbox ID with the last read timestamp
+   * (nanoseconds since epoch)
+   */
+  async lastReadTimes() {
+    return this.#conversation.getLastReadTimes();
   }
 }

@@ -1,41 +1,42 @@
 import {
   GroupMembershipState,
-  MessageDisappearingSettings,
   SortDirection,
+  type Actions,
+  type Attachment,
   type ConsentState,
   type Conversation,
   type ConversationDebugInfo,
+  type DecodedMessage,
   type EncodedContent,
   type GroupMember,
   type HmacKey,
   type Identifier,
+  type Intent,
+  type ListMessagesOptions,
   type Message,
+  type MessageDisappearingSettings,
   type MetadataField,
+  type MultiRemoteAttachment,
   type PermissionPolicy,
   type PermissionUpdateType,
+  type Reaction,
+  type RemoteAttachment,
+  type Reply,
   type SendMessageOpts,
+  type TransactionReference,
+  type WalletSendCalls,
 } from "@xmtp/wasm-bindings";
-import {
-  fromSafeListMessagesOptions,
-  toSafeGroupMember,
-  type SafeListMessagesOptions,
-} from "@/utils/conversions";
+import type { LastReadTimes } from "@/utils/conversions";
 import type { StreamCallback } from "@/utils/streams";
 import type { WorkerClient } from "@/WorkerClient";
 
 export class WorkerConversation {
   #client: WorkerClient;
   #group: Conversation;
-  #isCommitLogForked?: boolean;
 
-  constructor(
-    client: WorkerClient,
-    group: Conversation,
-    isCommitLogForked?: boolean,
-  ) {
+  constructor(client: WorkerClient, group: Conversation) {
     this.#client = client;
     this.#group = group;
-    this.#isCommitLogForked = isCommitLogForked;
   }
 
   get id() {
@@ -83,10 +84,6 @@ export class WorkerConversation {
     return this.#group.isActive();
   }
 
-  get isCommitLogForked() {
-    return this.#isCommitLogForked;
-  }
-
   get addedByInboxId() {
     return this.#group.addedByInboxId();
   }
@@ -107,31 +104,27 @@ export class WorkerConversation {
   }
 
   async metadata() {
-    const metadata = await this.#group.groupMetadata();
-    return {
-      creatorInboxId: metadata.creatorInboxId(),
-      conversationType: metadata.conversationType(),
-    };
+    return this.#group.groupMetadata();
   }
 
   async members() {
     const members = (await this.#group.listMembers()) as GroupMember[];
-    return members.map((member) => toSafeGroupMember(member));
+    return members;
   }
 
-  get admins() {
+  listAdmins() {
     return this.#group.adminList();
   }
 
-  get superAdmins() {
+  listSuperAdmins() {
     return this.#group.superAdminList();
   }
 
-  get permissions() {
+  permissions() {
     const permissions = this.#group.groupPermissions();
     return {
-      policyType: permissions.policyType(),
-      policySet: permissions.policySet(),
+      policyType: permissions.policyType,
+      policySet: permissions.policySet,
     };
   }
 
@@ -195,29 +188,85 @@ export class WorkerConversation {
     return this.#group.publishMessages();
   }
 
-  sendOptimistic(encodedContent: EncodedContent, opts: SendMessageOpts) {
-    // Pass through to underlying implementation - it will handle undefined opts
-    return this.#group.sendOptimistic(encodedContent, opts);
+  async send(encodedContent: EncodedContent, opts?: SendMessageOpts) {
+    return this.#group.send(encodedContent, opts ?? { shouldPush: true });
   }
 
-  async send(encodedContent: EncodedContent, opts: SendMessageOpts) {
-    // Pass through to underlying implementation - it will handle undefined opts
-    return this.#group.send(encodedContent, opts);
+  async sendText(text: string, isOptimistic?: boolean) {
+    return this.#group.sendText(text, isOptimistic);
   }
 
-  async messages(options?: SafeListMessagesOptions) {
-    return this.#group.findMessages(
-      options ? fromSafeListMessagesOptions(options) : undefined,
+  async sendMarkdown(markdown: string, isOptimistic?: boolean) {
+    return this.#group.sendMarkdown(markdown, isOptimistic);
+  }
+
+  async sendReaction(reaction: Reaction, isOptimistic?: boolean) {
+    return this.#group.sendReaction(reaction, isOptimistic);
+  }
+
+  async sendReadReceipt(isOptimistic?: boolean) {
+    return this.#group.sendReadReceipt(isOptimistic);
+  }
+
+  async sendReply(reply: Reply, isOptimistic?: boolean) {
+    return this.#group.sendReply(reply, isOptimistic);
+  }
+
+  async sendTransactionReference(
+    transactionReference: TransactionReference,
+    isOptimistic?: boolean,
+  ) {
+    return this.#group.sendTransactionReference(
+      transactionReference,
+      isOptimistic,
     );
   }
 
-  async countMessages(options?: SafeListMessagesOptions) {
-    return this.#group.countMessages(
-      options ? fromSafeListMessagesOptions(options) : undefined,
+  async sendWalletSendCalls(
+    walletSendCalls: WalletSendCalls,
+    isOptimistic?: boolean,
+  ) {
+    return this.#group.sendWalletSendCalls(walletSendCalls, isOptimistic);
+  }
+
+  async sendActions(actions: Actions, isOptimistic?: boolean) {
+    return this.#group.sendActions(actions, isOptimistic);
+  }
+
+  async sendIntent(intent: Intent, isOptimistic?: boolean) {
+    return this.#group.sendIntent(intent, isOptimistic);
+  }
+
+  async sendAttachment(attachment: Attachment, isOptimistic?: boolean) {
+    return this.#group.sendAttachment(attachment, isOptimistic);
+  }
+
+  async sendMultiRemoteAttachment(
+    multiRemoteAttachment: MultiRemoteAttachment,
+    isOptimistic?: boolean,
+  ) {
+    return this.#group.sendMultiRemoteAttachment(
+      multiRemoteAttachment,
+      isOptimistic,
     );
   }
 
-  get consentState() {
+  async sendRemoteAttachment(
+    remoteAttachment: RemoteAttachment,
+    isOptimistic?: boolean,
+  ) {
+    return this.#group.sendRemoteAttachment(remoteAttachment, isOptimistic);
+  }
+
+  async messages(options?: ListMessagesOptions): Promise<DecodedMessage[]> {
+    return this.#group.findEnrichedMessages(options);
+  }
+
+  async countMessages(options?: ListMessagesOptions) {
+    return this.#group.countMessages(options);
+  }
+
+  consentState() {
     return this.#group.consentState();
   }
 
@@ -234,7 +283,7 @@ export class WorkerConversation {
   }
 
   async updateMessageDisappearingSettings(fromNs: bigint, inNs: bigint) {
-    const settings = new MessageDisappearingSettings(fromNs, inNs);
+    const settings: MessageDisappearingSettings = { fromNs, inNs };
     return this.#group.updateMessageDisappearingSettings(settings);
   }
 
@@ -263,7 +312,7 @@ export class WorkerConversation {
     return this.#group.pausedForVersion();
   }
 
-  getHmacKeys() {
+  hmacKeys() {
     return this.#group.getHmacKeys() as Map<string, HmacKey[]>;
   }
 
@@ -271,7 +320,7 @@ export class WorkerConversation {
     return (await this.#group.getDebugInfo()) as ConversationDebugInfo;
   }
 
-  async getDuplicateDms() {
+  async duplicateDms() {
     const dms = await this.#group.findDuplicateDms();
     return dms.map((dm) => new WorkerConversation(this.#client, dm));
   }
@@ -280,7 +329,11 @@ export class WorkerConversation {
     return this.#group.leaveGroup();
   }
 
-  get isPendingRemoval() {
+  isPendingRemoval() {
     return this.#group.membershipState() === GroupMembershipState.PendingRemove;
+  }
+
+  async lastReadTimes() {
+    return this.#group.getLastReadTimes() as Promise<LastReadTimes>;
   }
 }

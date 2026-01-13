@@ -18,11 +18,11 @@ export class WorkerClient {
   #debugInformation: WorkerDebugInformation;
   #preferences: WorkerPreferences;
 
-  constructor(client: Client, options?: ClientOptions) {
+  constructor(client: Client) {
     this.#client = client;
     const conversations = client.conversations();
     this.#conversations = new WorkerConversations(this, conversations);
-    this.#debugInformation = new WorkerDebugInformation(client, options);
+    this.#debugInformation = new WorkerDebugInformation(client);
     this.#preferences = new WorkerPreferences(client, conversations);
   }
 
@@ -31,7 +31,7 @@ export class WorkerClient {
     options?: Omit<ClientOptions, "codecs">,
   ) {
     const client = await createClient(identifier, options);
-    return new WorkerClient(client, options);
+    return new WorkerClient(client);
   }
 
   get libxmtpVersion() {
@@ -143,7 +143,7 @@ export class WorkerClient {
     await this.#client.registerIdentity(signatureRequest);
   }
 
-  async findInboxIdByIdentifier(identifier: Identifier) {
+  async getInboxIdByIdentifier(identifier: Identifier) {
     return this.#client.findInboxIdByIdentifier(identifier);
   }
 
@@ -179,7 +179,7 @@ export class WorkerClient {
     }
   }
 
-  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
+  async fetchKeyPackageStatuses(installationIds: string[]) {
     return this.#client.getKeyPackageStatusesForInstallationIds(
       installationIds,
     ) as Promise<Map<string, KeyPackageStatus>>;

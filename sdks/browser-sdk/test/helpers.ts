@@ -1,10 +1,12 @@
-import {
-  ContentTypeId,
-  type ContentCodec,
-  type EncodedContent,
+import type {
+  ContentCodec,
+  EncodedContent,
 } from "@xmtp/content-type-primitives";
-import type { Identifier } from "@xmtp/wasm-bindings";
-import { v4 } from "uuid";
+import {
+  IdentifierKind,
+  type ContentTypeId,
+  type Identifier,
+} from "@xmtp/wasm-bindings";
 import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -26,18 +28,18 @@ export const createUser = () => {
       chain: sepolia,
       transport: http(),
     }),
-    uuid: v4(),
   };
 };
 
 export const createIdentifier = (user: User): Identifier => ({
   identifier: user.account.address.toLowerCase(),
-  identifierKind: "Ethereum",
+  identifierKind: IdentifierKind.Ethereum,
 });
 
-export const createSigner = (user: User): Signer => {
+export const createSigner = () => {
+  const user = createUser();
   const identifier = createIdentifier(user);
-  return {
+  const signer: Signer = {
     type: "EOA",
     getIdentifier: () => identifier,
     signMessage: async (message: string) => {
@@ -46,6 +48,12 @@ export const createSigner = (user: User): Signer => {
       });
       return toBytes(signature);
     },
+  };
+  return {
+    address: user.account.address.toLowerCase(),
+    identifier,
+    signer,
+    user,
   };
 };
 
@@ -104,19 +112,17 @@ export const createRegisteredClient = async <
   });
 };
 
-export const ContentTypeTest = new ContentTypeId({
+export const ContentTypeTest: ContentTypeId = {
   authorityId: "xmtp.org",
   typeId: "test",
   versionMajor: 1,
   versionMinor: 0,
-});
+};
 
 export class TestCodec implements ContentCodec {
-  get contentType(): ContentTypeId {
-    return ContentTypeTest;
-  }
+  contentType = ContentTypeTest;
 
-  encode(content: Record<string, string>) {
+  encode(content: Record<string, string>): EncodedContent {
     return {
       type: this.contentType,
       parameters: {},
@@ -128,6 +134,35 @@ export class TestCodec implements ContentCodec {
     const decoded = new TextDecoder().decode(content.content);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(decoded);
+  }
+
+  fallback() {
+    return undefined;
+  }
+
+  shouldPush() {
+    return false;
+  }
+}
+
+export class DecodeFailureCodec implements ContentCodec {
+  contentType = {
+    authorityId: "test",
+    typeId: "decode-failure",
+    versionMajor: 1,
+    versionMinor: 0,
+  };
+
+  encode(content: string): EncodedContent {
+    return {
+      type: this.contentType,
+      parameters: {},
+      content: new TextEncoder().encode(content),
+    };
+  }
+
+  decode(_content: EncodedContent): string {
+    throw new Error("Decode failure");
   }
 
   fallback() {

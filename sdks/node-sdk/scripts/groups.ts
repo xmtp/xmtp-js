@@ -8,7 +8,7 @@ export const createRegisteredClient = async (
   user: User,
   dbPath?: string | null,
 ) => {
-  return Client.create(createSigner(user), {
+  return Client.create(createSigner().signer, {
     env: "local",
     dbPath,
   });
@@ -45,7 +45,7 @@ console.log("Creating groups...");
 while (accounts.length > 200) {
   const groupsAccounts = accounts.splice(0, 4);
   const group =
-    await primaryAccountClient.conversations.newGroupWithIdentifiers(
+    await primaryAccountClient.conversations.createGroupWithIdentifiers(
       groupsAccounts.map((a) => ({
         identifierKind: IdentifierKind.Ethereum,
         identifier: a.address,
@@ -59,7 +59,7 @@ console.log(`Created ${groups.length} groups`);
 console.log(`Sending "gm" message into each group...`);
 
 for (const group of groups) {
-  await group.send("gm");
+  await group.sendText("gm");
 }
 
 console.log("Creating DM groups...");
@@ -67,10 +67,11 @@ console.log("Creating DM groups...");
 const dmGroups = [];
 
 while (accounts.length > 0) {
-  const dmGroup = await primaryAccountClient.conversations.newDmWithIdentifier({
-    identifierKind: IdentifierKind.Ethereum,
-    identifier: (accounts.pop() as Account).address,
-  });
+  const dmGroup =
+    await primaryAccountClient.conversations.createDmWithIdentifier({
+      identifierKind: IdentifierKind.Ethereum,
+      identifier: (accounts.pop() as Account).address,
+    });
   dmGroups.push(dmGroup);
 }
 
@@ -79,7 +80,7 @@ console.log(`Created ${dmGroups.length} DM groups`);
 console.log("Sending 'gm' message into each DM group...");
 
 for (const dmGroup of dmGroups) {
-  await dmGroup.send("gm");
+  await dmGroup.sendText("gm");
 }
 
 console.log("Syncing all conversations...");

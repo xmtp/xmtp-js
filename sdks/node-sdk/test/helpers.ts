@@ -1,8 +1,8 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  ContentTypeId,
   type ContentCodec,
+  type ContentTypeId,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
 import {
@@ -42,9 +42,10 @@ export const createIdentifier = (user: User): Identifier => ({
   identifierKind: IdentifierKind.Ethereum,
 });
 
-export const createSigner = (user: User): Signer => {
+export const createSigner = () => {
+  const user = createUser();
   const identifier = createIdentifier(user);
-  return {
+  const signer: Signer = {
     type: "EOA",
     getIdentifier: () => identifier,
     signMessage: async (message: string) => {
@@ -53,6 +54,12 @@ export const createSigner = (user: User): Signer => {
       });
       return toBytes(signature);
     },
+  };
+  return {
+    address: user.account.address.toLowerCase(),
+    identifier,
+    signer,
+    user,
   };
 };
 
@@ -130,24 +137,17 @@ export const createRegisteredClient = async <
   });
 };
 
-export const ContentTypeTest = new ContentTypeId({
+export const ContentTypeTest: ContentTypeId = {
   authorityId: "xmtp.org",
   typeId: "test",
   versionMajor: 1,
   versionMinor: 0,
-});
+};
 
-export class TestCodec implements ContentCodec<
-  Record<string, string>,
-  Record<string, never>
-> {
-  get contentType(): ContentTypeId {
-    return ContentTypeTest;
-  }
+export class TestCodec implements ContentCodec {
+  contentType = ContentTypeTest;
 
-  encode(
-    content: Record<string, string>,
-  ): EncodedContent<Record<string, never>> {
+  encode(content: Record<string, string>): EncodedContent {
     return {
       type: this.contentType,
       parameters: {},
@@ -155,12 +155,39 @@ export class TestCodec implements ContentCodec<
     };
   }
 
-  decode(
-    content: EncodedContent<Record<string, never>>,
-  ): Record<string, string> {
+  decode(content: EncodedContent): Record<string, string> {
     const decoded = new TextDecoder().decode(content.content);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return JSON.parse(decoded);
+  }
+
+  fallback() {
+    return undefined;
+  }
+
+  shouldPush() {
+    return false;
+  }
+}
+
+export class DecodeFailureCodec implements ContentCodec {
+  contentType = {
+    authorityId: "test",
+    typeId: "decode-failure",
+    versionMajor: 1,
+    versionMinor: 0,
+  };
+
+  encode(content: string): EncodedContent {
+    return {
+      type: this.contentType,
+      parameters: {},
+      content: new TextEncoder().encode(content),
+    };
+  }
+
+  decode(_content: EncodedContent): string {
+    throw new Error("Decode failure");
   }
 
   fallback() {

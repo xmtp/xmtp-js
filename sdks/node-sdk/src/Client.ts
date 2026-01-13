@@ -1,59 +1,41 @@
-import {
-  ContentTypeGroupUpdated,
-  GroupUpdatedCodec,
-} from "@xmtp/content-type-group-updated";
-import type {
-  ContentCodec,
-  ContentTypeId,
-  EncodedContent,
-} from "@xmtp/content-type-primitives";
-import { TextCodec } from "@xmtp/content-type-text";
+import { type ContentCodec } from "@xmtp/content-type-primitives";
 import {
   applySignatureRequest,
-  GroupMessageKind,
   inboxStateFromInboxIds,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
   revokeInstallationsSignatureRequest,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
   type Identifier,
-  type Message,
   type Client as NodeClient,
-  type SendMessageOpts,
   type SignatureRequestHandle,
 } from "@xmtp/node-bindings";
+import { CodecRegistry } from "@/CodecRegistry";
 import { ApiUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
-import type { ClientOptions, XmtpEnv } from "@/types";
+import type { ClientOptions, ExtractCodecContentTypes, XmtpEnv } from "@/types";
 import { createClient } from "@/utils/createClient";
 import {
   AccountAlreadyAssociatedError,
   ClientNotInitializedError,
-  CodecNotFoundError,
   InboxReassignError,
-  InvalidGroupMembershipChangeError,
   SignerUnavailableError,
 } from "@/utils/errors";
 import { getInboxIdForIdentifier } from "@/utils/inboxId";
 import { type Signer } from "@/utils/signer";
-
-export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
-  [...C, GroupUpdatedCodec, TextCodec][number] extends ContentCodec<infer T>
-    ? T
-    : never;
 
 /**
  * Client for interacting with the XMTP network
  */
 export class Client<ContentTypes = ExtractCodecContentTypes> {
   #client?: NodeClient;
+  #codecRegistry: CodecRegistry;
   #conversations?: Conversations<ContentTypes>;
   #debugInformation?: DebugInformation;
   #preferences?: Preferences;
   #signer?: Signer;
-  #codecs: Map<string, ContentCodec>;
   #identifier?: Identifier;
   #options?: ClientOptions;
 
@@ -67,14 +49,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    */
   constructor(options?: ClientOptions) {
     this.#options = options;
-    const codecs = [
-      new GroupUpdatedCodec(),
-      new TextCodec(),
-      ...(options?.codecs ?? []),
-    ];
-    this.#codecs = new Map(
-      codecs.map((codec) => [codec.contentType.toString(), codec]),
-    );
+    this.#codecRegistry = new CodecRegistry([...(options?.codecs ?? [])]);
   }
 
   /**
@@ -93,8 +68,12 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     this.#identifier = identifier;
     this.#client = await createClient(identifier, this.#options);
     const conversations = this.#client.conversations();
-    this.#conversations = new Conversations(this, conversations);
-    this.#debugInformation = new DebugInformation(this.#client, this.#options);
+    this.#conversations = new Conversations(
+      this,
+      this.#codecRegistry,
+      conversations,
+    );
+    this.#debugInformation = new DebugInformation(this.#client);
     this.#preferences = new Preferences(this.#client, conversations);
   }
 
@@ -516,7 +495,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   ) {
     // check for existing inbox id
     const identifier = await newAccountSigner.getIdentifier();
-    const existingInboxId = await this.getInboxIdByIdentifier(identifier);
+    const existingInboxId = await this.fetchInboxIdByIdentifier(identifier);
 
     if (existingInboxId && !allowInboxReassign) {
       throw new AccountAlreadyAssociatedError(existingInboxId);
@@ -631,22 +610,6 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
-   * Gets the inbox state for the specified inbox IDs without a client
-   *
-   * @param env - The environment to use
-   * @param inboxIds - The inbox IDs to get the state for
-   * @returns The inbox state for the specified inbox IDs
-   */
-  static async inboxStateFromInboxIds(
-    inboxIds: string[],
-    env?: XmtpEnv,
-    gatewayHost?: string,
-  ) {
-    const host = ApiUrls[env ?? "dev"];
-    return inboxStateFromInboxIds(host, gatewayHost, inboxIds);
-  }
-
-  /**
    * Changes the recovery identifier for the client's inbox
    *
    * Requires a signer, use `Client.create` to create a client with a signer.
@@ -680,29 +643,14 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
-   * Checks if the specified identifiers can be messaged
-   *
-   * @param identifiers - The identifiers to check
-   * @param env - Optional XMTP environment
-   * @returns Map of identifiers to whether they can be messaged
-   */
-  static async canMessage(identifiers: Identifier[], env?: XmtpEnv) {
-    const canMessageMap = new Map<string, boolean>();
-    for (const identifier of identifiers) {
-      const inboxId = await getInboxIdForIdentifier(identifier, env);
-      canMessageMap.set(identifier.identifier.toLowerCase(), inboxId !== null);
-    }
-    return canMessageMap;
-  }
-
-  /**
-   * Gets the key package statuses for the specified installation IDs
+   * Fetches the key package statuses from the network for the specified
+   * installation IDs
    *
    * @param installationIds - The installation IDs to check
    * @returns The key package statuses
    * @throws {ClientNotInitializedError} if the client is not initialized
    */
-  async getKeyPackageStatusesForInstallationIds(installationIds: string[]) {
+  async fetchKeyPackageStatuses(installationIds: string[]) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
@@ -713,121 +661,14 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
-   * Gets the codec for a given content type
-   *
-   * @param contentType - The content type to get the codec for
-   * @returns The codec, if found
-   */
-  codecFor<ContentType = unknown>(contentType: ContentTypeId) {
-    return this.#codecs.get(contentType.toString()) as
-      | ContentCodec<ContentType>
-      | undefined;
-  }
-
-  /**
-   * Encodes content for a given content type
-   *
-   * @param content - The content to encode
-   * @param contentType - The content type to encode for
-   * @returns The encoded content
-   * @throws {CodecNotFoundError} if no codec is found for the content type
-   */
-  encodeContent(content: ContentTypes, contentType: ContentTypeId) {
-    const codec = this.codecFor(contentType);
-    if (!codec) {
-      throw new CodecNotFoundError(contentType);
-    }
-
-    return this.#encodeWithCodec(content, codec);
-  }
-
-  /**
-   * Prepares content for sending by encoding it and generating send options from the codec
-   *
-   * @param content - The message content to prepare for sending
-   * @param contentType - The content type identifier for the appropriate codec
-   * @returns An object containing the encoded content and send options
-   * @throws {CodecNotFoundError} When no codec is registered for the specified content type
-   */
-  prepareForSend(content: ContentTypes, contentType: ContentTypeId) {
-    const codec = this.codecFor(contentType);
-    if (!codec) {
-      throw new CodecNotFoundError(contentType);
-    }
-
-    return {
-      encodedContent: this.#encodeWithCodec(content, codec),
-      sendOptions: this.#sendMessageOpts(content, codec),
-    };
-  }
-
-  /**
-   * Encodes content using a specific codec and adds fallback information if available
-   *
-   * @param content - The content to encode
-   * @param codec - The codec to use for encoding
-   * @returns The encoded content with optional fallback
-   */
-  #encodeWithCodec(content: ContentTypes, codec: ContentCodec) {
-    const encoded = codec.encode(content, this);
-    const fallback = codec.fallback(content);
-    if (fallback) {
-      encoded.fallback = fallback;
-    }
-    return encoded;
-  }
-
-  /**
-   * Generates send options based on the content and codec
-   *
-   * @param content - The content being sent
-   * @param codec - The codec used for the content
-   * @returns Send options including whether to push notify recipients
-   */
-  #sendMessageOpts(
-    content: ContentTypes,
-    codec: ContentCodec,
-  ): SendMessageOpts {
-    return { shouldPush: codec.shouldPush(content) };
-  }
-
-  /**
-   * Decodes a message for a given content type
-   *
-   * @param message - The message to decode
-   * @param contentType - The content type to decode for
-   * @returns The decoded content
-   * @throws {CodecNotFoundError} if no codec is found for the content type
-   * @throws {InvalidGroupMembershipChangeError} if the message is an invalid group membership change
-   */
-  decodeContent<ContentType = unknown>(
-    message: Message,
-    contentType: ContentTypeId,
-  ) {
-    const codec = this.codecFor<ContentType>(contentType);
-    if (!codec) {
-      throw new CodecNotFoundError(contentType);
-    }
-
-    // throw an error if there's an invalid group membership change message
-    if (
-      contentType.sameAs(ContentTypeGroupUpdated) &&
-      message.kind !== GroupMessageKind.MembershipChange
-    ) {
-      throw new InvalidGroupMembershipChangeError(message.id);
-    }
-
-    return codec.decode(message.content as EncodedContent, this);
-  }
-
-  /**
-   * Finds the inbox ID for a given identifier
+   * Fetches the inbox ID for a given identifier from the local database
+   * If not found, fetches from the network
    *
    * @param identifier - The identifier to look up
    * @returns The inbox ID, if found
    * @throws {ClientNotInitializedError} if the client is not initialized
    */
-  async getInboxIdByIdentifier(identifier: Identifier) {
+  async fetchInboxIdByIdentifier(identifier: Identifier) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
@@ -875,6 +716,39 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Fetches the inbox states for the specified inbox IDs from the network
+   * without a client
+   *
+   * @param env - The environment to use
+   * @param inboxIds - The inbox IDs to get the state for
+   * @returns The inbox states for the specified inbox IDs
+   */
+  static async fetchInboxStates(
+    inboxIds: string[],
+    env?: XmtpEnv,
+    gatewayHost?: string,
+  ) {
+    const host = ApiUrls[env ?? "dev"];
+    return inboxStateFromInboxIds(host, gatewayHost, inboxIds);
+  }
+
+  /**
+   * Checks if the specified identifiers can be messaged
+   *
+   * @param identifiers - The identifiers to check
+   * @param env - Optional XMTP environment
+   * @returns Map of identifiers to whether they can be messaged
+   */
+  static async canMessage(identifiers: Identifier[], env?: XmtpEnv) {
+    const canMessageMap = new Map<string, boolean>();
+    for (const identifier of identifiers) {
+      const inboxId = await getInboxIdForIdentifier(identifier, env);
+      canMessageMap.set(identifier.identifier.toLowerCase(), inboxId !== null);
+    }
+    return canMessageMap;
   }
 
   /**
@@ -946,16 +820,5 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       inboxId,
       installation,
     );
-  }
-
-  /**
-   * Gets the version of the Node bindings
-   * @deprecated
-   */
-  static get version() {
-    console.warn(
-      "Client.version is deprecated. Use Client.libxmtpVersion instead.",
-    );
-    return undefined;
   }
 }

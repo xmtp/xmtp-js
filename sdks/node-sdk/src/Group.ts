@@ -7,6 +7,7 @@ import {
   type Conversation as XmtpConversation,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { Conversation } from "@/Conversation";
 
 /**
@@ -21,15 +22,15 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * Creates a new group conversation instance
    *
    * @param client - The client instance managing this group conversation
+   * @param codecRegistry - The codec registry instance
    * @param conversation - The underlying conversation object
-   * @param isCommitLogForked
    */
   constructor(
     client: Client<ContentTypes>,
+    codecRegistry: CodecRegistry,
     conversation: XmtpConversation,
-    isCommitLogForked?: boolean | null,
   ) {
-    super(client, conversation, isCommitLogForked);
+    super(client, codecRegistry, conversation);
     this.#conversation = conversation;
   }
 
@@ -100,7 +101,7 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
   /**
    * The permissions of the group
    */
-  get permissions() {
+  permissions() {
     const permissions = this.#conversation.groupPermissions();
     return {
       policyType: permissions.policyType(),
@@ -130,14 +131,14 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
   /**
    * The list of admins of the group
    */
-  get admins() {
+  listAdmins() {
     return this.#conversation.adminList();
   }
 
   /**
    * The list of super admins of the group
    */
-  get superAdmins() {
+  listSuperAdmins() {
     return this.#conversation.superAdminList();
   }
 
@@ -245,7 +246,7 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    *
    * @returns Boolean
    */
-  get isPendingRemoval() {
+  isPendingRemoval() {
     return (
       this.#conversation.membershipState() ===
       GroupMembershipState.PendingRemove

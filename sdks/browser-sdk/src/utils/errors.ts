@@ -1,5 +1,3 @@
-import type { ContentTypeId } from "@xmtp/content-type-primitives";
-
 export class ClientNotInitializedError extends Error {
   constructor() {
     super(
@@ -13,12 +11,6 @@ export class SignerUnavailableError extends Error {
     super(
       "Signer unavailable, use Client.create to create a client with a signer",
     );
-  }
-}
-
-export class CodecNotFoundError extends Error {
-  constructor(contentType: ContentTypeId) {
-    super(`Codec not found for "${contentType.toString()}" content type`);
   }
 }
 
@@ -48,18 +40,6 @@ export class StreamNotFoundError extends Error {
   }
 }
 
-export class InvalidGroupMembershipChangeError extends Error {
-  constructor(messageId: string) {
-    super(`Invalid group membership change for message ${messageId}`);
-  }
-}
-
-export class MissingContentTypeError extends Error {
-  constructor() {
-    super("Content type is required when sending content other than text");
-  }
-}
-
 export class StreamFailedError extends Error {
   constructor(retryAttempts: number) {
     const times = `time${retryAttempts !== 1 ? "s" : ""}`;
@@ -70,5 +50,19 @@ export class StreamFailedError extends Error {
 export class StreamInvalidRetryAttemptsError extends Error {
   constructor() {
     super("Stream retry attempts must be greater than 0");
+  }
+}
+
+export class OpfsNotInitializedError extends Error {
+  constructor() {
+    super("OPFS must be initialized before accessing its methods");
+  }
+}
+
+export class OpfsInitializationError extends Error {
+  constructor() {
+    super(
+      "Failed to initialize OPFS, ensure that there are no other active XMTP clients or Opfs instances",
+    );
   }
 }

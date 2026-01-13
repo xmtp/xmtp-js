@@ -1,15 +1,14 @@
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { IdentifierKind } from "@xmtp/node-bindings";
 import { uint8ArrayToHex } from "uint8array-extras";
-import { v4 } from "uuid";
 import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
 import {
   ClientNotInitializedError,
   SignerUnavailableError,
 } from "@/utils/errors";
+import { uuid } from "@/utils/uuid";
 import {
   buildClient,
   createClient,
@@ -21,15 +20,12 @@ import {
 
 describe("Client", () => {
   it("should create a client", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer, address } = createSigner();
     const client = await createClient(signer);
     expect(client.accountIdentifier?.identifierKind).toBe(
       IdentifierKind.Ethereum,
     );
-    expect(client.accountIdentifier?.identifier).toBe(
-      user.account.address.toLowerCase(),
-    );
+    expect(client.accountIdentifier?.identifier).toBe(address);
     expect(client.isRegistered).toBe(false);
     expect(client.inboxId).toBeDefined();
     expect(client.installationId).toBeDefined();
@@ -48,52 +44,119 @@ describe("Client", () => {
     ).rejects.toThrow();
   });
 
+  it("should create a client without a signer", async () => {
+    const identifier = createIdentifier(createUser());
+    const client = await buildClient(identifier);
+    expect(client).toBeDefined();
+    expect(client.accountIdentifier).toEqual(identifier);
+    expect(client.isRegistered).toBe(false);
+    expect(client.inboxId).toBeDefined();
+    expect(client.installationId).toBeDefined();
+    expect(client.signer).toBeUndefined();
+
+    const { signer: signer2 } = createSigner();
+
+    await expect(() => client.register()).rejects.toThrow(
+      new SignerUnavailableError(),
+    );
+
+    await expect(async () =>
+      client.removeAccount(identifier),
+    ).rejects.toThrow();
+
+    await expect(() => client.revokeInstallations([])).rejects.toThrow();
+
+    await expect(() => client.revokeAllOtherInstallations()).rejects.toThrow();
+
+    await expect(async () =>
+      client.changeRecoveryIdentifier(await signer2.getIdentifier()),
+    ).rejects.toThrow();
+  });
+
+  it("should support a callback function for dbPath client option", async () => {
+    const { signer } = createSigner();
+
+    const client = await Client.create(signer, {
+      dbPath: (inboxId: string) => `./user-${inboxId}.db3`,
+    });
+    expect(client).toBeDefined();
+
+    const database = path.join(process.cwd(), `./user-${client.inboxId}.db3`);
+    expect(fs.existsSync(database)).toBe(true);
+  });
+
+  it("should create a client with Uint8Array encryption key", async () => {
+    const { signer } = createSigner();
+    const encryptionKey = new Uint8Array(32).fill(1);
+
+    const client = await createRegisteredClient(signer, {
+      dbPath: `./test-${uuid()}.db3`,
+      dbEncryptionKey: encryptionKey,
+    });
+
+    expect(client).toBeDefined();
+  });
+
+  it("should create a client with hex string encryption key with 0x prefix", async () => {
+    const { signer } = createSigner();
+    const encryptionKey =
+      "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+
+    const client = await createRegisteredClient(signer, {
+      dbPath: `./test-${uuid()}.db3`,
+      dbEncryptionKey: encryptionKey,
+    });
+
+    expect(client).toBeDefined();
+  });
+
+  it("should return a version", async () => {
+    const { signer } = createSigner();
+    const client = await createClient(signer);
+    expect(client.appVersion).toBeDefined();
+    expect(client.libxmtpVersion).toBeDefined();
+  });
+
   it("should register an identity", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer);
     expect(client2.isRegistered).toBe(true);
   });
 
-  it("should be able to message registered identity", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+  it("should be able to message a registered identity", async () => {
+    const { signer, address } = createSigner();
     const client = await createRegisteredClient(signer);
     const canMessage = await client.canMessage([await signer.getIdentifier()]);
     expect(Object.fromEntries(canMessage)).toEqual({
-      [user.account.address.toLowerCase()]: true,
+      [address]: true,
     });
   });
 
-  it("should be able to check if can message without client instance", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+  it("should be able to check if an identifier can be messaged without a client instance", async () => {
+    const { signer, address } = createSigner();
     await createRegisteredClient(signer);
     const canMessage = await Client.canMessage(
       [await signer.getIdentifier()],
       "local",
     );
     expect(Object.fromEntries(canMessage)).toEqual({
-      [user.account.address.toLowerCase()]: true,
+      [address]: true,
     });
   });
 
   it("should get an inbox ID from an address", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
-    const inboxId = await client.getInboxIdByIdentifier(
+    const inboxId = await client.fetchInboxIdByIdentifier(
       await signer.getIdentifier(),
     );
     expect(inboxId).toBe(client.inboxId);
   });
 
   it("should add a wallet association to the client", async () => {
-    const user = createUser();
-    const user2 = createUser();
-    const signer = createSigner(user);
-    const signer2 = createSigner(user2);
+    const { signer } = createSigner();
+    const { signer: signer2 } = createSigner();
     const client = await createRegisteredClient(signer);
 
     await client.unsafe_addAccount(signer2, true);
@@ -106,11 +169,9 @@ describe("Client", () => {
     );
   });
 
-  it("should revoke a wallet association from the client", async () => {
-    const user = createUser();
-    const user2 = createUser();
-    const signer = createSigner(user);
-    const signer2 = createSigner(user2);
+  it("should remove a wallet association from the client", async () => {
+    const { signer } = createSigner();
+    const { signer: signer2 } = createSigner();
     const client = await createRegisteredClient(signer);
 
     await client.unsafe_addAccount(signer2, true);
@@ -120,60 +181,17 @@ describe("Client", () => {
     expect(inboxState.identifiers).toEqual([await signer.getIdentifier()]);
   });
 
-  it("should revoke all other installations", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const client = await createRegisteredClient(signer);
-    const client2 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
-    });
-    const client3 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
-    });
-
-    const inboxState = await client3.preferences.inboxState(true);
-    expect(inboxState.installations.length).toBe(3);
-
-    const installationIds = inboxState.installations.map((i) => i.id);
-    expect(installationIds).toContain(client.installationId);
-    expect(installationIds).toContain(client2.installationId);
-    expect(installationIds).toContain(client3.installationId);
-
-    await client3.revokeAllOtherInstallations();
-
-    const inboxState2 = await client3.preferences.inboxState(true);
-
-    expect(inboxState2.installations.length).toBe(1);
-    expect(inboxState2.installations[0].id).toBe(client3.installationId);
-  });
-
-  it("should not fail when revoking all other installations with only one installation", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const client = await createRegisteredClient(signer);
-
-    const inboxState = await client.preferences.inboxState(true);
-    expect(
-      inboxState.installations.length,
-      "verify only one installation",
-    ).toBe(1);
-    expect(inboxState.installations[0].id).toBe(client.installationId);
-
-    await expect(client.revokeAllOtherInstallations()).resolves.not.toThrow();
-  });
-
   it("should revoke specific installations", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client3 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
-    const inboxState = await client3.preferences.inboxState(true);
+    const inboxState = await client3.preferences.fetchInboxState();
     expect(inboxState.installations.length).toBe(3);
 
     const installationIds = inboxState.installations.map((i) => i.id);
@@ -183,7 +201,7 @@ describe("Client", () => {
 
     await client3.revokeInstallations([client.installationIdBytes]);
 
-    const inboxState2 = await client3.preferences.inboxState(true);
+    const inboxState2 = await client3.preferences.fetchInboxState();
 
     expect(inboxState2.installations.length).toBe(2);
 
@@ -193,18 +211,54 @@ describe("Client", () => {
     expect(installationIds2).not.toContain(client.installationId);
   });
 
-  it("should statically revoke specific installations", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+  it("should revoke all other installations", async () => {
+    const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client3 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
-    const inboxState = await client3.preferences.inboxState(true);
+    const inboxState = await client3.preferences.fetchInboxState();
+    expect(inboxState.installations.length).toBe(3);
+
+    const installationIds = inboxState.installations.map((i) => i.id);
+    expect(installationIds).toContain(client.installationId);
+    expect(installationIds).toContain(client2.installationId);
+    expect(installationIds).toContain(client3.installationId);
+
+    await client3.revokeAllOtherInstallations();
+
+    const inboxState2 = await client3.preferences.fetchInboxState();
+
+    expect(inboxState2.installations.length).toBe(1);
+    expect(inboxState2.installations[0].id).toBe(client3.installationId);
+  });
+
+  it("should not fail when revoking all other installations with only one installation", async () => {
+    const { signer } = createSigner();
+    const client = await createRegisteredClient(signer);
+
+    const inboxState = await client.preferences.fetchInboxState();
+    expect(inboxState.installations.length).toBe(1);
+    expect(inboxState.installations[0].id).toBe(client.installationId);
+
+    await expect(client.revokeAllOtherInstallations()).resolves.not.toThrow();
+  });
+
+  it("should statically revoke specific installations", async () => {
+    const { signer } = createSigner();
+    const client = await createRegisteredClient(signer);
+    const client2 = await createRegisteredClient(signer, {
+      dbPath: `./test-${uuid()}.db3`,
+    });
+    const client3 = await createRegisteredClient(signer, {
+      dbPath: `./test-${uuid()}.db3`,
+    });
+
+    const inboxState = await client3.preferences.fetchInboxState();
     expect(inboxState.installations.length).toBe(3);
 
     const installationIds = inboxState.installations.map((i) => i.id);
@@ -219,7 +273,7 @@ describe("Client", () => {
       "local",
     );
 
-    const inboxState2 = await client3.preferences.inboxState(true);
+    const inboxState2 = await client3.preferences.fetchInboxState();
 
     expect(inboxState2.installations.length).toBe(2);
 
@@ -230,38 +284,37 @@ describe("Client", () => {
   });
 
   it("should throw when trying to create more than 10 installations", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client3 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client4 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client5 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client6 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client7 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client8 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client9 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client10 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
-    const inboxState = await client3.preferences.inboxState(true);
+    const inboxState = await client3.preferences.fetchInboxState();
     expect(inboxState.installations.length).toBe(10);
 
     const installationIds = inboxState.installations.map((i) => i.id);
@@ -278,31 +331,13 @@ describe("Client", () => {
 
     await expect(
       createRegisteredClient(signer, {
-        dbPath: `./test-${v4()}.db3`,
+        dbPath: `./test-${uuid()}.db3`,
       }),
     ).rejects.toThrow();
-
-    await client3.revokeAllOtherInstallations();
-
-    const inboxState2 = await client3.preferences.inboxState(true);
-
-    expect(inboxState2.installations.length).toBe(1);
-    expect(inboxState2.installations[0].id).toBe(client3.installationId);
-
-    const client11 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
-    });
-
-    const inboxState3 = await client11.preferences.inboxState(true);
-    expect(inboxState3.installations.length).toBe(2);
-    const installationIds3 = inboxState3.installations.map((i) => i.id);
-    expect(installationIds3).toContain(client3.installationId);
-    expect(installationIds3).toContain(client11.installationId);
   });
 
   it("should verify signatures", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
     const signatureText = "gm1";
     const signature = client.signWithInstallationKey(signatureText);
@@ -337,27 +372,25 @@ describe("Client", () => {
   });
 
   it("should check if an address is authorized", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer, address } = createSigner();
     const client = await createRegisteredClient(signer);
     const authorized = await Client.isAddressAuthorized(
       client.inboxId,
-      user.account.address.toLowerCase(),
+      address,
       "local",
     );
     expect(authorized).toBe(true);
 
-    const notAuthorized = await Client.isAddressAuthorized(
+    const authorized2 = await Client.isAddressAuthorized(
       client.inboxId,
       "0x1234567890123456789012345678901234567890",
       "local",
     );
-    expect(notAuthorized).toBe(false);
+    expect(authorized2).toBe(false);
   });
 
   it("should check if an installation is authorized", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
     const authorized = await Client.isInstallationAuthorized(
       client.inboxId,
@@ -366,28 +399,17 @@ describe("Client", () => {
     );
     expect(authorized).toBe(true);
 
-    const notAuthorized = await Client.isInstallationAuthorized(
+    const authorized2 = await Client.isInstallationAuthorized(
       client.inboxId,
       new Uint8Array(32),
       "local",
     );
-    expect(notAuthorized).toBe(false);
-  });
-
-  it("should return a version", async () => {
-    expect(Client.version).toBeUndefined();
-    const user = createUser();
-    const signer = createSigner(user);
-    const client = await createRegisteredClient(signer);
-    expect(client.appVersion).toBeDefined();
-    expect(client.libxmtpVersion).toBeDefined();
+    expect(authorized2).toBe(false);
   });
 
   it("should change the recovery identifier", async () => {
-    const user = createUser();
-    const user2 = createUser();
-    const signer = createSigner(user);
-    const signer2 = createSigner(user2);
+    const { signer } = createSigner();
+    const { signer: signer2 } = createSigner();
     const client = await createRegisteredClient(signer);
 
     const inboxState = await client.preferences.inboxState();
@@ -402,60 +424,27 @@ describe("Client", () => {
   });
 
   it("should read key package lifetime for specific installations", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
+    const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
     const client3 = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
+      dbPath: `./test-${uuid()}.db3`,
     });
 
-    const inboxState = await client3.preferences.inboxState(true);
+    const inboxState = await client3.preferences.fetchInboxState();
     expect(inboxState.installations.length).toBe(3);
 
-    const keyPackageStatuses =
-      await client3.getKeyPackageStatusesForInstallationIds([
-        client.installationId,
-        client2.installationId,
-        client3.installationId,
-      ]);
+    const keyPackageStatuses = await client3.fetchKeyPackageStatuses([
+      client.installationId,
+      client2.installationId,
+      client3.installationId,
+    ]);
     expect(
       (keyPackageStatuses[client.installationId].lifetime?.notAfter ?? 0n) -
         (keyPackageStatuses[client.installationId].lifetime?.notBefore ?? 0n),
     ).toEqual(BigInt(3600 * 24 * 28 * 3 + 3600));
-  });
-
-  it("should create a client without a signer", async () => {
-    const user = createUser();
-    const identifier = createIdentifier(user);
-    const client = await buildClient(identifier);
-    expect(client).toBeDefined();
-    expect(client.accountIdentifier).toEqual(identifier);
-    expect(client.isRegistered).toBe(false);
-    expect(client.inboxId).toBeDefined();
-    expect(client.installationId).toBeDefined();
-    expect(client.signer).toBeUndefined();
-
-    const user2 = createUser();
-    const signer2 = createSigner(user2);
-
-    await expect(() => client.register()).rejects.toThrow(
-      new SignerUnavailableError(),
-    );
-
-    await expect(async () =>
-      client.removeAccount(await signer2.getIdentifier()),
-    ).rejects.toThrow();
-
-    await expect(() => client.revokeInstallations([])).rejects.toThrow();
-
-    await expect(() => client.revokeAllOtherInstallations()).rejects.toThrow();
-
-    await expect(async () =>
-      client.changeRecoveryIdentifier(await signer2.getIdentifier()),
-    ).rejects.toThrow();
   });
 
   it("should throw errors when client is not initialized", async () => {
@@ -484,7 +473,7 @@ describe("Client", () => {
       ),
     ).rejects.toThrow(new ClientNotInitializedError());
     await expect(async () =>
-      client.unsafe_addAccount(createSigner(createUser())),
+      client.unsafe_addAccount(createSigner().signer),
     ).rejects.toThrow(new ClientNotInitializedError());
     await expect(async () =>
       client.changeRecoveryIdentifier(createIdentifier(createUser())),
@@ -505,10 +494,10 @@ describe("Client", () => {
       client.canMessage([createIdentifier(createUser())]),
     ).rejects.toThrow(new ClientNotInitializedError());
     await expect(async () =>
-      client.getKeyPackageStatusesForInstallationIds([]),
+      client.fetchKeyPackageStatuses([]),
     ).rejects.toThrow(new ClientNotInitializedError());
     await expect(async () =>
-      client.getInboxIdByIdentifier(createIdentifier(createUser())),
+      client.fetchInboxIdByIdentifier(createIdentifier(createUser())),
     ).rejects.toThrow(new ClientNotInitializedError());
     expect(() => client.signWithInstallationKey("gm1")).toThrow(
       new ClientNotInitializedError(),
@@ -529,13 +518,11 @@ describe("Client", () => {
   });
 
   it("should get inbox states from inbox IDs without a client", async () => {
-    const user = createUser();
-    const user2 = createUser();
-    const signer = createSigner(user);
-    const signer2 = createSigner(user2);
+    const { signer } = createSigner();
+    const { signer: signer2 } = createSigner();
     const client = await createRegisteredClient(signer);
     const client2 = await createRegisteredClient(signer2);
-    const inboxStates = await Client.inboxStateFromInboxIds(
+    const inboxStates = await Client.fetchInboxStates(
       [client.inboxId],
       "local",
     );
@@ -543,7 +530,7 @@ describe("Client", () => {
     expect(inboxStates[0].inboxId).toBe(client.inboxId);
     expect(inboxStates[0].identifiers).toEqual([await signer.getIdentifier()]);
 
-    const inboxStates2 = await Client.inboxStateFromInboxIds(
+    const inboxStates2 = await Client.fetchInboxStates(
       [client2.inboxId],
       "local",
     );
@@ -554,56 +541,48 @@ describe("Client", () => {
     ]);
   });
 
-  it("should support a callback function for dynamic database creation", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const baseDir = os.tmpdir();
+  it("should transfer an identifier to a new inbox", async () => {
+    // original signer
+    const { signer, identifier } = createSigner();
+    // temporary signer
+    const { signer: signer2, identifier: identifier2 } = createSigner();
+    const client = await createRegisteredClient(signer);
+    // add temporary account
+    await client.unsafe_addAccount(signer2, true);
+    // remove existing account
+    await client.removeAccount(identifier);
+    // change recovery identifier to temporary account
+    await client.changeRecoveryIdentifier(identifier2);
 
-    const client = await Client.create(signer, {
-      dbPath: (inboxId: string) => path.join(baseDir, `user-${inboxId}.db3`),
+    const inboxState = await client.preferences.fetchInboxState();
+    // check that the temporary account is the only account on the inbox
+    expect(inboxState.identifiers).toEqual([identifier2]);
+    expect(inboxState.recoveryIdentifier).toEqual(identifier2);
+
+    // temporary signer
+    const { signer: signer3, identifier: identifier3 } = createSigner();
+    // create client to transfer original account to
+    const transferClient = await createRegisteredClient(signer3);
+    // add original account to transfer client
+    await transferClient.unsafe_addAccount(signer, true);
+    // remove temporary transfer identifier
+    await transferClient.removeAccount(identifier3);
+    // change recovery identifier to original account
+    await transferClient.changeRecoveryIdentifier(identifier);
+
+    const inboxState2 = await transferClient.preferences.fetchInboxState();
+    // check that the original account is the only account on the inbox
+    expect(inboxState2.identifiers).toEqual([identifier]);
+    expect(inboxState2.recoveryIdentifier).toEqual(identifier);
+
+    // check that the inbox IDs are different
+    expect(client.inboxId).not.toBe(transferClient.inboxId);
+
+    // ensure that a client can be created with the original signer
+    const client2 = await createRegisteredClient(signer, {
+      // must use a different db path to avoid errors
+      dbPath: `./test-${uuid()}.db3`,
     });
-    expect(client).toBeDefined();
-
-    const database = path.join(baseDir, `user-${client.inboxId}.db3`);
-    expect(fs.existsSync(database)).toBe(true);
-  });
-
-  it("should create a client without encryption key", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-
-    const client = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
-    });
-
-    expect(client).toBeDefined();
-    expect(client.inboxId).toBeDefined();
-  });
-
-  it("should create a client with Uint8Array encryption key", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const encryptionKey = new Uint8Array(32).fill(1);
-
-    const client = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
-      dbEncryptionKey: encryptionKey,
-    });
-
-    expect(client).toBeDefined();
-  });
-
-  it("should create a client with hex string encryption key with 0x prefix", async () => {
-    const user = createUser();
-    const signer = createSigner(user);
-    const encryptionKey =
-      "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-
-    const client = await createRegisteredClient(signer, {
-      dbPath: `./test-${v4()}.db3`,
-      dbEncryptionKey: encryptionKey,
-    });
-
-    expect(client).toBeDefined();
+    expect(client2.inboxId).toBe(transferClient.inboxId);
   });
 });

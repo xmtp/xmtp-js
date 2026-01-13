@@ -1,64 +1,110 @@
-export type {
-  ClientOptions,
-  OtherOptions,
-  NetworkOptions,
-  StorageOptions,
-  XmtpEnv,
-} from "./types";
-export { ApiUrls, HistorySyncUrls } from "./constants";
+export * from "./constants";
+export type * from "./types";
+export * from "./utils/errors";
+export * from "./utils/inboxId";
+export type * from "./utils/signer";
+export type * from "./utils/streams";
+export * from "./utils/validation";
+export type { AsyncStreamProxy } from "./AsyncStream";
 export { Client } from "./Client";
-export type { ExtractCodecContentTypes } from "./Client";
 export { Conversation } from "./Conversation";
 export { Conversations } from "./Conversations";
+export { DecodedMessage } from "./DecodedMessage";
 export { Dm } from "./Dm";
 export { Group } from "./Group";
-export { DecodedMessage } from "./DecodedMessage";
-export type { AsyncStreamProxy } from "./AsyncStream";
 export type {
+  Action,
+  Actions,
+  ApiStats,
+  Attachment,
   Consent,
-  ContentType,
-  ContentTypeId,
+  ConversationDebugInfo,
   ConversationListItem,
   CreateDmOptions,
   CreateGroupOptions,
-  EncodedContent,
-  HmacKey,
+  Cursor,
+  EncryptedAttachment,
+  GroupMember,
+  GroupMetadata,
+  GroupPermissions,
   GroupSyncSummary,
+  GroupUpdated,
+  HmacKey,
   Identifier,
+  IdentityStats,
+  Inbox,
   InboxState,
   Installation,
+  Intent,
   KeyPackageStatus,
+  LeaveRequest,
   Lifetime,
   ListConversationsOptions,
   ListMessagesOptions,
   LogOptions,
   Message,
   MessageDisappearingSettings,
+  MetadataFieldChange,
+  MultiRemoteAttachment,
   PermissionPolicySet,
+  Reaction,
+  ReadReceipt,
+  RemoteAttachment,
+  RemoteAttachmentInfo,
+  SendMessageOpts,
+  SignatureRequestHandle,
+  TransactionMetadata,
+  TransactionReference,
   UserPreferenceUpdate,
+  WalletCall,
+  WalletSendCalls,
 } from "@xmtp/node-bindings";
 export {
+  ActionStyle,
   ConsentEntityType,
   ConsentState,
+  ContentType,
+  contentTypeActions,
+  contentTypeAttachment,
+  contentTypeGroupUpdated,
+  contentTypeIntent,
+  contentTypeLeaveRequest,
+  contentTypeMarkdown,
+  contentTypeMultiRemoteAttachment,
+  contentTypeReaction,
+  contentTypeReadReceipt,
+  contentTypeRemoteAttachment,
+  contentTypeReply,
+  contentTypeText,
+  contentTypeTransactionReference,
+  contentTypeWalletSendCalls,
   ConversationType,
+  decryptAttachment,
   DeliveryStatus,
-  GroupMember,
+  encodeActions,
+  encodeAttachment,
+  encodeIntent,
+  encodeMarkdown,
+  encodeMultiRemoteAttachment,
+  encodeReaction,
+  encodeReadReceipt,
+  encodeRemoteAttachment,
+  encodeText,
+  encodeTransactionReference,
+  encodeWalletSendCalls,
+  encryptAttachment,
   GroupMembershipState,
   GroupMessageKind,
-  GroupMetadata,
-  GroupPermissions,
   GroupPermissionsOptions,
   IdentifierKind,
+  ListConversationsOrderBy,
   LogLevel,
+  MessageSortBy,
   MetadataField,
   PermissionLevel,
   PermissionPolicy,
   PermissionUpdateType,
-  SignatureRequestHandle,
+  ReactionAction,
+  ReactionSchema,
   SortDirection,
 } from "@xmtp/node-bindings";
-export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";
-export type { Signer } from "./utils/signer";
-export * from "./utils/errors";
-export * from "./utils/validation";
-export type * from "./utils/streams";

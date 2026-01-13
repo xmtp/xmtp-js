@@ -1,34 +1,27 @@
 import type {
+  Consent,
   ConsentEntityType,
   ConsentState,
   GroupSyncSummary,
+  InboxState,
 } from "@xmtp/wasm-bindings";
-import type { SafeConsent, SafeInboxState } from "@/utils/conversions";
 
 export type PreferencesAction =
   | {
       action: "preferences.inboxState";
       id: string;
-      result: SafeInboxState;
+      result: InboxState;
       data: {
         refreshFromNetwork: boolean;
       };
     }
   | {
-      action: "preferences.inboxStateFromInboxIds";
+      action: "preferences.getInboxStates";
       id: string;
-      result: SafeInboxState[];
+      result: InboxState[];
       data: {
         inboxIds: string[];
         refreshFromNetwork: boolean;
-      };
-    }
-  | {
-      action: "preferences.getLatestInboxState";
-      id: string;
-      result: SafeInboxState;
-      data: {
-        inboxId: string;
       };
     }
   | {
@@ -36,7 +29,7 @@ export type PreferencesAction =
       id: string;
       result: undefined;
       data: {
-        records: SafeConsent[];
+        records: Consent[];
       };
     }
   | {

@@ -1,9 +1,9 @@
 import type { Identifier } from "@xmtp/node-bindings";
 
-export type SignMessage = (message: string) => Promise<Uint8Array> | Uint8Array;
-export type GetIdentifier = () => Promise<Identifier> | Identifier;
-export type GetChainId = () => bigint;
-export type GetBlockNumber = () => bigint;
+type SignMessage = (message: string) => Promise<Uint8Array> | Uint8Array;
+type GetIdentifier = () => Promise<Identifier> | Identifier;
+type GetChainId = () => bigint;
+type GetBlockNumber = () => bigint;
 
 export type Signer =
   | {

@@ -1,10 +1,11 @@
 import init, {
+  LogLevel,
   type Consent,
   type Conversation,
   type Message,
   type SignatureRequestHandle,
   type StreamCloser,
-  type UserPreference,
+  type UserPreferenceUpdate,
 } from "@xmtp/wasm-bindings";
 import type {
   ActionErrorData,
@@ -18,21 +19,7 @@ import type {
   StreamActionErrorData,
   StreamActionName,
 } from "@/types/actions/streams";
-import {
-  fromEncodedContent,
-  fromSafeEncodedContent,
-  fromSafeSendMessageOpts,
-  toSafeApiStats,
-  toSafeConsent,
-  toSafeConversation,
-  toSafeConversationDebugInfo,
-  toSafeHmacKey,
-  toSafeIdentityStats,
-  toSafeInboxState,
-  toSafeKeyPackageStatus,
-  toSafeMessage,
-  toSafeMessageDisappearingSettings,
-} from "@/utils/conversions";
+import { toSafeConversation } from "@/utils/conversions";
 import {
   ClientNotInitializedError,
   GroupNotFoundError,
@@ -97,14 +84,16 @@ self.onmessage = async (
       maybeClient = await WorkerClient.create(data.identifier, data.options);
       enableLogging =
         data.options?.loggingLevel !== undefined &&
-        data.options.loggingLevel !== "off";
+        data.options.loggingLevel !== LogLevel.Off;
       postMessage({
         id,
         action,
         result: {
+          appVersion: maybeClient.appVersion,
           inboxId: maybeClient.inboxId,
           installationId: maybeClient.installationId,
           installationIdBytes: maybeClient.installationIdBytes,
+          libxmtpVersion: maybeClient.libxmtpVersion,
         },
       });
       return;
@@ -309,8 +298,8 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "client.findInboxIdByIdentifier": {
-        const result = await client.findInboxIdByIdentifier(data.identifier);
+      case "client.getInboxIdByIdentifier": {
+        const result = await client.getInboxIdByIdentifier(data.identifier);
         postMessage({ id, action, result });
         break;
       }
@@ -336,46 +325,27 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "client.getKeyPackageStatusesForInstallationIds": {
-        const result = await client.getKeyPackageStatusesForInstallationIds(
+      case "client.fetchKeyPackageStatuses": {
+        const result = await client.fetchKeyPackageStatuses(
           data.installationIds,
-        );
-        const safeResult = new Map(
-          Array.from(result.entries()).map(([installationId, status]) => [
-            installationId,
-            toSafeKeyPackageStatus(status),
-          ]),
         );
         postMessage({
           id,
           action,
-          result: safeResult,
+          result,
         });
-        break;
-      }
-      case "client.libxmtpVersion": {
-        const result = client.libxmtpVersion;
-        postMessage({ id, action, result });
-        break;
-      }
-      case "client.appVersion": {
-        const result = client.appVersion;
-        postMessage({ id, action, result });
         break;
       }
       /**
        * Debug information actions
        */
       case "debugInformation.apiStatistics": {
-        const apiStats = client.debugInformation.apiStatistics();
-        const result = toSafeApiStats(apiStats);
+        const result = client.debugInformation.apiStatistics();
         postMessage({ id, action, result });
         break;
       }
       case "debugInformation.apiIdentityStatistics": {
-        const apiIdentityStats =
-          client.debugInformation.apiIdentityStatistics();
-        const result = toSafeIdentityStats(apiIdentityStats);
+        const result = client.debugInformation.apiIdentityStatistics();
         postMessage({ id, action, result });
         break;
       }
@@ -389,38 +359,21 @@ self.onmessage = async (
         postMessage({ id, action, result: undefined });
         break;
       }
-      case "debugInformation.uploadDebugArchive": {
-        const result = await client.debugInformation.uploadDebugArchive(
-          data.serverUrl,
-        );
-        postMessage({ id, action, result });
-        break;
-      }
       /**
        * Preferences actions
        */
       case "preferences.inboxState": {
-        const inboxState = await client.preferences.inboxState(
+        const result = await client.preferences.inboxState(
           data.refreshFromNetwork,
         );
-        const result = toSafeInboxState(inboxState);
         postMessage({ id, action, result });
         break;
       }
-      case "preferences.inboxStateFromInboxIds": {
-        const inboxStates = await client.preferences.inboxStateFromInboxIds(
+      case "preferences.getInboxStates": {
+        const result = await client.preferences.getInboxStates(
           data.inboxIds,
           data.refreshFromNetwork,
         );
-        const result = inboxStates.map(toSafeInboxState);
-        postMessage({ id, action, result });
-        break;
-      }
-      case "preferences.getLatestInboxState": {
-        const inboxState = await client.preferences.getLatestInboxState(
-          data.inboxId,
-        );
-        const result = toSafeInboxState(inboxState);
         postMessage({ id, action, result });
         break;
       }
@@ -457,7 +410,7 @@ self.onmessage = async (
             postStreamMessage({
               action: "stream.consent",
               streamId: data.streamId,
-              result: value?.map(toSafeConsent) ?? [],
+              result: value ?? [],
             });
           }
         };
@@ -483,7 +436,7 @@ self.onmessage = async (
       case "preferences.streamPreferences": {
         const streamCallback = (
           error: Error | null,
-          value: UserPreference[] | undefined,
+          value: UserPreferenceUpdate[] | undefined,
         ) => {
           if (error) {
             postStreamMessageError({
@@ -585,12 +538,19 @@ self.onmessage = async (
               streamId: data.streamId,
               error,
             });
-          } else {
-            postStreamMessage({
-              action: "stream.message",
-              streamId: data.streamId,
-              result: value ? toSafeMessage(value) : undefined,
-            });
+          } else if (value) {
+            void client.conversations
+              .getMessageById(value.id)
+              .then((enrichedMessage) => {
+                // guard against any edge cases where the message is not found
+                if (enrichedMessage) {
+                  postStreamMessage({
+                    action: "stream.message",
+                    streamId: data.streamId,
+                    result: enrichedMessage,
+                  });
+                }
+              });
           }
         };
         const streamCloser = client.conversations.streamAllMessages(
@@ -660,25 +620,26 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.newGroupOptimistic": {
-        const conversation = client.conversations.newGroupOptimistic(
+      case "conversations.createGroupOptimistic": {
+        const conversation = client.conversations.createGroupOptimistic(
           data.options,
         );
         const result = await toSafeConversation(conversation);
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.newGroupWithIdentifiers": {
-        const conversation = await client.conversations.newGroupWithIdentifiers(
-          data.identifiers,
-          data.options,
-        );
+      case "conversations.createGroupWithIdentifiers": {
+        const conversation =
+          await client.conversations.createGroupWithIdentifiers(
+            data.identifiers,
+            data.options,
+          );
         const result = await toSafeConversation(conversation);
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.newGroup": {
-        const conversation = await client.conversations.newGroup(
+      case "conversations.createGroup": {
+        const conversation = await client.conversations.createGroup(
           data.inboxIds,
           data.options,
         );
@@ -686,8 +647,8 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.newDmWithIdentifier": {
-        const conversation = await client.conversations.newDmWithIdentifier(
+      case "conversations.createDmWithIdentifier": {
+        const conversation = await client.conversations.createDmWithIdentifier(
           data.identifier,
           data.options,
         );
@@ -695,8 +656,8 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.newDm": {
-        const conversation = await client.conversations.newDm(
+      case "conversations.createDm": {
+        const conversation = await client.conversations.createDm(
           data.inboxId,
           data.options,
         );
@@ -723,8 +684,7 @@ self.onmessage = async (
         break;
       }
       case "conversations.getMessageById": {
-        const message = client.conversations.getMessageById(data.id);
-        const result = message ? toSafeMessage(message) : undefined;
+        const result = await client.conversations.getMessageById(data.id);
         postMessage({ id, action, result });
         break;
       }
@@ -736,15 +696,9 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "conversations.getHmacKeys": {
-        const hmacKeys = client.conversations.getHmacKeys();
-        const result = Object.fromEntries(
-          Array.from(hmacKeys.entries()).map(([groupId, hmacKeys]) => [
-            groupId,
-            hmacKeys.map(toSafeHmacKey),
-          ]),
-        );
-        postMessage({ id, action, result });
+      case "conversations.hmacKeys": {
+        const hmacKeys = client.conversations.hmacKeys();
+        postMessage({ id, action, result: hmacKeys });
         break;
       }
       /**
@@ -759,12 +713,9 @@ self.onmessage = async (
       }
       case "conversation.lastMessage": {
         const group = getGroup(data.id);
+        // lastMessage() now returns enriched DecodedMessage directly
         const result = await group.lastMessage();
-        postMessage({
-          id,
-          action,
-          result: result ? toSafeMessage(result) : undefined,
-        });
+        postMessage({ id, action, result });
         break;
       }
       case "conversation.isActive": {
@@ -775,7 +726,7 @@ self.onmessage = async (
       }
       case "conversation.consentState": {
         const group = getGroup(data.id);
-        const result = group.consentState;
+        const result = group.consentState();
         postMessage({ id, action, result });
         break;
       }
@@ -811,19 +762,7 @@ self.onmessage = async (
       }
       case "conversation.send": {
         const group = getGroup(data.id);
-        const result = await group.send(
-          fromEncodedContent(fromSafeEncodedContent(data.content)),
-          fromSafeSendMessageOpts(data.sendOptions),
-        );
-        postMessage({ id, action, result });
-        break;
-      }
-      case "conversation.sendOptimistic": {
-        const group = getGroup(data.id);
-        const result = group.sendOptimistic(
-          fromEncodedContent(fromSafeEncodedContent(data.content)),
-          fromSafeSendMessageOpts(data.sendOptions),
-        );
+        const result = await group.send(data.content, data.options);
         postMessage({ id, action, result });
         break;
       }
@@ -836,8 +775,8 @@ self.onmessage = async (
       case "conversation.messages": {
         const group = getGroup(data.id);
         const messages = await group.messages(data.options);
-        const result = messages.map((message) => toSafeMessage(message));
-        postMessage({ id, action, result });
+        // messages() now returns enriched DecodedMessage[] directly
+        postMessage({ id, action, result: messages });
         break;
       }
       case "conversation.countMessages": {
@@ -854,13 +793,13 @@ self.onmessage = async (
       }
       case "group.listAdmins": {
         const group = getGroup(data.id);
-        const result = group.admins;
+        const result = group.listAdmins();
         postMessage({ id, action, result });
         break;
       }
       case "group.listSuperAdmins": {
         const group = getGroup(data.id);
-        const result = group.superAdmins;
+        const result = group.listSuperAdmins();
         postMessage({ id, action, result });
         break;
       }
@@ -955,16 +894,13 @@ self.onmessage = async (
       }
       case "group.isPendingRemoval": {
         const group = getGroup(data.id);
-        const result = group.isPendingRemoval;
+        const result = group.isPendingRemoval();
         postMessage({ id, action, result });
         break;
       }
       case "conversation.messageDisappearingSettings": {
         const group = getGroup(data.id);
-        const settings = group.messageDisappearingSettings();
-        const result = settings
-          ? toSafeMessageDisappearingSettings(settings)
-          : undefined;
+        const result = group.messageDisappearingSettings();
         postMessage({ id, action, result });
         break;
       }
@@ -998,12 +934,19 @@ self.onmessage = async (
               streamId: data.streamId,
               error,
             });
-          } else {
-            postStreamMessage({
-              action: "stream.message",
-              streamId: data.streamId,
-              result: value ? toSafeMessage(value) : undefined,
-            });
+          } else if (value) {
+            void client.conversations
+              .getMessageById(value.id)
+              .then((enrichedMessage) => {
+                // guard against any edge cases where the message is not found
+                if (enrichedMessage) {
+                  postStreamMessage({
+                    action: "stream.message",
+                    streamId: data.streamId,
+                    result: enrichedMessage,
+                  });
+                }
+              });
           }
         };
         const streamCloser = group.stream(streamCallback, () => {
@@ -1024,15 +967,15 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
-      case "conversation.getHmacKeys": {
+      case "conversation.hmacKeys": {
         const group = getGroup(data.id);
-        const result = group.getHmacKeys();
+        const result = group.hmacKeys();
         postMessage({ id, action, result });
         break;
       }
-      case "dm.getDuplicateDms": {
+      case "dm.duplicateDms": {
         const group = getGroup(data.id);
-        const dms = await group.getDuplicateDms();
+        const dms = await group.duplicateDms();
         const result = await Promise.all(
           dms.map((dm) => toSafeConversation(dm)),
         );
@@ -1041,8 +984,106 @@ self.onmessage = async (
       }
       case "conversation.debugInfo": {
         const group = getGroup(data.id);
-        const debugInfo = await group.debugInfo();
-        const result = toSafeConversationDebugInfo(debugInfo);
+        const result = await group.debugInfo();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.lastReadTimes": {
+        const group = getGroup(data.id);
+        const result = await group.lastReadTimes();
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendText": {
+        const group = getGroup(data.id);
+        const result = await group.sendText(data.text, data.isOptimistic);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendMarkdown": {
+        const group = getGroup(data.id);
+        const result = await group.sendMarkdown(
+          data.markdown,
+          data.isOptimistic,
+        );
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendReaction": {
+        const group = getGroup(data.id);
+        const result = await group.sendReaction(
+          data.reaction,
+          data.isOptimistic,
+        );
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendReadReceipt": {
+        const group = getGroup(data.id);
+        const result = await group.sendReadReceipt(data.isOptimistic);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendReply": {
+        const group = getGroup(data.id);
+        const result = await group.sendReply(data.reply, data.isOptimistic);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendTransactionReference": {
+        const group = getGroup(data.id);
+        const result = await group.sendTransactionReference(
+          data.transactionReference,
+          data.isOptimistic,
+        );
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendWalletSendCalls": {
+        const group = getGroup(data.id);
+        const result = await group.sendWalletSendCalls(
+          data.walletSendCalls,
+          data.isOptimistic,
+        );
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendActions": {
+        const group = getGroup(data.id);
+        const result = await group.sendActions(data.actions, data.isOptimistic);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendIntent": {
+        const group = getGroup(data.id);
+        const result = await group.sendIntent(data.intent, data.isOptimistic);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendAttachment": {
+        const group = getGroup(data.id);
+        const result = await group.sendAttachment(
+          data.attachment,
+          data.isOptimistic,
+        );
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendMultiRemoteAttachment": {
+        const group = getGroup(data.id);
+        const result = await group.sendMultiRemoteAttachment(
+          data.multiRemoteAttachment,
+          data.isOptimistic,
+        );
+        postMessage({ id, action, result });
+        break;
+      }
+      case "conversation.sendRemoteAttachment": {
+        const group = getGroup(data.id);
+        const result = await group.sendRemoteAttachment(
+          data.remoteAttachment,
+          data.isOptimistic,
+        );
         postMessage({ id, action, result });
         break;
       }

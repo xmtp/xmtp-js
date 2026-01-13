@@ -1,11 +1,3 @@
-import type { ContentTypeId } from "@xmtp/content-type-primitives";
-
-export class CodecNotFoundError extends Error {
-  constructor(contentType: ContentTypeId) {
-    super(`Codec not found for "${contentType.toString()}" content type`);
-  }
-}
-
 export class InboxReassignError extends Error {
   constructor() {
     super(
@@ -20,15 +12,9 @@ export class AccountAlreadyAssociatedError extends Error {
   }
 }
 
-export class InvalidGroupMembershipChangeError extends Error {
-  constructor(messageId: string) {
-    super(`Invalid group membership change for message ${messageId}`);
-  }
-}
-
 export class MissingContentTypeError extends Error {
   constructor() {
-    super("Content type is required when sending content other than text");
+    super("Content type is required when sending encoded content");
   }
 }
 

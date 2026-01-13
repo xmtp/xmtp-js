@@ -36,40 +36,42 @@ export class Preferences {
   }
 
   /**
-   * Retrieves the current inbox state
+   * Retrieves the current inbox state of this client from the local database
    *
-   * @param refreshFromNetwork - Optional flag to force refresh from network
    * @returns Promise that resolves with the inbox state
    */
-  async inboxState(refreshFromNetwork: boolean = false) {
-    return this.#client.inboxState(refreshFromNetwork);
+  async inboxState() {
+    return this.#client.inboxState(false);
   }
 
   /**
-   * Gets the latest inbox state for a specific inbox
+   * Retrieves the latest inbox state of this clientfrom the network
    *
-   * @param inboxId - The inbox ID to get state for
-   * @returns Promise that resolves with the latest inbox state
+   * @returns Promise that resolves with the inbox state
    */
-  async getLatestInboxState(inboxId: string) {
-    return this.#client.getLatestInboxState(inboxId);
+  async fetchInboxState() {
+    return this.#client.inboxState(true);
   }
 
   /**
-   * Retrieves inbox state for specific inbox IDs
+   * Retrieves the current inbox states for specified inbox IDs from the local
+   * database
    *
    * @param inboxIds - Array of inbox IDs to get state for
-   * @param refreshFromNetwork - Optional flag to force refresh from network
-   * @returns Promise that resolves with the inbox state for the inbox IDs
+   * @returns Promise that resolves with the inbox states for the inbox IDs
    */
-  async inboxStateFromInboxIds(
-    inboxIds: string[],
-    refreshFromNetwork?: boolean,
-  ) {
-    return this.#client.addressesFromInboxId(
-      refreshFromNetwork ?? false,
-      inboxIds,
-    );
+  async getInboxStates(inboxIds: string[]) {
+    return this.#client.addressesFromInboxId(false, inboxIds);
+  }
+
+  /**
+   * Retrieves the latest inbox states for specified inbox IDs from the network
+   *
+   * @param inboxIds - Array of inbox IDs to get state for
+   * @returns Promise that resolves with the inbox states for the inbox IDs
+   */
+  async fetchInboxStates(inboxIds: string[]) {
+    return this.#client.addressesFromInboxId(true, inboxIds);
   }
 
   /**

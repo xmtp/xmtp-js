@@ -1,57 +1,86 @@
 export { Client } from "./Client";
-export type { ExtractCodecContentTypes } from "./Client";
+export { Opfs } from "./Opfs";
 export { Conversations } from "./Conversations";
 export { Conversation } from "./Conversation";
 export { Dm } from "./Dm";
 export { Group } from "./Group";
-export type { MessageDeliveryStatus, MessageKind } from "./DecodedMessage";
 export { DecodedMessage } from "./DecodedMessage";
-export { Utils } from "./Utils";
+export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";
+export { metadataFieldName } from "./utils/metadata";
 export { ApiUrls, HistorySyncUrls } from "./constants";
 export type * from "./types/options";
 export * from "./utils/conversions";
+export * from "./utils/contentTypes";
 export type { AsyncStreamProxy } from "./AsyncStream";
 export type {
-  GroupSyncSummary,
-  Identifier,
-  IdentifierKind,
-  UserPreference,
-} from "@xmtp/wasm-bindings";
-export {
+  Action,
+  Actions,
+  ApiStats,
+  Attachment,
   Consent,
-  ConsentEntityType,
-  ConsentState,
-  ContentType,
-  ContentTypeId,
+  ConversationDebugInfo,
   ConversationListItem,
-  ConversationType,
-  CreateDMOptions,
+  CreateDmOptions,
   CreateGroupOptions,
-  DeliveryStatus,
-  EncodedContent,
+  Cursor,
+  EncryptedAttachment,
   GroupMember,
-  GroupMembershipState,
-  GroupMessageKind,
   GroupMetadata,
   GroupPermissions,
-  GroupPermissionsOptions,
+  GroupSyncSummary,
+  GroupUpdated,
   HmacKey,
+  Identifier,
+  IdentityStats,
+  Inbox,
   InboxState,
   Installation,
+  Intent,
+  KeyPackageStatus,
+  LeaveRequest,
+  Lifetime,
   ListConversationsOptions,
   ListMessagesOptions,
   LogOptions,
   Message,
   MessageDisappearingSettings,
+  MetadataFieldChange,
+  MultiRemoteAttachment,
+  PermissionPolicySet,
+  Reaction,
+  ReadReceipt,
+  RemoteAttachment,
+  RemoteAttachmentInfo,
+  SendMessageOpts,
+  SignatureRequestHandle,
+  TransactionMetadata,
+  TransactionReference,
+  UserPreferenceUpdate,
+  WalletCall,
+  WalletSendCalls,
+} from "@xmtp/wasm-bindings";
+export {
+  ActionStyle,
+  ConsentEntityType,
+  ConsentState,
+  ContentType,
+  ConversationType,
+  DeliveryStatus,
+  GroupMembershipState,
+  GroupMessageKind,
+  GroupPermissionsOptions,
+  IdentifierKind,
+  ListConversationsOrderBy,
+  LogLevel,
+  MessageSortBy,
   MetadataField,
   PermissionLevel,
   PermissionPolicy,
-  PermissionPolicySet,
   PermissionUpdateType,
-  SignatureRequestHandle,
+  ReactionAction,
+  ReactionSchema,
   SortDirection,
 } from "@xmtp/wasm-bindings";
-export type { Signer, SafeSigner, EOASigner, SCWSigner } from "./utils/signer";
-export { toSafeSigner } from "./utils/signer";
+export * from "./utils/signer";
 export * from "./utils/errors";
 export type * from "./utils/streams";

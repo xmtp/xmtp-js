@@ -4,18 +4,14 @@ import {
   type Conversation,
   type ConversationListItem,
   type Conversations,
+  type CreateDmOptions,
+  type CreateGroupOptions,
+  type DecodedMessage,
   type Identifier,
+  type ListConversationsOptions,
   type Message,
 } from "@xmtp/wasm-bindings";
-import {
-  fromSafeCreateDmOptions,
-  fromSafeCreateGroupOptions,
-  fromSafeListConversationsOptions,
-  type HmacKeys,
-  type SafeCreateDmOptions,
-  type SafeCreateGroupOptions,
-  type SafeListConversationsOptions,
-} from "@/utils/conversions";
+import { type HmacKeys } from "@/utils/conversions";
 import type { StreamCallback } from "@/utils/streams";
 import type { WorkerClient } from "@/WorkerClient";
 import { WorkerConversation } from "@/WorkerConversation";
@@ -48,10 +44,9 @@ export class WorkerConversations {
     }
   }
 
-  getMessageById(id: string) {
+  async getMessageById(id: string): Promise<DecodedMessage | undefined> {
     try {
-      // findMessageById will throw if message is not found
-      return this.#conversations.findMessageById(id);
+      return await this.#conversations.findEnrichedMessageById(id);
     } catch {
       return undefined;
     }
@@ -66,102 +61,68 @@ export class WorkerConversations {
     }
   }
 
-  list(options?: SafeListConversationsOptions) {
-    const groups = this.#conversations.list(
-      options ? fromSafeListConversationsOptions(options) : undefined,
-    ) as ConversationListItem[];
+  list(options?: ListConversationsOptions) {
+    const groups = this.#conversations.list(options) as ConversationListItem[];
     return groups.map(
-      (item) =>
-        new WorkerConversation(
-          this.#client,
-          item.conversation,
-          item.isCommitLogForked,
-        ),
+      (item) => new WorkerConversation(this.#client, item.conversation),
     );
   }
 
-  listGroups(
-    options?: Omit<SafeListConversationsOptions, "conversation_type">,
-  ) {
-    const groups = this.#conversations.list(
-      fromSafeListConversationsOptions({
-        ...(options ?? {}),
-        conversationType: ConversationType.Group,
-      }),
-    ) as ConversationListItem[];
+  listGroups(options?: Omit<ListConversationsOptions, "conversationType">) {
+    const groups = this.#conversations.list({
+      ...(options ?? {}),
+      conversationType: ConversationType.Group,
+    }) as ConversationListItem[];
     return groups.map(
-      (item) =>
-        new WorkerConversation(
-          this.#client,
-          item.conversation,
-          item.isCommitLogForked,
-        ),
+      (item) => new WorkerConversation(this.#client, item.conversation),
     );
   }
 
-  listDms(options?: Omit<SafeListConversationsOptions, "conversation_type">) {
-    const groups = this.#conversations.list(
-      fromSafeListConversationsOptions({
-        ...(options ?? {}),
-        conversationType: ConversationType.Dm,
-      }),
-    ) as ConversationListItem[];
+  listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
+    const groups = this.#conversations.list({
+      ...(options ?? {}),
+      conversationType: ConversationType.Dm,
+    }) as ConversationListItem[];
     return groups.map(
-      (item) =>
-        new WorkerConversation(
-          this.#client,
-          item.conversation,
-          item.isCommitLogForked,
-        ),
+      (item) => new WorkerConversation(this.#client, item.conversation),
     );
   }
 
-  newGroupOptimistic(options?: SafeCreateGroupOptions) {
-    const group = this.#conversations.createGroupOptimistic(
-      options ? fromSafeCreateGroupOptions(options) : undefined,
-    );
+  createGroupOptimistic(options?: CreateGroupOptions) {
+    const group = this.#conversations.createGroupOptimistic(options);
     return new WorkerConversation(this.#client, group);
   }
 
-  async newGroupWithIdentifiers(
+  async createGroupWithIdentifiers(
     identifiers: Identifier[],
-    options?: SafeCreateGroupOptions,
+    options?: CreateGroupOptions,
   ) {
-    const group = await this.#conversations.createGroup(
-      identifiers,
-      options ? fromSafeCreateGroupOptions(options) : undefined,
-    );
+    const group = await this.#conversations.createGroup(identifiers, options);
     return new WorkerConversation(this.#client, group);
   }
 
-  async newGroup(inboxIds: string[], options?: SafeCreateGroupOptions) {
+  async createGroup(inboxIds: string[], options?: CreateGroupOptions) {
     const group = await this.#conversations.createGroupByInboxIds(
       inboxIds,
-      options ? fromSafeCreateGroupOptions(options) : undefined,
+      options,
     );
     return new WorkerConversation(this.#client, group);
   }
 
-  async newDmWithIdentifier(
+  async createDmWithIdentifier(
     identifier: Identifier,
-    options?: SafeCreateDmOptions,
+    options?: CreateDmOptions,
   ) {
-    const group = await this.#conversations.createDm(
-      identifier,
-      options ? fromSafeCreateDmOptions(options) : undefined,
-    );
+    const group = await this.#conversations.createDm(identifier, options);
     return new WorkerConversation(this.#client, group);
   }
 
-  async newDm(inboxId: string, options?: SafeCreateDmOptions) {
-    const group = await this.#conversations.createDmByInboxId(
-      inboxId,
-      options ? fromSafeCreateDmOptions(options) : undefined,
-    );
+  async createDm(inboxId: string, options?: CreateDmOptions) {
+    const group = await this.#conversations.createDmByInboxId(inboxId, options);
     return new WorkerConversation(this.#client, group);
   }
 
-  getHmacKeys() {
+  hmacKeys() {
     return this.#conversations.getHmacKeys() as HmacKeys;
   }
 

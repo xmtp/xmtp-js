@@ -37,7 +37,7 @@ export const createClient = async (
 
   const logOptions: LogOptions = {
     structured: options?.structuredLogging ?? false,
-    level: options?.loggingLevel ?? LogLevel.off,
+    level: options?.loggingLevel ?? LogLevel.Off,
   };
   const historySyncUrl =
     options?.historySyncUrl === undefined
@@ -45,8 +45,8 @@ export const createClient = async (
       : options.historySyncUrl;
 
   const deviceSyncWorkerMode = options?.disableDeviceSync
-    ? SyncWorkerMode.disabled
-    : SyncWorkerMode.enabled;
+    ? SyncWorkerMode.Disabled
+    : SyncWorkerMode.Enabled;
 
   const dbEncryptionKey = isHexString(options?.dbEncryptionKey)
     ? Buffer.from(options.dbEncryptionKey.replace(/^0x/, ""), "hex")
@@ -64,7 +64,6 @@ export const createClient = async (
     deviceSyncWorkerMode,
     logOptions,
     undefined,
-    options?.debugEventsEnabled,
     options?.appVersion,
   );
 };

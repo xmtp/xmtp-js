@@ -1,25 +1,25 @@
 import {
   ConversationType,
   type ConsentState,
+  type CreateDmOptions,
+  type CreateGroupOptions,
   type Identifier,
+  type ListConversationsOptions,
+  type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
-import { v4 } from "uuid";
-import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
-import type {
-  SafeConversation,
-  SafeCreateDmOptions,
-  SafeCreateGroupOptions,
-  SafeListConversationsOptions,
-  SafeMessage,
-} from "@/utils/conversions";
+import type { ClientWorkerAction } from "@/types/actions";
+import type { SafeConversation } from "@/utils/conversions";
 import {
   createStream,
   type StreamCallback,
   type StreamOptions,
 } from "@/utils/streams";
+import { uuid } from "@/utils/uuid";
+import type { WorkerBridge } from "@/utils/WorkerBridge";
 
 /**
  * Manages conversations
@@ -27,15 +27,21 @@ import {
  * This class is not intended to be initialized directly.
  */
 export class Conversations<ContentTypes = unknown> {
-  #client: Client<ContentTypes>;
+  #codecRegistry: CodecRegistry;
+  #worker: WorkerBridge<ClientWorkerAction>;
 
   /**
    * Creates a new conversations instance
    *
-   * @param client - The client instance managing the conversations
+   * @param worker - The worker bridge instance for client communication
+   * @param codecRegistry - The codec registry instance
    */
-  constructor(client: Client<ContentTypes>) {
-    this.#client = client;
+  constructor(
+    worker: WorkerBridge<ClientWorkerAction>,
+    codecRegistry: CodecRegistry,
+  ) {
+    this.#worker = worker;
+    this.#codecRegistry = codecRegistry;
   }
 
   /**
@@ -44,7 +50,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves when sync is complete
    */
   async sync() {
-    return this.#client.sendMessage("conversations.sync", undefined);
+    return this.#worker.action("conversations.sync");
   }
 
   /**
@@ -56,7 +62,7 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves when sync is complete
    */
   async syncAll(consentStates?: ConsentState[]) {
-    return this.#client.sendMessage("conversations.syncAll", {
+    return this.#worker.action("conversations.syncAll", {
       consentStates,
     });
   }
@@ -68,16 +74,31 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the conversation, if found
    */
   async getConversationById(id: string) {
-    const data = await this.#client.sendMessage(
+    const data = await this.#worker.action(
       "conversations.getConversationById",
       {
         id,
       },
     );
     if (data) {
-      return data.metadata.conversationType === "group"
-        ? new Group(this.#client, data.id, data)
-        : new Dm(this.#client, data.id, data);
+      switch (data.metadata.conversationType) {
+        case ConversationType.Group:
+          return new Group<ContentTypes>(
+            this.#worker,
+            this.#codecRegistry,
+            data.id,
+            data,
+          );
+        case ConversationType.Dm:
+          return new Dm<ContentTypes>(
+            this.#worker,
+            this.#codecRegistry,
+            data.id,
+            data,
+          );
+        default:
+          return undefined;
+      }
     }
     return undefined;
   }
@@ -89,13 +110,12 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the decoded message, if found
    */
   async getMessageById(id: string) {
-    const data = await this.#client.sendMessage(
-      "conversations.getMessageById",
-      {
-        id,
-      },
-    );
-    return data ? new DecodedMessage(this.#client, data) : undefined;
+    const data = await this.#worker.action("conversations.getMessageById", {
+      id,
+    });
+    return data
+      ? new DecodedMessage<ContentTypes>(this.#codecRegistry, data)
+      : undefined;
   }
 
   /**
@@ -105,23 +125,24 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the DM, if found
    */
   async getDmByInboxId(inboxId: string) {
-    const data = await this.#client.sendMessage(
-      "conversations.getDmByInboxId",
-      {
-        inboxId,
-      },
-    );
-    return data ? new Dm(this.#client, data.id, data) : undefined;
+    const data = await this.#worker.action("conversations.getDmByInboxId", {
+      inboxId,
+    });
+    return data
+      ? new Dm(this.#worker, this.#codecRegistry, data.id, data)
+      : undefined;
   }
 
   /**
-   * Retrieves a DM by identifier
+   * Fetches a DM by identifier
    *
    * @param identifier - The identifier to look up
    * @returns Promise that resolves with the DM, if found
    */
-  async getDmByIdentifier(identifier: Identifier) {
-    const inboxId = await this.#client.findInboxIdByIdentifier(identifier);
+  async fetchDmByIdentifier(identifier: Identifier) {
+    const inboxId = await this.#worker.action("client.getInboxIdByIdentifier", {
+      identifier,
+    });
     if (!inboxId) {
       return undefined;
     }
@@ -134,18 +155,28 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional filtering and pagination options
    * @returns Promise that resolves with an array of conversations
    */
-  async list(options?: SafeListConversationsOptions) {
-    const conversations = await this.#client.sendMessage("conversations.list", {
+  async list(options?: ListConversationsOptions) {
+    const conversations = await this.#worker.action("conversations.list", {
       options,
     });
 
     return conversations
       .map((conversation) => {
         switch (conversation.metadata.conversationType) {
-          case "dm":
-            return new Dm(this.#client, conversation.id, conversation);
-          case "group":
-            return new Group(this.#client, conversation.id, conversation);
+          case ConversationType.Dm:
+            return new Dm<ContentTypes>(
+              this.#worker,
+              this.#codecRegistry,
+              conversation.id,
+              conversation,
+            );
+          case ConversationType.Group:
+            return new Group<ContentTypes>(
+              this.#worker,
+              this.#codecRegistry,
+              conversation.id,
+              conversation,
+            );
           default:
             return undefined;
         }
@@ -160,9 +191,9 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with an array of groups
    */
   async listGroups(
-    options?: Omit<SafeListConversationsOptions, "conversation_type">,
+    options?: Omit<ListConversationsOptions, "conversationType">,
   ) {
-    const conversations = await this.#client.sendMessage(
+    const conversations = await this.#worker.action(
       "conversations.listGroups",
       {
         options,
@@ -170,7 +201,13 @@ export class Conversations<ContentTypes = unknown> {
     );
 
     return conversations.map(
-      (conversation) => new Group(this.#client, conversation.id, conversation),
+      (conversation) =>
+        new Group<ContentTypes>(
+          this.#worker,
+          this.#codecRegistry,
+          conversation.id,
+          conversation,
+        ),
     );
   }
 
@@ -180,36 +217,42 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional filtering and pagination options
    * @returns Promise that resolves with an array of DMs
    */
-  async listDms(
-    options?: Omit<SafeListConversationsOptions, "conversation_type">,
-  ) {
-    const conversations = await this.#client.sendMessage(
-      "conversations.listDms",
-      {
-        options,
-      },
-    );
+  async listDms(options?: Omit<ListConversationsOptions, "conversationType">) {
+    const conversations = await this.#worker.action("conversations.listDms", {
+      options,
+    });
 
     return conversations.map(
-      (conversation) => new Dm(this.#client, conversation.id, conversation),
+      (conversation) =>
+        new Dm<ContentTypes>(
+          this.#worker,
+          this.#codecRegistry,
+          conversation.id,
+          conversation,
+        ),
     );
   }
 
   /**
-   * Creates a new group without syncing to the network
+   * Creates a new group conversation without publishing to the network
    *
    * @param options - Optional group creation options
    * @returns Promise that resolves with the new group
    */
-  async newGroupOptimistic(options?: SafeCreateGroupOptions) {
-    const conversation = await this.#client.sendMessage(
-      "conversations.newGroupOptimistic",
+  async createGroupOptimistic(options?: CreateGroupOptions) {
+    const conversation = await this.#worker.action(
+      "conversations.createGroupOptimistic",
       {
         options,
       },
     );
 
-    return new Group(this.#client, conversation.id, conversation);
+    return new Group<ContentTypes>(
+      this.#worker,
+      this.#codecRegistry,
+      conversation.id,
+      conversation,
+    );
   }
 
   /**
@@ -219,19 +262,24 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional group creation options
    * @returns Promise that resolves with the new group
    */
-  async newGroupWithIdentifiers(
+  async createGroupWithIdentifiers(
     identifiers: Identifier[],
-    options?: SafeCreateGroupOptions,
+    options?: CreateGroupOptions,
   ) {
-    const conversation = await this.#client.sendMessage(
-      "conversations.newGroupWithIdentifiers",
+    const conversation = await this.#worker.action(
+      "conversations.createGroupWithIdentifiers",
       {
         identifiers,
         options,
       },
     );
 
-    return new Group(this.#client, conversation.id, conversation);
+    return new Group<ContentTypes>(
+      this.#worker,
+      this.#codecRegistry,
+      conversation.id,
+      conversation,
+    );
   }
 
   /**
@@ -241,16 +289,21 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional group creation options
    * @returns Promise that resolves with the new group
    */
-  async newGroup(inboxIds: string[], options?: SafeCreateGroupOptions) {
-    const conversation = await this.#client.sendMessage(
-      "conversations.newGroup",
+  async createGroup(inboxIds: string[], options?: CreateGroupOptions) {
+    const conversation = await this.#worker.action(
+      "conversations.createGroup",
       {
         inboxIds,
         options,
       },
     );
 
-    return new Group(this.#client, conversation.id, conversation);
+    return new Group<ContentTypes>(
+      this.#worker,
+      this.#codecRegistry,
+      conversation.id,
+      conversation,
+    );
   }
 
   /**
@@ -260,19 +313,24 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional DM creation options
    * @returns Promise that resolves with the new DM
    */
-  async newDmWithIdentifier(
+  async createDmWithIdentifier(
     identifier: Identifier,
-    options?: SafeCreateDmOptions,
+    options?: CreateDmOptions,
   ) {
-    const conversation = await this.#client.sendMessage(
-      "conversations.newDmWithIdentifier",
+    const conversation = await this.#worker.action(
+      "conversations.createDmWithIdentifier",
       {
         identifier,
         options,
       },
     );
 
-    return new Dm(this.#client, conversation.id, conversation);
+    return new Dm<ContentTypes>(
+      this.#worker,
+      this.#codecRegistry,
+      conversation.id,
+      conversation,
+    );
   }
 
   /**
@@ -282,22 +340,27 @@ export class Conversations<ContentTypes = unknown> {
    * @param options - Optional DM creation options
    * @returns Promise that resolves with the new DM
    */
-  async newDm(inboxId: string, options?: SafeCreateDmOptions) {
-    const conversation = await this.#client.sendMessage("conversations.newDm", {
+  async createDm(inboxId: string, options?: CreateDmOptions) {
+    const conversation = await this.#worker.action("conversations.createDm", {
       inboxId,
       options,
     });
 
-    return new Dm(this.#client, conversation.id, conversation);
+    return new Dm<ContentTypes>(
+      this.#worker,
+      this.#codecRegistry,
+      conversation.id,
+      conversation,
+    );
   }
 
   /**
-   * Retrieves HMAC keys for all conversations
+   * Gets the HMAC keys for all conversations
    *
    * @returns Promise that resolves with the HMAC keys for all conversations
    */
-  async getHmacKeys() {
-    return this.#client.sendMessage("conversations.getHmacKeys", undefined);
+  async hmacKeys() {
+    return this.#worker.action("conversations.hmacKeys");
   }
 
   /**
@@ -320,18 +383,18 @@ export class Conversations<ContentTypes = unknown> {
       callback: StreamCallback<SafeConversation>,
       onFail: () => void,
     ) => {
-      const streamId = v4();
+      const streamId = uuid();
       if (!options?.disableSync) {
         // sync the conversation
         await this.sync();
       }
       // start the stream
-      await this.#client.sendMessage("conversations.stream", {
+      await this.#worker.action("conversations.stream", {
         streamId,
         conversationType: options?.conversationType,
       });
       // handle stream messages
-      return this.#client.handleStreamMessage<SafeConversation, T>(
+      return this.#worker.handleStreamMessage<SafeConversation, T>(
         streamId,
         callback,
         {
@@ -341,9 +404,26 @@ export class Conversations<ContentTypes = unknown> {
       );
     };
     const convertConversation = (value: SafeConversation) => {
-      return value.metadata.conversationType === "group"
-        ? (new Group(this.#client, value.id, value) as T)
-        : (new Dm(this.#client, value.id, value) as T);
+      switch (value.metadata.conversationType) {
+        case ConversationType.Group:
+          return new Group<ContentTypes>(
+            this.#worker,
+            this.#codecRegistry,
+            value.id,
+            value,
+          ) as T;
+        case ConversationType.Dm:
+          return new Dm<ContentTypes>(
+            this.#worker,
+            this.#codecRegistry,
+            value.id,
+            value,
+          ) as T;
+        default:
+          throw new Error(
+            `Unknown conversation type: ${value.metadata.conversationType}`,
+          );
+      }
     };
 
     return createStream(stream, convertConversation, options);
@@ -386,37 +466,40 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new messages
    */
   async streamAllMessages(
-    options?: StreamOptions<SafeMessage, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<
+      XmtpDecodedMessage,
+      DecodedMessage<ContentTypes>
+    > & {
       conversationType?: ConversationType;
       consentStates?: ConsentState[];
     },
   ) {
     const stream = async (
-      callback: StreamCallback<SafeMessage>,
+      callback: StreamCallback<XmtpDecodedMessage>,
       onFail: () => void,
     ) => {
-      const streamId = v4();
+      const streamId = uuid();
       if (!options?.disableSync) {
         // sync the conversation
         await this.sync();
       }
       // start the stream
-      await this.#client.sendMessage("conversations.streamAllMessages", {
+      await this.#worker.action("conversations.streamAllMessages", {
         streamId,
         conversationType: options?.conversationType,
         consentStates: options?.consentStates,
       });
       // handle stream messages
-      return this.#client.handleStreamMessage<
-        SafeMessage,
+      return this.#worker.handleStreamMessage<
+        XmtpDecodedMessage,
         DecodedMessage<ContentTypes>
       >(streamId, callback, {
         ...options,
         onFail,
       });
     };
-    const convertMessage = (value: SafeMessage) => {
-      return new DecodedMessage(this.#client, value);
+    const convertMessage = (value: XmtpDecodedMessage) => {
+      return new DecodedMessage<ContentTypes>(this.#codecRegistry, value);
     };
 
     return createStream(stream, convertMessage, options);
@@ -430,7 +513,10 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new group messages
    */
   async streamAllGroupMessages(
-    options?: StreamOptions<SafeMessage, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<
+      XmtpDecodedMessage,
+      DecodedMessage<ContentTypes>
+    > & {
       consentStates?: ConsentState[];
     },
   ) {
@@ -448,7 +534,10 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Stream instance for new DM messages
    */
   async streamAllDmMessages(
-    options?: StreamOptions<SafeMessage, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<
+      XmtpDecodedMessage,
+      DecodedMessage<ContentTypes>
+    > & {
       consentStates?: ConsentState[];
     },
   ) {
@@ -477,13 +566,13 @@ export class Conversations<ContentTypes = unknown> {
     >,
   ) {
     const stream = async (callback: StreamCallback<string>) => {
-      const streamId = v4();
+      const streamId = uuid();
       // start the stream
-      await this.#client.sendMessage("conversations.streamMessageDeletions", {
+      await this.#worker.action("conversations.streamMessageDeletions", {
         streamId,
       });
       // handle stream messages
-      return this.#client.handleStreamMessage<string>(
+      return this.#worker.handleStreamMessage<string>(
         streamId,
         callback,
         options,

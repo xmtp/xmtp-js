@@ -1,72 +1,85 @@
-import type { ConsentEntityType, UserPreference } from "@xmtp/wasm-bindings";
-import { v4 } from "uuid";
-import type { SafeConsent } from "@/utils/conversions";
+import type {
+  Consent,
+  ConsentEntityType,
+  ConsentState,
+  UserPreferenceUpdate,
+} from "@xmtp/wasm-bindings";
+import type { ClientWorkerAction } from "@/types/actions";
 import {
   createStream,
   type StreamCallback,
   type StreamOptions,
 } from "@/utils/streams";
-import type { Client } from "./Client";
+import { uuid } from "@/utils/uuid";
+import type { WorkerBridge } from "@/utils/WorkerBridge";
 
 /**
  * Manages user preferences and consent states
  *
  * This class is not intended to be initialized directly.
  */
-export class Preferences<ContentTypes = unknown> {
-  #client: Client<ContentTypes>;
+export class Preferences {
+  #worker: WorkerBridge<ClientWorkerAction>;
 
   /**
    * Creates a new preferences instance
    *
    * @param client - The client instance managing preferences
    */
-  constructor(client: Client<ContentTypes>) {
-    this.#client = client;
+  constructor(worker: WorkerBridge<ClientWorkerAction>) {
+    this.#worker = worker;
   }
 
   sync() {
-    return this.#client.sendMessage("preferences.sync", undefined);
+    return this.#worker.action("preferences.sync");
   }
 
   /**
-   * Retrieves the current inbox state
+   * Retrieves the current inbox state of this client from the local database
    *
-   * @param refreshFromNetwork - Optional flag to force refresh from network
    * @returns Promise that resolves with the inbox state
    */
-  async inboxState(refreshFromNetwork?: boolean) {
-    return this.#client.sendMessage("preferences.inboxState", {
-      refreshFromNetwork: refreshFromNetwork ?? false,
+  async inboxState() {
+    return this.#worker.action("preferences.inboxState", {
+      refreshFromNetwork: false,
     });
   }
 
   /**
-   * Retrieves inbox state for specific inbox IDs
+   * Retrieves the latest inbox state of this client from the network
+   *
+   * @returns Promise that resolves with the inbox state
+   */
+  async fetchInboxState() {
+    return this.#worker.action("preferences.inboxState", {
+      refreshFromNetwork: true,
+    });
+  }
+
+  /**
+   * Retrieves the current inbox states for specified inbox IDs from the local
+   * database
    *
    * @param inboxIds - Array of inbox IDs to get state for
-   * @param refreshFromNetwork - Optional flag to force refresh from network
-   * @returns Promise that resolves with the inbox state for the inbox IDs
+   * @returns Promise that resolves with the inbox states for the inbox IDs
    */
-  async inboxStateFromInboxIds(
-    inboxIds: string[],
-    refreshFromNetwork?: boolean,
-  ) {
-    return this.#client.sendMessage("preferences.inboxStateFromInboxIds", {
+  async getInboxStates(inboxIds: string[]) {
+    return this.#worker.action("preferences.getInboxStates", {
       inboxIds,
-      refreshFromNetwork: refreshFromNetwork ?? false,
+      refreshFromNetwork: false,
     });
   }
 
   /**
-   * Gets the latest inbox state for a specific inbox
+   * Retrieves the latest inbox states for specified inbox IDs from the network
    *
-   * @param inboxId - The inbox ID to get state for
-   * @returns Promise that resolves with the latest inbox state
+   * @param inboxIds - Array of inbox IDs to get state for
+   * @returns Promise that resolves with the inbox states for the inbox IDs
    */
-  async getLatestInboxState(inboxId: string) {
-    return this.#client.sendMessage("preferences.getLatestInboxState", {
-      inboxId,
+  async fetchInboxStates(inboxIds: string[]) {
+    return this.#worker.action("preferences.getInboxStates", {
+      inboxIds,
+      refreshFromNetwork: true,
     });
   }
 
@@ -76,8 +89,8 @@ export class Preferences<ContentTypes = unknown> {
    * @param records - Array of consent records to update
    * @returns Promise that resolves when consent states are updated
    */
-  async setConsentStates(records: SafeConsent[]) {
-    return this.#client.sendMessage("preferences.setConsentStates", {
+  async setConsentStates(records: Consent[]) {
+    return this.#worker.action("preferences.setConsentStates", {
       records,
     });
   }
@@ -89,8 +102,11 @@ export class Preferences<ContentTypes = unknown> {
    * @param entity - Entity identifier
    * @returns Promise that resolves with the consent state
    */
-  async getConsentState(entityType: ConsentEntityType, entity: string) {
-    return this.#client.sendMessage("preferences.getConsentState", {
+  async getConsentState(
+    entityType: ConsentEntityType,
+    entity: string,
+  ): Promise<ConsentState> {
+    return this.#worker.action("preferences.getConsentState", {
       entityType,
       entity,
     });
@@ -102,27 +118,25 @@ export class Preferences<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @returns Stream instance for consent updates
    */
-  async streamConsent(options?: StreamOptions<SafeConsent[]>) {
+  async streamConsent(options?: StreamOptions<Consent[]>) {
     const stream = async (
-      callback: StreamCallback<SafeConsent[]>,
+      callback: StreamCallback<Consent[]>,
       onFail: () => void,
     ) => {
-      const streamId = v4();
+      const streamId = uuid();
       // sync the conversation
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       // start the stream
-      await this.#client.sendMessage("preferences.streamConsent", {
+      await this.#worker.action("preferences.streamConsent", {
         streamId,
       });
       // handle stream messages
-      return this.#client.handleStreamMessage<SafeConsent[]>(
-        streamId,
-        callback,
-        {
-          ...options,
-          onFail,
-        },
-      );
+      return this.#worker.handleStreamMessage<Consent[]>(streamId, callback, {
+        ...options,
+        onFail,
+      });
     };
 
     return createStream(stream, undefined, options);
@@ -134,20 +148,22 @@ export class Preferences<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @returns Stream instance for preference updates
    */
-  async streamPreferences(options?: StreamOptions<UserPreference[]>) {
+  async streamPreferences(options?: StreamOptions<UserPreferenceUpdate[]>) {
     const stream = async (
-      callback: StreamCallback<UserPreference[]>,
+      callback: StreamCallback<UserPreferenceUpdate[]>,
       onFail: () => void,
     ) => {
-      const streamId = v4();
+      const streamId = uuid();
       // sync the conversation
-      await this.sync();
+      if (!options?.disableSync) {
+        await this.sync();
+      }
       // start the stream
-      await this.#client.sendMessage("preferences.streamPreferences", {
+      await this.#worker.action("preferences.streamPreferences", {
         streamId,
       });
       // handle stream messages
-      return this.#client.handleStreamMessage<UserPreference[]>(
+      return this.#worker.handleStreamMessage<UserPreferenceUpdate[]>(
         streamId,
         callback,
         {

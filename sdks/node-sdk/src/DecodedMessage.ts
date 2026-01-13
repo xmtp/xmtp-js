@@ -1,97 +1,186 @@
-import { ContentTypeId } from "@xmtp/content-type-primitives";
+import { contentTypeToString } from "@xmtp/content-type-primitives";
 import {
-  DeliveryStatus,
-  GroupMessageKind,
-  type Message,
+  DecodedMessageContentType,
+  type ContentTypeId,
+  type DecodedMessageContent,
+  type DeliveryStatus,
+  type EncodedContent,
+  type EnrichedReply,
+  type GroupMessageKind,
+  type Reaction,
+  type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/node-bindings";
-import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { nsToDate } from "@/utils/date";
 
-export type MessageKind = "application" | "membership_change";
-export type MessageDeliveryStatus = "unpublished" | "published" | "failed";
+const getContentFromDecodedMessageContent = <T = unknown>(
+  content: DecodedMessageContent,
+): T => {
+  switch (content.type) {
+    case DecodedMessageContentType.Text: {
+      return content.text as T;
+    }
+    case DecodedMessageContentType.Markdown: {
+      return content.markdown as T;
+    }
+    case DecodedMessageContentType.Reply: {
+      return content.reply as T;
+    }
+    case DecodedMessageContentType.Reaction: {
+      return content.reaction as T;
+    }
+    case DecodedMessageContentType.Attachment: {
+      return content.attachment as T;
+    }
+    case DecodedMessageContentType.RemoteAttachment: {
+      return content.remoteAttachment as T;
+    }
+    case DecodedMessageContentType.MultiRemoteAttachment: {
+      return content.multiRemoteAttachment as T;
+    }
+    case DecodedMessageContentType.TransactionReference: {
+      return content.transactionReference as T;
+    }
+    case DecodedMessageContentType.GroupUpdated: {
+      return content.groupUpdated as T;
+    }
+    case DecodedMessageContentType.ReadReceipt: {
+      return content.readReceipt as T;
+    }
+    case DecodedMessageContentType.LeaveRequest: {
+      return content.leaveRequest as T;
+    }
+    case DecodedMessageContentType.WalletSendCalls: {
+      return content.walletSendCalls as T;
+    }
+    case DecodedMessageContentType.Actions: {
+      return content.actions as T;
+    }
+    case DecodedMessageContentType.Intent: {
+      return content.intent as T;
+    }
+    case DecodedMessageContentType.Custom: {
+      return content.custom as T;
+    }
+    default:
+      content.type satisfies never;
+      return null as T;
+  }
+};
 
 /**
  * Represents a decoded XMTP message
  *
- * This class transforms network messages into a structured format with
- * content decoding.
- *
  * @class
- * @property {any} content - The decoded content of the message
+ * @property {unknown} content - The decoded content of the message
  * @property {ContentTypeId} contentType - The content type of the message content
  * @property {string} conversationId - Unique identifier for the conversation
  * @property {MessageDeliveryStatus} deliveryStatus - Current delivery status of the message ("unpublished" | "published" | "failed")
+ * @property {bigint} expiresAtNs - Timestamp when the message will expire (in nanoseconds)
+ * @property {Date} expiresAt - Timestamp when the message will expire
  * @property {string} [fallback] - Optional fallback text for the message
- * @property {number} [compression] - Optional compression level applied to the message
  * @property {string} id - Unique identifier for the message
  * @property {MessageKind} kind - Type of message ("application" | "membership_change")
- * @property {Record<string, string>} parameters - Additional parameters associated with the message
+ * @property {number} numReplies - Number of replies to the message
+ * @property {DecodedMessage<Reaction>[]} reactions - Reactions to the message
  * @property {string} senderInboxId - Identifier for the sender's inbox
  * @property {Date} sentAt - Timestamp when the message was sent
- * @property {number} sentAtNs - Timestamp when the message was sent (in nanoseconds)
+ * @property {bigint} sentAtNs - Timestamp when the message was sent (in nanoseconds)
  */
 export class DecodedMessage<ContentTypes = unknown> {
-  #client: Client<ContentTypes>;
   content: ContentTypes | undefined;
-  contentType: ContentTypeId | undefined;
+  contentType: ContentTypeId;
   conversationId: string;
-  deliveryStatus: MessageDeliveryStatus;
+  deliveryStatus: DeliveryStatus;
+  expiresAtNs?: bigint;
+  expiresAt?: Date;
   fallback?: string;
-  compression?: number;
   id: string;
-  kind: MessageKind;
-  parameters: Record<string, string>;
+  kind: GroupMessageKind;
+  numReplies: number;
+  reactions: DecodedMessage<Reaction>[];
   senderInboxId: string;
   sentAt: Date;
-  sentAtNs: number;
+  sentAtNs: bigint;
 
-  constructor(client: Client<ContentTypes>, message: Message) {
-    this.#client = client;
+  constructor(codecRegistry: CodecRegistry, message: XmtpDecodedMessage) {
     this.id = message.id;
+    this.expiresAtNs = message.expiresAtNs ?? undefined;
+    this.expiresAt = message.expiresAtNs
+      ? nsToDate(message.expiresAtNs)
+      : undefined;
     this.sentAtNs = message.sentAtNs;
     this.sentAt = nsToDate(message.sentAtNs);
-    this.conversationId = message.convoId;
+    this.conversationId = message.conversationId;
     this.senderInboxId = message.senderInboxId;
+    this.contentType = message.contentType;
+    this.fallback = message.fallback ?? undefined;
+    this.kind = message.kind;
+    this.deliveryStatus = message.deliveryStatus;
 
-    switch (message.kind) {
-      case GroupMessageKind.Application:
-        this.kind = "application";
-        break;
-      case GroupMessageKind.MembershipChange:
-        this.kind = "membership_change";
-        break;
-      // no default
-    }
+    this.numReplies = message.numReplies;
+    this.reactions = message.reactions.map(
+      (reaction) => new DecodedMessage<Reaction>(codecRegistry, reaction),
+    );
 
-    switch (message.deliveryStatus) {
-      case DeliveryStatus.Unpublished:
-        this.deliveryStatus = "unpublished";
-        break;
-      case DeliveryStatus.Published:
-        this.deliveryStatus = "published";
-        break;
-      case DeliveryStatus.Failed:
-        this.deliveryStatus = "failed";
-        break;
-      // no default
-    }
+    this.content =
+      getContentFromDecodedMessageContent<ContentTypes>(message.content) ??
+      undefined;
 
-    this.contentType = message.content.type
-      ? new ContentTypeId(message.content.type)
-      : undefined;
-    this.parameters = message.content.parameters;
-    this.fallback = message.content.fallback;
-    this.compression = message.content.compression;
-    this.content = undefined;
-
-    if (this.contentType) {
-      try {
-        this.content = this.#client.decodeContent<ContentTypes>(
-          message,
-          this.contentType,
+    switch (message.content.type) {
+      case DecodedMessageContentType.Reply: {
+        const reply = message.content.reply as EnrichedReply;
+        let replyContent = getContentFromDecodedMessageContent<ContentTypes>(
+          reply.content,
         );
-      } catch {
-        this.content = undefined;
+        if (reply.content.type === DecodedMessageContentType.Custom) {
+          const codec = codecRegistry.getCodec<ContentTypes>(
+            reply.content.custom?.type as ContentTypeId,
+          );
+          if (codec) {
+            try {
+              replyContent = codec.decode(replyContent as EncodedContent);
+            } catch (error) {
+              if (error instanceof Error) {
+                console.warn(`Error decoding custom content: ${error.message}`);
+              } else {
+                console.warn(`Error decoding custom content`);
+              }
+            }
+          }
+        }
+        this.content = {
+          referenceId: reply.referenceId,
+          content: replyContent,
+          inReplyTo: reply.inReplyTo
+            ? new DecodedMessage<ContentTypes>(codecRegistry, reply.inReplyTo)
+            : null,
+        } as ContentTypes;
+        break;
+      }
+      case DecodedMessageContentType.Custom: {
+        const customContent = message.content.custom;
+        if (customContent !== null) {
+          const codec = codecRegistry.getCodec<ContentTypes>(this.contentType);
+          if (codec) {
+            try {
+              this.content = codec.decode(customContent);
+            } catch (error) {
+              if (error instanceof Error) {
+                console.warn(`Error decoding custom content: ${error.message}`);
+              } else {
+                console.warn(`Error decoding custom content`);
+              }
+              this.content = undefined;
+            }
+          } else {
+            console.warn(
+              `No codec found for content type "${contentTypeToString(this.contentType)}"`,
+            );
+            this.content = undefined;
+          }
+        }
+        break;
       }
     }
   }

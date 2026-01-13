@@ -6,22 +6,24 @@ import type { DmAction } from "@/types/actions/dm";
 import type { GroupAction } from "@/types/actions/group";
 import type { PreferencesAction } from "@/types/actions/preferences";
 
-type UnknownAction = {
+export type UnknownAction = {
   action: string;
   id: string;
   result: unknown;
   data: unknown;
 };
 
+export type EndStreamAction = {
+  action: "endStream";
+  id: string;
+  result: undefined;
+  data: {
+    streamId: string;
+  };
+};
+
 export type ClientWorkerAction =
-  | {
-      action: "endStream";
-      id: string;
-      result: undefined;
-      data: {
-        streamId: string;
-      };
-    }
+  | EndStreamAction
   | ClientAction
   | ConversationAction
   | ConversationsAction

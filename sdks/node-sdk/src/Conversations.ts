@@ -10,6 +10,7 @@ import {
   type Conversations as XmtpConversations,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
+import type { CodecRegistry } from "@/CodecRegistry";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
 import { Group } from "@/Group";
@@ -26,16 +27,23 @@ import {
  */
 export class Conversations<ContentTypes = unknown> {
   #client: Client<ContentTypes>;
+  #codecRegistry: CodecRegistry;
   #conversations: XmtpConversations;
 
   /**
    * Creates a new conversations instance
    *
    * @param client - The client instance managing the conversations
+   * @param codecRegistry - The codec registry instance
    * @param conversations - The underlying conversations instance
    */
-  constructor(client: Client<ContentTypes>, conversations: XmtpConversations) {
+  constructor(
+    client: Client<ContentTypes>,
+    codecRegistry: CodecRegistry,
+    conversations: XmtpConversations,
+  ) {
     this.#client = client;
+    this.#codecRegistry = codecRegistry;
     this.#conversations = conversations;
   }
 
@@ -51,9 +59,18 @@ export class Conversations<ContentTypes = unknown> {
       // findGroupById will throw if group is not found
       const group = this.#conversations.findGroupById(id);
       const metadata = await group.groupMetadata();
-      return metadata.conversationType() === "group"
-        ? new Group(this.#client, group)
-        : new Dm(this.#client, group);
+      switch (metadata.conversationType()) {
+        case ConversationType.Group:
+          return new Group<ContentTypes>(
+            this.#client,
+            this.#codecRegistry,
+            group,
+          );
+        case ConversationType.Dm:
+          return new Dm<ContentTypes>(this.#client, this.#codecRegistry, group);
+        default:
+          return undefined;
+      }
     } catch {
       return undefined;
     }
@@ -70,7 +87,7 @@ export class Conversations<ContentTypes = unknown> {
     try {
       // findDmByTargetInboxId will throw if group is not found
       const group = this.#conversations.findDmByTargetInboxId(inboxId);
-      return new Dm(this.#client, group);
+      return new Dm<ContentTypes>(this.#client, this.#codecRegistry, group);
     } catch {
       return undefined;
     }
@@ -83,8 +100,8 @@ export class Conversations<ContentTypes = unknown> {
    * @returns Promise that resolves with the DM, if found
    * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#conversation-helper-methods
    */
-  async getDmByIdentifier(identifier: Identifier) {
-    const inboxId = await this.#client.getInboxIdByIdentifier(identifier);
+  async fetchDmByIdentifier(identifier: Identifier) {
+    const inboxId = await this.#client.fetchInboxIdByIdentifier(identifier);
     if (!inboxId) {
       return undefined;
     }
@@ -100,24 +117,24 @@ export class Conversations<ContentTypes = unknown> {
    */
   getMessageById(id: string) {
     try {
-      // findMessageById will throw if message is not found
-      const message = this.#conversations.findMessageById(id);
-      return new DecodedMessage(this.#client, message);
+      // findEnrichedMessageById will throw if message is not found
+      const message = this.#conversations.findEnrichedMessageById(id);
+      return new DecodedMessage<ContentTypes>(this.#codecRegistry, message);
     } catch {
       return undefined;
     }
   }
 
   /**
-   * Creates a new group conversation without syncing to the network
+   * Creates a new group conversation without publishing to the network
    *
    * @param options - Optional group creation options
    * @returns The new group
    * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#optimistically-create-a-new-group-chat
    */
-  newGroupOptimistic(options?: CreateGroupOptions) {
+  createGroupOptimistic(options?: CreateGroupOptions) {
     const group = this.#conversations.createGroupOptimistic(options);
-    return new Group(this.#client, group);
+    return new Group<ContentTypes>(this.#client, this.#codecRegistry, group);
   }
 
   /**
@@ -128,12 +145,16 @@ export class Conversations<ContentTypes = unknown> {
    * @returns The new group
    * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#create-a-new-group-chat
    */
-  async newGroupWithIdentifiers(
+  async createGroupWithIdentifiers(
     identifiers: Identifier[],
     options?: CreateGroupOptions,
   ) {
     const group = await this.#conversations.createGroup(identifiers, options);
-    const conversation = new Group(this.#client, group);
+    const conversation = new Group<ContentTypes>(
+      this.#client,
+      this.#codecRegistry,
+      group,
+    );
     return conversation;
   }
 
@@ -145,12 +166,16 @@ export class Conversations<ContentTypes = unknown> {
    * @returns The new group
    * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#create-a-new-group-chat
    */
-  async newGroup(inboxIds: string[], options?: CreateGroupOptions) {
+  async createGroup(inboxIds: string[], options?: CreateGroupOptions) {
     const group = await this.#conversations.createGroupByInboxId(
       inboxIds,
       options,
     );
-    const conversation = new Group(this.#client, group);
+    const conversation = new Group<ContentTypes>(
+      this.#client,
+      this.#codecRegistry,
+      group,
+    );
     return conversation;
   }
 
@@ -162,9 +187,16 @@ export class Conversations<ContentTypes = unknown> {
    * @returns The new DM
    * @see https://docs.xmtp.org/agents/build-agents/create-conversations#by-ethereum-address-1
    */
-  async newDmWithIdentifier(identifier: Identifier, options?: CreateDmOptions) {
+  async createDmWithIdentifier(
+    identifier: Identifier,
+    options?: CreateDmOptions,
+  ) {
     const group = await this.#conversations.createDm(identifier, options);
-    const conversation = new Dm(this.#client, group);
+    const conversation = new Dm<ContentTypes>(
+      this.#client,
+      this.#codecRegistry,
+      group,
+    );
     return conversation;
   }
 
@@ -176,9 +208,13 @@ export class Conversations<ContentTypes = unknown> {
    * @returns The new DM
    * @see https://docs.xmtp.org/agents/build-agents/create-conversations#by-inbox-id-1
    */
-  async newDm(inboxId: string, options?: CreateDmOptions) {
+  async createDm(inboxId: string, options?: CreateDmOptions) {
     const group = await this.#conversations.createDmByInboxId(inboxId, options);
-    const conversation = new Dm(this.#client, group);
+    const conversation = new Dm<ContentTypes>(
+      this.#client,
+      this.#codecRegistry,
+      group,
+    );
     return conversation;
   }
 
@@ -196,17 +232,17 @@ export class Conversations<ContentTypes = unknown> {
         const metadata = await item.conversation.groupMetadata();
         const conversationType = metadata.conversationType();
         switch (conversationType) {
-          case "dm":
-            return new Dm(
+          case ConversationType.Dm:
+            return new Dm<ContentTypes>(
               this.#client,
+              this.#codecRegistry,
               item.conversation,
-              item.isCommitLogForked,
             );
-          case "group":
-            return new Group(
+          case ConversationType.Group:
+            return new Group<ContentTypes>(
               this.#client,
+              this.#codecRegistry,
               item.conversation,
-              item.isCommitLogForked,
             );
           default:
             return undefined;
@@ -229,10 +265,10 @@ export class Conversations<ContentTypes = unknown> {
       conversationType: ConversationType.Group,
     });
     return groups.map((item) => {
-      const conversation = new Group(
+      const conversation = new Group<ContentTypes>(
         this.#client,
+        this.#codecRegistry,
         item.conversation,
-        item.isCommitLogForked,
       );
       return conversation;
     });
@@ -251,10 +287,10 @@ export class Conversations<ContentTypes = unknown> {
       conversationType: ConversationType.Dm,
     });
     return groups.map((item) => {
-      const conversation = new Dm(
+      const conversation = new Dm<ContentTypes>(
         this.#client,
+        this.#codecRegistry,
         item.conversation,
-        item.isCommitLogForked,
       );
       return conversation;
     });
@@ -316,11 +352,19 @@ export class Conversations<ContentTypes = unknown> {
       const conversationType = metadata.conversationType();
       let conversation: Group<ContentTypes> | Dm<ContentTypes> | undefined;
       switch (conversationType) {
-        case "dm":
-          conversation = new Dm(this.#client, value);
+        case ConversationType.Dm:
+          conversation = new Dm<ContentTypes>(
+            this.#client,
+            this.#codecRegistry,
+            value,
+          );
           break;
-        case "group":
-          conversation = new Group(this.#client, value);
+        case ConversationType.Group:
+          conversation = new Group<ContentTypes>(
+            this.#client,
+            this.#codecRegistry,
+            value,
+          );
           break;
       }
       return conversation;
@@ -353,7 +397,7 @@ export class Conversations<ContentTypes = unknown> {
       );
     };
     const convertConversation = (value: Conversation) => {
-      return new Group(this.#client, value);
+      return new Group<ContentTypes>(this.#client, this.#codecRegistry, value);
     };
 
     return createStream(stream, convertConversation, options);
@@ -377,7 +421,7 @@ export class Conversations<ContentTypes = unknown> {
       return this.#conversations.stream(callback, onFail, ConversationType.Dm);
     };
     const convertConversation = (value: Conversation) => {
-      return new Dm(this.#client, value);
+      return new Dm<ContentTypes>(this.#client, this.#codecRegistry, value);
     };
 
     return createStream(stream, convertConversation, options);
@@ -393,7 +437,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
       conversationType?: ConversationType;
       consentStates?: ConsentState[];
     },
@@ -413,7 +457,8 @@ export class Conversations<ContentTypes = unknown> {
       );
     };
     const convertMessage = (value: Message) => {
-      return new DecodedMessage(this.#client, value);
+      const enrichedMessage = this.getMessageById(value.id);
+      return enrichedMessage ?? value;
     };
 
     return createStream(streamAllMessages, convertMessage, options);
@@ -428,7 +473,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllGroupMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
       consentStates?: ConsentState[];
     },
   ) {
@@ -448,7 +493,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllDmMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
       consentStates?: ConsentState[];
     },
   ) {
@@ -487,7 +532,7 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
-   * Retrieves HMAC keys for all conversations
+   * Gets the HMAC keys for all conversations
    *
    * @returns The HMAC keys for all conversations
    * @see https://docs.xmtp.org/chat-apps/push-notifs/push-notifs#get-hmac-keys-for-a-conversation
