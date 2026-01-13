@@ -11,7 +11,7 @@ import { ContentLayout } from "@/layouts/ContentLayout";
 import { useActions } from "@/stores/inbox/hooks";
 
 export const CreateDmModal: React.FC = () => {
-  const { newDm } = useConversations();
+  const { createDm } = useConversations();
   const { addConversation } = useActions();
   const [loading, setLoading] = useState(false);
   const {
@@ -33,14 +33,14 @@ export const CreateDmModal: React.FC = () => {
     setLoading(true);
 
     try {
-      const conversation = await newDm(inboxId);
+      const conversation = await createDm(inboxId);
       // ensure conversation is added to store so navigation works
       await addConversation(conversation);
       void navigate(`/${environment}/conversations/${conversation.id}`);
     } finally {
       setLoading(false);
     }
-  }, [newDm, addConversation, navigate, inboxId, environment]);
+  }, [createDm, addConversation, navigate, inboxId, environment]);
 
   const footer = useMemo(() => {
     return (

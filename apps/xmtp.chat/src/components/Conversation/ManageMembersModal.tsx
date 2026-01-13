@@ -1,5 +1,5 @@
 import { Button, Group } from "@mantine/core";
-import { Group as XmtpGroup } from "@xmtp/browser-sdk";
+import { IdentifierKind, Group as XmtpGroup } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
 import type { PendingMember } from "@/components/Conversation/AddMembers";
@@ -61,7 +61,7 @@ export const ManageMembersModal: React.FC = () => {
           await conversation.addMembersByIdentifiers(
             addedMemberAddresses.map((member) => ({
               identifier: member.address.toLowerCase(),
-              identifierKind: "Ethereum",
+              identifierKind: IdentifierKind.Ethereum,
             })),
           );
           hasUpdated = true;

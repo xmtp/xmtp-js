@@ -2,10 +2,12 @@ import { Badge, Box, Group, Text } from "@mantine/core";
 import { useCallback, useEffect, useRef } from "react";
 import { ConversationsList } from "@/components/Conversations/ConversationList";
 import { ConversationsMenu } from "@/components/Conversations/ConversationsMenu";
+import { useClient } from "@/contexts/XMTPContext";
 import { useConversations } from "@/hooks/useConversations";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const ConversationsNavbar: React.FC = () => {
+  const client = useClient();
   const {
     sync,
     loading,
@@ -42,6 +44,10 @@ export const ConversationsNavbar: React.FC = () => {
     await startStreams();
   }, [syncAll, startStreams, stopStreams]);
 
+  const handleSendSyncRequest = useCallback(async () => {
+    await client.sendSyncRequest();
+  }, [client]);
+
   // loading conversations on mount, and start streaming
   useEffect(() => {
     const loadConversations = async () => {
@@ -74,6 +80,7 @@ export const ConversationsNavbar: React.FC = () => {
       loading={conversations.length === 0 && loading}
       headerActions={
         <ConversationsMenu
+          onSendSyncRequest={() => void handleSendSyncRequest()}
           loading={syncing || loading}
           onSync={() => void handleSync()}
           onSyncAll={() => void handleSyncAll()}

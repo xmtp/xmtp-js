@@ -7,7 +7,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { Client, type SafeInstallation, type Signer } from "@xmtp/browser-sdk";
+import { Client, type Installation, type Signer } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { Outlet } from "react-router";
 import { useSignMessage } from "wagmi";
@@ -39,7 +39,7 @@ export const InboxTools: React.FC = () => {
     setMemberId,
     error: memberIdError,
   } = useMemberId();
-  const [installations, setInstallations] = useState<SafeInstallation[]>([]);
+  const [installations, setInstallations] = useState<Installation[]>([]);
   const [selectedInstallationIds, setSelectedInstallationIds] = useState<
     string[]
   >([]);
@@ -61,10 +61,7 @@ export const InboxTools: React.FC = () => {
     setInstallations([]);
     setSelectedInstallationIds([]);
     try {
-      const inboxState = await Client.inboxStateFromInboxIds(
-        [inboxId],
-        environment,
-      );
+      const inboxState = await Client.fetchInboxStates([inboxId], environment);
       setInstallations(
         inboxState[0].installations.sort(
           (a, b) =>

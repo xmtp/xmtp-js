@@ -1,13 +1,10 @@
-import { PermissionPolicy } from "@xmtp/browser-sdk";
+import { PermissionLevel, PermissionPolicy } from "@xmtp/browser-sdk";
 import { useMemo } from "react";
 import { useClient } from "@/contexts/XMTPContext";
 import { useConversation } from "@/hooks/useConversation";
 
-// TODO: remove this once types are fixed
-export type AdjustedPermissionLevel = "SuperAdmin" | "Admin" | "Member";
-
 const hasPermission = (
-  permissionLevel: AdjustedPermissionLevel,
+  permissionLevel: PermissionLevel,
   policy?: PermissionPolicy,
 ) => {
   if (
@@ -23,10 +20,10 @@ const hasPermission = (
   }
 
   switch (permissionLevel) {
-    case "SuperAdmin":
+    case PermissionLevel.SuperAdmin:
       // super admin can do anything
       return true;
-    case "Admin":
+    case PermissionLevel.Admin:
       return policy === PermissionPolicy.Admin;
     default:
       return false;
@@ -51,16 +48,12 @@ export const useClientPermissions = (
   const { permissions, members } = useConversation(conversationId);
   const client = useClient();
 
-  const clientPermissionLevel: AdjustedPermissionLevel = useMemo(() => {
+  const clientPermissionLevel: PermissionLevel = useMemo(() => {
     if (client.inboxId) {
       const member = members.get(client.inboxId);
-      // TODO: remove this once the types are fixed
-      const level = member?.permissionLevel as unknown as
-        | AdjustedPermissionLevel
-        | undefined;
-      return level ?? "Member";
+      return member?.permissionLevel ?? PermissionLevel.Member;
     }
-    return "Member";
+    return PermissionLevel.Member;
   }, [members, client.inboxId]);
 
   return useMemo(() => {
@@ -97,7 +90,8 @@ export const useClientPermissions = (
         clientPermissionLevel,
         permissions?.policySet.updateMessageDisappearingPolicy,
       ),
-      canChangePermissionsPolicy: clientPermissionLevel === "SuperAdmin",
+      canChangePermissionsPolicy:
+        clientPermissionLevel === PermissionLevel.SuperAdmin,
     };
   }, [clientPermissionLevel, permissions]);
 };

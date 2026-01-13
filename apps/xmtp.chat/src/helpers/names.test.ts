@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { isValidName, normalizeName } from "./names";
 
-vi.mock("@xmtp/browser-sdk", () => ({
-  Utils: {},
-}));
-
 vi.mock("@/helpers/queries", () => ({
   queryClient: {},
 }));

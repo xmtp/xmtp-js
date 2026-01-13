@@ -1,7 +1,7 @@
 import { Badge, Group, Text } from "@mantine/core";
+import type { Intent } from "@xmtp/browser-sdk";
 import { DateLabel } from "@/components/DateLabel";
 import { IdentityBadge } from "@/components/IdentityBadge";
-import type { Intent } from "@/content-types/Intent";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
 import { MEMBER_NO_LONGER_IN_GROUP } from "@/helpers/strings";

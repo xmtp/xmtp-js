@@ -1,3 +1,4 @@
+import { IdentifierKind } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
@@ -60,9 +61,9 @@ export const LoadDM: React.FC = () => {
         }
 
         setMessage("Verifying address...");
-        const inboxId = await client.findInboxIdByIdentifier({
+        const inboxId = await client.fetchInboxIdByIdentifier({
           identifier: resolvedAddress,
-          identifierKind: "Ethereum",
+          identifierKind: IdentifierKind.Ethereum,
         });
 
         if (!inboxId) {
@@ -77,9 +78,9 @@ export const LoadDM: React.FC = () => {
         if (!dmId) {
           // no DM group, create it
           setMessage("Creating new DM...");
-          const newDm = await client.conversations.newDmWithIdentifier({
+          const newDm = await client.conversations.createDmWithIdentifier({
             identifier: resolvedAddress,
-            identifierKind: "Ethereum",
+            identifierKind: IdentifierKind.Ethereum,
           });
           dmId = newDm.id;
           // add new DM to store

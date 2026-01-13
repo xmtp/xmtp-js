@@ -1,6 +1,11 @@
-import type { ContentTypeId } from "@xmtp/content-type-primitives";
-import { useState } from "react";
-import { type ContentTypes } from "@/contexts/XMTPContext";
+import type {
+  Intent,
+  Reaction,
+  RemoteAttachment,
+  SendMessageOpts,
+} from "@xmtp/browser-sdk";
+import type { EncodedContent } from "@xmtp/content-type-primitives";
+import { useCallback, useState } from "react";
 import {
   useActions,
   useConversation as useConversationState,
@@ -57,15 +62,81 @@ export const useConversation = (conversationId: string) => {
     }
   };
 
-  const send = async (message: ContentTypes, contentType?: ContentTypeId) => {
-    setSending(true);
+  const send = useCallback(
+    async (content: EncodedContent, options?: SendMessageOpts) => {
+      setSending(true);
 
-    try {
-      await conversation.send(message, contentType);
-    } finally {
-      setSending(false);
-    }
-  };
+      try {
+        await conversation.send(content, options);
+      } finally {
+        setSending(false);
+      }
+    },
+    [conversation],
+  );
+
+  const sendText = useCallback(
+    async (text: string) => {
+      setSending(true);
+
+      try {
+        await conversation.sendText(text);
+      } finally {
+        setSending(false);
+      }
+    },
+    [conversation],
+  );
+
+  type Reply = Parameters<typeof conversation.sendReply>[0];
+
+  const sendReply = useCallback(
+    async (reply: Reply) => {
+      setSending(true);
+      try {
+        await conversation.sendReply(reply);
+      } finally {
+        setSending(false);
+      }
+    },
+    [conversation],
+  );
+
+  const sendRemoteAttachment = useCallback(
+    async (remoteAttachment: RemoteAttachment) => {
+      setSending(true);
+      try {
+        await conversation.sendRemoteAttachment(remoteAttachment);
+      } finally {
+        setSending(false);
+      }
+    },
+    [conversation],
+  );
+
+  const sendIntent = useCallback(
+    async (intent: Intent) => {
+      setSending(true);
+      try {
+        await conversation.sendIntent(intent);
+      } finally {
+        setSending(false);
+      }
+    },
+    [conversation],
+  );
+
+  const sendReaction = useCallback(
+    async (reaction: Reaction) => {
+      setSending(true);
+      try {
+        await conversation.sendReaction(reaction);
+      } finally {
+        setSending(false);
+      }
+    },
+    [conversation],
+  );
 
   return {
     conversation,
@@ -77,6 +148,11 @@ export const useConversation = (conversationId: string) => {
     name,
     permissions,
     send,
+    sendText,
+    sendReply,
+    sendRemoteAttachment,
+    sendIntent,
+    sendReaction,
     sending,
     sync,
     syncing,

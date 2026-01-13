@@ -24,8 +24,8 @@ const ReplyPreviewContent: React.FC<Pick<ReplyPreviewProps, "message">> = ({
   if (isRemoteAttachment(message)) {
     return (
       <AttachmentDetails
-        filename={message.content.filename}
-        fileSize={formatFileSize(message.content.contentLength)}
+        filename={message.content?.filename ?? ""}
+        fileSize={formatFileSize(message.content?.contentLength ?? 0)}
         align="left"
       />
     );

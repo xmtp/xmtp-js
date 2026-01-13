@@ -7,16 +7,28 @@ import {
   SegmentedControl,
   TextInput,
 } from "@mantine/core";
-import type { DecodedMessage } from "@xmtp/browser-sdk";
 import {
-  ContentTypeReaction,
+  ReactionAction,
+  ReactionSchema,
+  type DecodedMessage,
   type Reaction,
-} from "@xmtp/content-type-reaction";
+} from "@xmtp/browser-sdk";
 import { useState } from "react";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { useConversation } from "@/hooks/useConversation";
 
 const EMOJIS = ["👍", "❤️", "😂", "🔥", "😮", "🙏", "🎉", "👀"];
+
+const schemaToValue = (schema: Reaction["schema"]) => {
+  switch (schema) {
+    case ReactionSchema.Unicode:
+      return "unicode";
+    case ReactionSchema.Shortcode:
+      return "shortcode";
+    default:
+      return "custom";
+  }
+};
 
 export type ReactionBarProps = {
   message: DecodedMessage;
@@ -24,23 +36,25 @@ export type ReactionBarProps = {
 
 export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
   const { conversationId } = useConversationContext();
-  const { send } = useConversation(conversationId);
+  const { sendReaction } = useConversation(conversationId);
   const [opened, setOpened] = useState(false);
-  const [schema, setSchema] = useState<Reaction["schema"]>("unicode");
+  const [schema, setSchema] = useState<Reaction["schema"]>(
+    ReactionSchema.Unicode,
+  );
   const [text, setText] = useState("");
 
-  const sendReaction = async (content: string) => {
+  const send = async (content: string) => {
     const payload: Reaction = {
-      action: "added",
+      action: ReactionAction.Added,
       reference: message.id,
       referenceInboxId: message.senderInboxId,
       schema,
       content,
     };
-    await send(payload, ContentTypeReaction);
+    await sendReaction(payload);
     setOpened(false);
     setText("");
-    setSchema("unicode");
+    setSchema(ReactionSchema.Unicode);
   };
 
   return (
@@ -57,15 +71,17 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
       </Popover.Target>
       <Popover.Dropdown p="sm">
         <SegmentedControl
-          value={schema}
+          value={schemaToValue(schema)}
           onChange={(schema: string) => {
             switch (schema) {
               case "unicode":
+                setSchema(ReactionSchema.Unicode);
+                break;
               case "shortcode":
-                setSchema(schema);
+                setSchema(ReactionSchema.Shortcode);
                 break;
               default:
-                setSchema("custom");
+                setSchema(ReactionSchema.Custom);
             }
           }}
           data={[
@@ -82,14 +98,14 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
             display: "flex",
             alignItems: "center",
           }}>
-          {schema === "unicode" ? (
+          {schema === ReactionSchema.Unicode ? (
             <Group gap={4}>
               {EMOJIS.map((emoji) => (
                 <ActionIcon
                   key={emoji}
                   size="sm"
                   variant="light"
-                  onClick={() => void sendReaction(emoji)}>
+                  onClick={() => void send(emoji)}>
                   {emoji}
                 </ActionIcon>
               ))}
@@ -101,23 +117,29 @@ export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
                 onChange={(event) => {
                   setText(event.currentTarget.value);
                 }}
-                placeholder={schema === "shortcode" ? ":xmtp:" : "Enter custom"}
+                placeholder={
+                  schema === ReactionSchema.Shortcode
+                    ? ":xmtp:"
+                    : "Enter custom"
+                }
                 size="sm"
                 style={{ width: 180 }}
                 onKeyDown={(event) => {
                   if (
                     event.key === "Enter" &&
-                    ["shortcode", "custom"].includes(schema)
+                    [ReactionSchema.Shortcode, ReactionSchema.Custom].includes(
+                      schema,
+                    )
                   ) {
                     event.preventDefault();
-                    void sendReaction(text);
+                    void send(text);
                   }
                 }}
               />
               <ActionIcon
                 size="sm"
                 variant="filled"
-                onClick={() => void sendReaction(text)}>
+                onClick={() => void send(text)}>
                 ➤
               </ActionIcon>
             </Group>

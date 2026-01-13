@@ -1,7 +1,7 @@
 import {
   type Conversation,
   type DecodedMessage,
-  type SafeGroupMember,
+  type GroupMember,
 } from "@xmtp/browser-sdk";
 import { useMemo } from "react";
 import { useStore } from "zustand";
@@ -9,7 +9,7 @@ import type { ContentTypes } from "@/contexts/XMTPContext";
 import { inboxStore, type ConversationMetadata } from "@/stores/inbox/store";
 
 const EMPTY_METADATA: ConversationMetadata = {};
-const EMPTY_MEMBERS = new Map<string, SafeGroupMember>();
+const EMPTY_MEMBERS = new Map<string, GroupMember>();
 const EMPTY_MESSAGES: DecodedMessage<ContentTypes>[] = [];
 
 export const useConversation = (

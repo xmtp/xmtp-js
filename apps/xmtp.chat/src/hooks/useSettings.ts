@@ -1,5 +1,5 @@
 import { useLocalStorage } from "@mantine/hooks";
-import { type ClientOptions, type XmtpEnv } from "@xmtp/browser-sdk";
+import { LogLevel, type ClientOptions, type XmtpEnv } from "@xmtp/browser-sdk";
 import type { Hex } from "viem";
 import type { ConnectorString } from "@/hooks/useConnectWallet";
 
@@ -31,7 +31,7 @@ export const useSettings = () => {
     ClientOptions["loggingLevel"]
   >({
     key: "XMTP_LOGGING_LEVEL",
-    defaultValue: "warn",
+    defaultValue: LogLevel.Warn,
     getInitialValueInEffect: false,
   });
   const [forceSCW, setForceSCW] = useLocalStorage<boolean>({

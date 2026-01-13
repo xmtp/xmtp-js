@@ -26,6 +26,7 @@ export const defaultPolicySet: PolicySet = {
   updateGroupDescriptionPolicy: PermissionPolicy.Allow,
   updateGroupImageUrlSquarePolicy: PermissionPolicy.Allow,
   updateMessageDisappearingPolicy: PermissionPolicy.Admin,
+  updateAppDataPolicy: PermissionPolicy.Allow,
 };
 
 export const adminPolicySet: PolicySet = {
@@ -37,6 +38,7 @@ export const adminPolicySet: PolicySet = {
   updateGroupDescriptionPolicy: PermissionPolicy.Admin,
   updateGroupImageUrlSquarePolicy: PermissionPolicy.Admin,
   updateMessageDisappearingPolicy: PermissionPolicy.Admin,
+  updateAppDataPolicy: PermissionPolicy.Admin,
 };
 
 export const processPermissionsUpdate = async (
@@ -86,7 +88,7 @@ export const processPermissionsUpdate = async (
         await conversation.updatePermission(
           PermissionUpdateType.UpdateMetadata,
           defaultPolicySet.updateGroupImageUrlSquarePolicy,
-          MetadataField.ImageUrlSquare,
+          MetadataField.GroupImageUrlSquare,
         );
         break;
       }
@@ -120,7 +122,7 @@ export const processPermissionsUpdate = async (
         await conversation.updatePermission(
           PermissionUpdateType.UpdateMetadata,
           adminPolicySet.updateGroupImageUrlSquarePolicy,
-          MetadataField.ImageUrlSquare,
+          MetadataField.GroupImageUrlSquare,
         );
       }
     }
@@ -157,7 +159,7 @@ export const processPermissionsUpdate = async (
     await conversation.updatePermission(
       PermissionUpdateType.UpdateMetadata,
       policySet.updateGroupImageUrlSquarePolicy,
-      MetadataField.ImageUrlSquare,
+      MetadataField.GroupImageUrlSquare,
     );
   }
 };
