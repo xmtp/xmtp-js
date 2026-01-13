@@ -1,4 +1,4 @@
-import { IdentifierKind, type HexString, type Signer } from "@xmtp/node-sdk";
+import { IdentifierKind, Signer, type HexString } from "@xmtp/node-sdk";
 import {
   createWalletClient,
   http,
@@ -20,9 +20,9 @@ export const createUser = (key?: HexString, chain: Chain = sepolia) => {
   });
 };
 
-export const createSigner = (
+export const createEOASigner = (
   wallet: WalletClient & { account: PrivateKeyAccount },
-): Signer => {
+): Extract<Signer, { type: "EOA" }> => {
   const identifier = {
     identifier: wallet.account.address.toLowerCase(),
     identifierKind: IdentifierKind.Ethereum,
