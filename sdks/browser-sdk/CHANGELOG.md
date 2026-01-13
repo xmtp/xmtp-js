@@ -1,5 +1,9 @@
 # @xmtp/browser-sdk
 
+## 6.0.1
+
+Fixed reply content type exports
+
 ## 6.0.0
 
 This release introduces breaking changes and new features. If you've been building on a previous release, updating your app to use this release will require changes to your existing code.
