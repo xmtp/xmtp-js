@@ -22,7 +22,7 @@ import {
   vi,
   type Mock,
 } from "vitest";
-import type { Reply } from "@/types/options";
+import type { EnrichedReply } from "@/types/options";
 import {
   contentTypeActions,
   contentTypeAttachment,
@@ -224,7 +224,7 @@ describe("Content types", () => {
       const messages = await group.messages();
       const replyMessage = messages[2];
       expect(replyMessage.contentType).toEqual(await contentTypeReply());
-      const replyContent = replyMessage.content as Reply<string>;
+      const replyContent = replyMessage.content as EnrichedReply<string>;
       expect(replyContent.referenceId).toBe(textMessageId);
       expect(replyContent.content).toBe("This is a text reply");
       expect(replyContent.inReplyTo).toBeDefined();
@@ -236,7 +236,7 @@ describe("Content types", () => {
       const message = await client1.conversations.getMessageById(replyId);
       expect(message).toBeDefined();
       expect(message?.contentType).toEqual(await contentTypeReply());
-      const replyContent2 = message?.content as Reply<string>;
+      const replyContent2 = message?.content as EnrichedReply<string>;
       expect(replyContent2.referenceId).toBe(textMessageId);
       expect(replyContent2.content).toBe("This is a text reply");
       expect(replyContent2.inReplyTo).toBeDefined();
@@ -267,7 +267,7 @@ describe("Content types", () => {
       const messages = await group.messages();
       const replyMessage = messages[2];
       expect(replyMessage.contentType).toEqual(await contentTypeReply());
-      const replyContent = replyMessage.content as Reply<Attachment>;
+      const replyContent = replyMessage.content as EnrichedReply<Attachment>;
       expect(replyContent.referenceId).toBe(textMessageId);
       expect(replyContent.content).toEqual(attachment);
       expect(replyContent.inReplyTo).toBeDefined();
@@ -297,7 +297,9 @@ describe("Content types", () => {
       const messages = await group.messages();
       const replyMessage = messages[2];
       expect(replyMessage.contentType).toEqual(await contentTypeReply());
-      const replyContent = replyMessage.content as Reply<{ test: string }>;
+      const replyContent = replyMessage.content as EnrichedReply<{
+        test: string;
+      }>;
       expect(replyContent.referenceId).toBe(textMessageId);
       expect(replyContent.content).toEqual({ test: "test" });
       expect(replyContent.inReplyTo).toBeDefined();

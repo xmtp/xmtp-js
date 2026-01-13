@@ -2,7 +2,6 @@ import type { ContentCodec } from "@xmtp/content-type-primitives";
 import type {
   Actions,
   Attachment,
-  EnrichedReply,
   GroupUpdated,
   Intent,
   LeaveRequest,
@@ -110,8 +109,8 @@ export type ClientOptions = NetworkOptions &
   StorageOptions &
   OtherOptions;
 
-export type Reply<T = unknown, U = unknown> = {
-  referenceId: EnrichedReply["referenceId"];
+export type EnrichedReply<T = unknown, U = unknown> = {
+  referenceId: string;
   content: T;
   inReplyTo: DecodedMessage<U> | null;
 };
@@ -137,5 +136,5 @@ export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
       ?
           | T
           | BuiltInContentTypes
-          | Reply<T | BuiltInContentTypes, T | BuiltInContentTypes>
+          | EnrichedReply<T | BuiltInContentTypes, T | BuiltInContentTypes>
       : BuiltInContentTypes;
