@@ -17,6 +17,19 @@ const PERMISSION_VALUES = [
   { value: "3", label: "Super admin only" },
 ];
 
+const toPermissionValue = (permission: PermissionPolicy) => {
+  switch (permission) {
+    case PermissionPolicy.Allow:
+      return "0";
+    case PermissionPolicy.Deny:
+      return "1";
+    case PermissionPolicy.Admin:
+      return "2";
+    case PermissionPolicy.SuperAdmin:
+      return "3";
+  }
+};
+
 export const defaultPolicySet: PolicySet = {
   addAdminPolicy: PermissionPolicy.SuperAdmin,
   addMemberPolicy: PermissionPolicy.Allow,
@@ -90,6 +103,11 @@ export const processPermissionsUpdate = async (
           defaultPolicySet.updateGroupImageUrlSquarePolicy,
           MetadataField.GroupImageUrlSquare,
         );
+        await conversation.updatePermission(
+          PermissionUpdateType.UpdateMetadata,
+          defaultPolicySet.updateAppDataPolicy,
+          MetadataField.AppData,
+        );
         break;
       }
       case GroupPermissionsOptions.AdminOnly: {
@@ -123,6 +141,11 @@ export const processPermissionsUpdate = async (
           PermissionUpdateType.UpdateMetadata,
           adminPolicySet.updateGroupImageUrlSquarePolicy,
           MetadataField.GroupImageUrlSquare,
+        );
+        await conversation.updatePermission(
+          PermissionUpdateType.UpdateMetadata,
+          adminPolicySet.updateAppDataPolicy,
+          MetadataField.AppData,
         );
       }
     }
@@ -161,6 +184,11 @@ export const processPermissionsUpdate = async (
       policySet.updateGroupImageUrlSquarePolicy,
       MetadataField.GroupImageUrlSquare,
     );
+    await conversation.updatePermission(
+      PermissionUpdateType.UpdateMetadata,
+      policySet.updateAppDataPolicy,
+      MetadataField.AppData,
+    );
   }
 };
 
@@ -191,13 +219,13 @@ export const Permissions: React.FC<PermissionsProps> = ({
   }, [permissionsPolicy]);
 
   useEffect(() => {
-    if (
-      permissionsPolicy === GroupPermissionsOptions.Default ||
-      permissionsPolicy === GroupPermissionsOptions.CustomPolicy
-    ) {
-      setPolicySet(defaultPolicySet);
-    } else {
-      setPolicySet(adminPolicySet);
+    switch (permissionsPolicy) {
+      case GroupPermissionsOptions.Default:
+        setPolicySet(defaultPolicySet);
+        break;
+      case GroupPermissionsOptions.AdminOnly:
+        setPolicySet(adminPolicySet);
+        break;
     }
     onPermissionsPolicyChange(permissionsPolicy);
   }, [permissionsPolicy]);
@@ -262,7 +290,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
             disabled={
               permissionsPolicy !== GroupPermissionsOptions.CustomPolicy
             }
-            value={policySet.addMemberPolicy}
+            value={toPermissionValue(policySet.addMemberPolicy)}
             onChange={(event) => {
               setPolicySet({
                 ...policySet,
@@ -281,7 +309,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
             disabled={
               permissionsPolicy !== GroupPermissionsOptions.CustomPolicy
             }
-            value={policySet.removeMemberPolicy}
+            value={toPermissionValue(policySet.removeMemberPolicy)}
             onChange={(event) => {
               setPolicySet({
                 ...policySet,
@@ -300,7 +328,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
             disabled={
               permissionsPolicy !== GroupPermissionsOptions.CustomPolicy
             }
-            value={policySet.addAdminPolicy}
+            value={toPermissionValue(policySet.addAdminPolicy)}
             onChange={(event) => {
               setPolicySet({
                 ...policySet,
@@ -319,7 +347,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
             disabled={
               permissionsPolicy !== GroupPermissionsOptions.CustomPolicy
             }
-            value={policySet.removeAdminPolicy}
+            value={toPermissionValue(policySet.removeAdminPolicy)}
             onChange={(event) => {
               setPolicySet({
                 ...policySet,
@@ -338,7 +366,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
             disabled={
               permissionsPolicy !== GroupPermissionsOptions.CustomPolicy
             }
-            value={policySet.updateGroupNamePolicy}
+            value={toPermissionValue(policySet.updateGroupNamePolicy)}
             onChange={(event) => {
               setPolicySet({
                 ...policySet,
@@ -357,7 +385,7 @@ export const Permissions: React.FC<PermissionsProps> = ({
             disabled={
               permissionsPolicy !== GroupPermissionsOptions.CustomPolicy
             }
-            value={policySet.updateGroupDescriptionPolicy}
+            value={toPermissionValue(policySet.updateGroupDescriptionPolicy)}
             onChange={(event) => {
               setPolicySet({
                 ...policySet,
@@ -376,11 +404,30 @@ export const Permissions: React.FC<PermissionsProps> = ({
             disabled={
               permissionsPolicy !== GroupPermissionsOptions.CustomPolicy
             }
-            value={policySet.updateGroupImageUrlSquarePolicy}
+            value={toPermissionValue(policySet.updateGroupImageUrlSquarePolicy)}
             onChange={(event) => {
               setPolicySet({
                 ...policySet,
                 updateGroupImageUrlSquarePolicy: parseInt(
+                  event.currentTarget.value,
+                  10,
+                ) as PermissionPolicy,
+              });
+            }}
+            data={PERMISSION_VALUES}
+          />
+        </Group>
+        <Group gap="md" justify="space-between" align="center">
+          <Text size="sm">Update app data</Text>
+          <NativeSelect
+            disabled={
+              permissionsPolicy !== GroupPermissionsOptions.CustomPolicy
+            }
+            value={toPermissionValue(policySet.updateAppDataPolicy)}
+            onChange={(event) => {
+              setPolicySet({
+                ...policySet,
+                updateAppDataPolicy: parseInt(
                   event.currentTarget.value,
                   10,
                 ) as PermissionPolicy,
