@@ -24,6 +24,8 @@ export const MessageProperties: React.FC<MessagePropertiesProps> = ({
         return "Failed";
       case DeliveryStatus.Unpublished:
         return "Unpublished";
+      default:
+        return "Unknown";
     }
   }, [message]);
 
@@ -33,6 +35,8 @@ export const MessageProperties: React.FC<MessagePropertiesProps> = ({
         return "Application";
       case GroupMessageKind.MembershipChange:
         return "Membership Change";
+      default:
+        return "Unknown";
     }
   }, [message]);
 
