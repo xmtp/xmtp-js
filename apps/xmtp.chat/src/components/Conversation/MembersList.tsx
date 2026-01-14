@@ -1,5 +1,5 @@
 import { ActionIcon, Badge, Group, Stack, Text, Tooltip } from "@mantine/core";
-import { Dm } from "@xmtp/browser-sdk";
+import { Dm, PermissionLevel } from "@xmtp/browser-sdk";
 import { useMemo, type ComponentProps } from "react";
 import { Virtuoso } from "react-virtuoso";
 import { MemberListItem } from "@/components/Conversation/MemberListItem";
@@ -68,8 +68,7 @@ export const MembersList: React.FC<MembersListProps> = ({
     const items: (MembersListTitle | MemberProfile)[] = [];
 
     const superAdmins = memberProfiles.filter(
-      // @ts-expect-error - the types are wrong
-      (profile) => profile.permissionLevel === "SuperAdmin",
+      (profile) => profile.permissionLevel === PermissionLevel.SuperAdmin,
     );
 
     if (superAdmins.length > 0) {
@@ -78,8 +77,7 @@ export const MembersList: React.FC<MembersListProps> = ({
     }
 
     const admins = memberProfiles.filter(
-      // @ts-expect-error - the types are wrong
-      (profile) => profile.permissionLevel === "Admin",
+      (profile) => profile.permissionLevel === PermissionLevel.Admin,
     );
 
     if (admins.length > 0) {
@@ -88,8 +86,7 @@ export const MembersList: React.FC<MembersListProps> = ({
     }
 
     const regulars = memberProfiles.filter(
-      // @ts-expect-error - TODO: the types are wrong
-      (profile) => profile.permissionLevel === "Member",
+      (profile) => profile.permissionLevel === PermissionLevel.Member,
     );
 
     if (regulars.length > 0) {
