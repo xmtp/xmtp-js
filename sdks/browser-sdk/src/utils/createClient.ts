@@ -4,7 +4,6 @@ import {
   generateInboxId,
   getInboxIdForIdentifier,
   type Identifier,
-  type LogOptions,
 } from "@xmtp/wasm-bindings";
 import { ApiUrls, HistorySyncUrls } from "@/constants";
 import type { ClientOptions } from "@/types/options";
@@ -48,11 +47,11 @@ export const createClient = async (
     historySyncUrl,
     deviceSyncWorkerMode,
     isLogging
-      ? ({
-          structuredLogging: options.structuredLogging ?? false,
-          performanceLogging: options.performanceLogging ?? false,
-          loggingLevel: options.loggingLevel,
-        } as LogOptions)
+      ? {
+          structured: options.structuredLogging ?? false,
+          performance: options.performanceLogging ?? false,
+          level: options.loggingLevel,
+        }
       : undefined,
     undefined, // allowOffline
     options?.appVersion,
