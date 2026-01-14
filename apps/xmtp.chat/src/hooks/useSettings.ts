@@ -1,7 +1,17 @@
 import { useLocalStorage } from "@mantine/hooks";
 import { LogLevel, type ClientOptions, type XmtpEnv } from "@xmtp/browser-sdk";
+import { useEffect } from "react";
 import type { Hex } from "viem";
 import type { ConnectorString } from "@/hooks/useConnectWallet";
+
+const loggingLevelStringToEnum = {
+  off: LogLevel.Off,
+  error: LogLevel.Error,
+  warn: LogLevel.Warn,
+  info: LogLevel.Info,
+  debug: LogLevel.Debug,
+  trace: LogLevel.Trace,
+};
 
 export const useSettings = () => {
   const [environment, setEnvironment] = useLocalStorage<XmtpEnv>({
@@ -64,6 +74,14 @@ export const useSettings = () => {
     defaultValue: true,
     getInitialValueInEffect: false,
   });
+
+  // fix for old logging level values
+  useEffect(() => {
+    if (typeof loggingLevel === "string") {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      setLoggingLevel(loggingLevelStringToEnum[loggingLevel] ?? LogLevel.Off);
+    }
+  }, [loggingLevel]);
 
   return {
     autoConnect,
