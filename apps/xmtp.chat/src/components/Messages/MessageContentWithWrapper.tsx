@@ -1,8 +1,4 @@
-import type { DecodedMessage } from "@xmtp/browser-sdk";
-import {
-  ContentTypeGroupUpdated,
-  type GroupUpdated,
-} from "@xmtp/content-type-group-updated";
+import type { DecodedMessage, GroupUpdated, Intent } from "@xmtp/browser-sdk";
 import { GroupUpdatedContent } from "@/components/Messages/GroupUpdatedContent";
 import { IntentContent } from "@/components/Messages/IntentContent";
 import { MessageContent } from "@/components/Messages/MessageContent";
@@ -10,7 +6,6 @@ import {
   MessageContentWrapper,
   type MessageContentAlign,
 } from "@/components/Messages/MessageContentWrapper";
-import { ContentTypeIntent, type Intent } from "@/content-types/Intent";
 
 export type MessageContentWithWrapperProps = {
   align: MessageContentAlign;
@@ -22,7 +17,7 @@ export type MessageContentWithWrapperProps = {
 export const MessageContentWithWrapper: React.FC<
   MessageContentWithWrapperProps
 > = ({ message, align, senderInboxId, scrollToMessage }) => {
-  if (message.contentType.sameAs(ContentTypeGroupUpdated)) {
+  if (message.contentType.typeId === "group_updated") {
     return (
       <GroupUpdatedContent
         content={message.content as GroupUpdated}
@@ -31,7 +26,7 @@ export const MessageContentWithWrapper: React.FC<
     );
   }
 
-  if (message.contentType.sameAs(ContentTypeIntent)) {
+  if (message.contentType.typeId === "intent") {
     return (
       <IntentContent
         content={message.content as Intent}
@@ -47,10 +42,7 @@ export const MessageContentWithWrapper: React.FC<
       senderInboxId={senderInboxId}
       sentAtNs={message.sentAtNs}>
       <MessageContent
-        contentType={message.contentType}
-        content={message.content}
-        conversationId={message.conversationId}
-        fallback={message.fallback}
+        message={message}
         align={align}
         scrollToMessage={scrollToMessage}
       />

@@ -1,15 +1,14 @@
 import {
+  contentTypeGroupUpdated,
   Dm,
   Group,
   type Conversation,
   type DecodedMessage,
-  type SafeConversation,
-  type SafeGroupMember,
-} from "@xmtp/browser-sdk";
-import {
-  ContentTypeGroupUpdated,
+  type GroupMember,
   type GroupUpdated,
-} from "@xmtp/content-type-group-updated";
+  type SafeConversation,
+} from "@xmtp/browser-sdk";
+import { contentTypesAreEqual } from "@xmtp/content-type-primitives";
 import { createStore } from "zustand";
 import type { ContentTypes } from "@/contexts/XMTPContext";
 import { getMemberAddress } from "@/helpers/xmtp";
@@ -42,7 +41,7 @@ export type InboxState = {
   // the last message sent timestamp for each conversation
   lastSentAt: Map<ConversationId, bigint | undefined>;
   // the members of each conversation
-  members: Map<ConversationId, Map<InboxId, SafeGroupMember>>;
+  members: Map<ConversationId, Map<InboxId, GroupMember>>;
   // all conversation messages
   messages: Map<ConversationId, Map<MessageId, DecodedMessage<ContentTypes>>>;
   // the metadata for each conversation
@@ -159,10 +158,10 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
       }
       const state = get();
       // get conversation members in parallel
-      const allMembers = new Map<string, SafeGroupMember[]>(
+      const allMembers = new Map<string, GroupMember[]>(
         await Promise.all(
           conversations.map(
-            async (conversation): Promise<[string, SafeGroupMember[]]> => [
+            async (conversation): Promise<[string, GroupMember[]]> => [
               conversation.id,
               await conversation.members(),
             ],
@@ -282,7 +281,12 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
       const newMetadata = new Map(state.metadata);
 
       // check for updated members and metadata
-      if (message.contentType.sameAs(ContentTypeGroupUpdated)) {
+      if (
+        contentTypesAreEqual(
+          message.contentType,
+          await contentTypeGroupUpdated(),
+        )
+      ) {
         const groupUpdated = message.content as GroupUpdated;
 
         // member updates
@@ -358,7 +362,12 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         }
 
         // check for updated members and metadata
-        if (message.contentType.sameAs(ContentTypeGroupUpdated)) {
+        if (
+          contentTypesAreEqual(
+            message.contentType,
+            await contentTypeGroupUpdated(),
+          )
+        ) {
           const groupUpdated = message.content as GroupUpdated;
 
           // member updates

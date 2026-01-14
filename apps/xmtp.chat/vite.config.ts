@@ -1,9 +1,11 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { playwright } from "@vitest/browser-playwright";
+import { defineConfig, mergeConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { defineConfig as defineVitestConfig } from "vitest/config";
 
 // https://vitejs.dev/config/
-export default defineConfig({
+const viteConfig = defineConfig({
   plugins: [tsconfigPaths(), react()],
   optimizeDeps: {
     exclude: ["@xmtp/wasm-bindings"],
@@ -12,3 +14,22 @@ export default defineConfig({
     sourcemap: true,
   },
 });
+
+const vitestConfig = defineVitestConfig({
+  test: {
+    browser: {
+      provider: playwright(),
+      enabled: true,
+      headless: true,
+      screenshotFailures: false,
+      instances: [
+        {
+          browser: "chromium",
+        },
+      ],
+    },
+    testTimeout: 120000,
+  },
+});
+
+export default mergeConfig(viteConfig, vitestConfig);

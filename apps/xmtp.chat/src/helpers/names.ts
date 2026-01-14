@@ -1,9 +1,11 @@
-import { Utils, type XmtpEnv } from "@xmtp/browser-sdk";
+import {
+  getInboxIdForIdentifier,
+  IdentifierKind,
+  type XmtpEnv,
+} from "@xmtp/browser-sdk";
 import { queryClient } from "@/helpers/queries";
 import { isValidEthereumAddress } from "@/helpers/strings";
 import { profilesStore, type Profile } from "@/stores/profiles";
-
-const utils = new Utils();
 
 export const isValidName = (name: string): name is string =>
   /^_?[a-zA-Z0-9-]+(\.base)?\.eth$/i.test(name);
@@ -80,10 +82,10 @@ export const getInboxIdForAddress = async (
     return null;
   }
 
-  const inboxId = await utils.getInboxIdForIdentifier(
+  const inboxId = await getInboxIdForIdentifier(
     {
       identifier: address.toLowerCase(),
-      identifierKind: "Ethereum",
+      identifierKind: IdentifierKind.Ethereum,
     },
     environment,
   );

@@ -1,5 +1,9 @@
 import { Stack, Text } from "@mantine/core";
-import { type DecodedMessage } from "@xmtp/browser-sdk";
+import {
+  DeliveryStatus,
+  GroupMessageKind,
+  type DecodedMessage,
+} from "@xmtp/browser-sdk";
 import { intlFormat } from "date-fns";
 import { useMemo } from "react";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
@@ -14,21 +18,25 @@ export const MessageProperties: React.FC<MessagePropertiesProps> = ({
 }) => {
   const deliveryStatus = useMemo(() => {
     switch (message.deliveryStatus) {
-      case "published":
+      case DeliveryStatus.Published:
         return "Published";
-      case "failed":
+      case DeliveryStatus.Failed:
         return "Failed";
-      case "unpublished":
+      case DeliveryStatus.Unpublished:
         return "Unpublished";
+      default:
+        return "Unknown";
     }
   }, [message]);
 
   const messageKind = useMemo(() => {
     switch (message.kind) {
-      case "application":
+      case GroupMessageKind.Application:
         return "Application";
-      case "membership_change":
+      case GroupMessageKind.MembershipChange:
         return "Membership Change";
+      default:
+        return "Unknown";
     }
   }, [message]);
 

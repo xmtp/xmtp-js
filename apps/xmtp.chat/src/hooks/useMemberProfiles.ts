@@ -1,18 +1,16 @@
-import type { SafeGroupMember } from "@xmtp/browser-sdk";
+import type { GroupMember } from "@xmtp/browser-sdk";
 import { useMemo } from "react";
 import { getMemberAddress } from "@/helpers/xmtp";
 import { combineProfiles, useAllProfiles } from "@/stores/profiles";
 
-export type MemberProfile = SafeGroupMember & {
+export type MemberProfile = GroupMember & {
   address: string;
   avatar: string | null;
   description: string | null;
   displayName: string | null;
 };
 
-export const useMemberProfiles = (
-  members: SafeGroupMember[],
-): MemberProfile[] => {
+export const useMemberProfiles = (members: GroupMember[]): MemberProfile[] => {
   const profiles = useAllProfiles();
   return useMemo(() => {
     return members.map((member) => {

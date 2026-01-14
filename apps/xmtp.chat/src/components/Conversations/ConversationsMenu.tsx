@@ -4,6 +4,7 @@ import { IconRefresh } from "@/icons/IconRefresh";
 export type ConversationsMenuProps = {
   onSync: () => void;
   onSyncAll: () => void;
+  onSendSyncRequest: () => void;
   disabled?: boolean;
   loading?: boolean;
 };
@@ -11,6 +12,7 @@ export type ConversationsMenuProps = {
 export const ConversationsMenu: React.FC<ConversationsMenuProps> = ({
   onSync,
   onSyncAll,
+  onSendSyncRequest,
   disabled,
   loading,
 }) => {
@@ -36,6 +38,15 @@ export const ConversationsMenu: React.FC<ConversationsMenuProps> = ({
             <Text size="sm">Sync All</Text>
             <Text size="xs" c="dimmed">
               Sync conversations and messages
+            </Text>
+          </Stack>
+        </Menu.Item>
+        <Menu.Divider />
+        <Menu.Item onClick={onSendSyncRequest}>
+          <Stack gap={2}>
+            <Text size="sm">Send Sync Request</Text>
+            <Text size="xs" c="dimmed">
+              Send a request to sync with other devices
             </Text>
           </Stack>
         </Menu.Item>

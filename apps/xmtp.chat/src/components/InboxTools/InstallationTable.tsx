@@ -1,11 +1,11 @@
 import { Checkbox, Table, Text, Tooltip, useMatches } from "@mantine/core";
-import type { SafeInstallation } from "@xmtp/browser-sdk";
+import type { Installation } from "@xmtp/browser-sdk";
 import { formatDistanceToNow } from "date-fns";
 import { BadgeWithCopy } from "@/components/BadgeWithCopy";
 import { nsToDate } from "@/helpers/date";
 
 type InstallationTableRowProps = {
-  installation: SafeInstallation;
+  installation: Installation;
   selectedInstallationIds: string[];
   setSelectedInstallationIds: React.Dispatch<React.SetStateAction<string[]>>;
 };
@@ -59,7 +59,7 @@ const InstallationTableRow: React.FC<InstallationTableRowProps> = ({
 };
 
 type InstallationTableProps = {
-  installations: SafeInstallation[];
+  installations: Installation[];
   selectedInstallationIds: string[];
   setSelectedInstallationIds: React.Dispatch<React.SetStateAction<string[]>>;
 };

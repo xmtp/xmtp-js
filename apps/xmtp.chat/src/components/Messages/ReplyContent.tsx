@@ -1,6 +1,5 @@
 import { Group, Stack, Text, Tooltip } from "@mantine/core";
-import type { DecodedMessage } from "@xmtp/browser-sdk";
-import { type Reply } from "@xmtp/content-type-reply";
+import type { DecodedMessage, EnrichedReply } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { MessageContent } from "@/components/Messages/MessageContent";
 import type { MessageContentAlign } from "@/components/Messages/MessageContentWrapper";
@@ -9,17 +8,13 @@ import classes from "./ReplyContent.module.css";
 
 export type ReplyContentProps = {
   align: MessageContentAlign;
-  conversationId: string;
-  fallback?: string;
-  reply: Reply;
+  message: DecodedMessage<EnrichedReply>;
   scrollToMessage: (id: string) => void;
 };
 
 export const ReplyContent: React.FC<ReplyContentProps> = ({
   align,
-  conversationId,
-  fallback,
-  reply,
+  message,
   scrollToMessage,
 }) => {
   const { getMessageById } = useConversations();
@@ -27,11 +22,13 @@ export const ReplyContent: React.FC<ReplyContentProps> = ({
     DecodedMessage | undefined
   >(undefined);
 
+  const reply = message.content as EnrichedReply;
+
   useEffect(() => {
-    void getMessageById(reply.reference).then((originalMessage) => {
+    void getMessageById(reply.referenceId).then((originalMessage) => {
       setOriginalMessage(originalMessage as DecodedMessage);
     });
-  }, [reply.reference]);
+  }, [reply.referenceId]);
 
   const handleClick = useCallback(() => {
     if (originalMessage) {
@@ -50,10 +47,7 @@ export const ReplyContent: React.FC<ReplyContentProps> = ({
         </Tooltip>
       </Group>
       <MessageContent
-        contentType={reply.contentType}
-        content={reply.content}
-        conversationId={conversationId}
-        fallback={fallback}
+        message={reply.inReplyTo as DecodedMessage}
         align={align}
         scrollToMessage={scrollToMessage}
       />

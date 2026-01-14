@@ -1,5 +1,5 @@
 import { Anchor, Box, Text } from "@mantine/core";
-import type { TransactionReference } from "@xmtp/content-type-transaction-reference";
+import type { TransactionReference } from "@xmtp/browser-sdk";
 import { useMemo } from "react";
 import * as viemChains from "viem/chains";
 

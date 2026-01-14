@@ -1,6 +1,5 @@
 import { Group, Stack, Text } from "@mantine/core";
-import { Dm } from "@xmtp/browser-sdk";
-import type { GroupUpdated } from "@xmtp/content-type-group-updated";
+import { Dm, PermissionLevel, type GroupUpdated } from "@xmtp/browser-sdk";
 import { useMemo } from "react";
 import { DateLabel } from "@/components/DateLabel";
 import { Identity } from "@/components/Identity";
@@ -48,7 +47,7 @@ const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
           tooltip={MEMBER_NO_LONGER_IN_GROUP}
         />
       )}
-      <Text size="sm">{type === "added" ? "added" : "removed"}</Text>
+      <Text size="sm">{type}</Text>
       {updatedMembers.map((member) => {
         const memberMember = members.get(member);
         if (!memberMember) {
@@ -83,6 +82,131 @@ const GroupMembersUpdatedContent: React.FC<GroupMembersAddedContentProps> = ({
   );
 };
 
+const GroupMembersLeftContent: React.FC<
+  Pick<GroupMembersAddedContentProps, "updatedMembers">
+> = ({ updatedMembers }) => {
+  const { conversationId } = useConversationContext();
+  const { members, conversation } = useConversation(conversationId);
+  const profiles = useAllProfiles();
+  return (
+    <Group gap="4" wrap="wrap" justify="center">
+      {updatedMembers.map((member) => {
+        const memberMember = members.get(member);
+        if (!memberMember) {
+          return (
+            <IdentityBadge
+              key={member}
+              address=""
+              displayName={shortAddress(member)}
+              tooltip={MEMBER_NO_LONGER_IN_GROUP}
+            />
+          );
+        }
+        const address = getMemberAddress(memberMember);
+        const profile = combineProfiles(address, profiles.get(address) ?? []);
+        return (
+          <Identity
+            key={member}
+            address={address}
+            avatar={profile.avatar}
+            description={profile.description}
+            displayName={profile.displayName}
+            conversationId={conversationId}
+            permissionLevel={memberMember.permissionLevel}
+            inboxId={member}
+            showDm={!(conversation instanceof Dm)}
+            position="top"
+          />
+        );
+      })}
+      <Text size="sm">left the group</Text>
+    </Group>
+  );
+};
+
+const permissionLevelToLabel = (permissionLevel: PermissionLevel) => {
+  switch (permissionLevel) {
+    case PermissionLevel.SuperAdmin:
+      return "super admin";
+    case PermissionLevel.Admin:
+      return "admin";
+    case PermissionLevel.Member:
+      return "member";
+  }
+};
+
+type GroupMembersPermissionsContentProps = {
+  type: "added" | "removed";
+  updatedMembers: string[];
+  permissionLevel: PermissionLevel;
+  initiatedBy: string;
+};
+
+const GroupMembersPermissionsContent: React.FC<
+  GroupMembersPermissionsContentProps
+> = ({ type, updatedMembers, permissionLevel, initiatedBy }) => {
+  const { conversationId } = useConversationContext();
+  const { members, conversation } = useConversation(conversationId);
+  const profiles = useAllProfiles();
+  const initiatedByMember = members.get(initiatedBy);
+  return (
+    <Group gap="4" wrap="wrap" justify="center">
+      {initiatedByMember ? (
+        <Identity
+          {...combineProfiles(
+            getMemberAddress(initiatedByMember),
+            profiles.get(getMemberAddress(initiatedByMember)) ?? [],
+          )}
+          permissionLevel={initiatedByMember.permissionLevel}
+          conversationId={conversationId}
+          inboxId={initiatedBy}
+          showDm={!(conversation instanceof Dm)}
+          position="top"
+        />
+      ) : (
+        <IdentityBadge
+          address=""
+          displayName={shortAddress(initiatedBy)}
+          tooltip={MEMBER_NO_LONGER_IN_GROUP}
+        />
+      )}
+      <Text size="sm">
+        {type} {permissionLevelToLabel(permissionLevel)} permissions{" "}
+        {type === "added" ? "to" : "from"}
+      </Text>
+      {updatedMembers.map((member) => {
+        const memberMember = members.get(member);
+        if (!memberMember) {
+          return (
+            <IdentityBadge
+              key={member}
+              address=""
+              displayName={shortAddress(member)}
+              tooltip={MEMBER_NO_LONGER_IN_GROUP}
+            />
+          );
+        }
+        const address = getMemberAddress(memberMember);
+        const profile = combineProfiles(address, profiles.get(address) ?? []);
+        return (
+          <Identity
+            key={member}
+            address={address}
+            avatar={profile.avatar}
+            description={profile.description}
+            displayName={profile.displayName}
+            conversationId={conversationId}
+            permissionLevel={memberMember.permissionLevel}
+            inboxId={member}
+            showDm={!(conversation instanceof Dm)}
+            position="top"
+          />
+        );
+      })}
+    </Group>
+  );
+};
+
 type GroupMetadataUpdatedContentProps = {
   metadataFieldChange: GroupUpdated["metadataFieldChanges"][number];
   initiatedBy: string;
@@ -105,6 +229,8 @@ const GroupMetadataUpdatedContent: React.FC<
         return "image URL";
       case "_commit_log_signer":
         return "commit log signer";
+      case "app_data":
+        return "app data";
       default:
         return metadataFieldChange.fieldName;
     }
@@ -176,6 +302,81 @@ export const GroupUpdatedContent: React.FC<GroupUpdatedContentProps> = ({
         <GroupMembersUpdatedContent
           type="removed"
           updatedMembers={content.removedInboxes.map((inbox) => inbox.inboxId)}
+          initiatedBy={content.initiatedByInboxId}
+        />
+      </Stack>
+    );
+  }
+
+  if (content.leftInboxes.length > 0) {
+    return (
+      <Stack gap="xxxs" align="center">
+        <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
+        <GroupMembersLeftContent
+          updatedMembers={content.leftInboxes.map((inbox) => inbox.inboxId)}
+        />
+      </Stack>
+    );
+  }
+
+  if (content.addedAdminInboxes.length > 0) {
+    return (
+      <Stack gap="xxxs" align="center">
+        <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
+        <GroupMembersPermissionsContent
+          type="added"
+          permissionLevel={PermissionLevel.Admin}
+          updatedMembers={content.addedAdminInboxes.map(
+            (inbox) => inbox.inboxId,
+          )}
+          initiatedBy={content.initiatedByInboxId}
+        />
+      </Stack>
+    );
+  }
+
+  if (content.removedAdminInboxes.length > 0) {
+    return (
+      <Stack gap="xxxs" align="center">
+        <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
+        <GroupMembersPermissionsContent
+          type="removed"
+          permissionLevel={PermissionLevel.Admin}
+          updatedMembers={content.removedAdminInboxes.map(
+            (inbox) => inbox.inboxId,
+          )}
+          initiatedBy={content.initiatedByInboxId}
+        />
+      </Stack>
+    );
+  }
+
+  if (content.addedSuperAdminInboxes.length > 0) {
+    return (
+      <Stack gap="xxxs" align="center">
+        <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
+        <GroupMembersPermissionsContent
+          type="added"
+          permissionLevel={PermissionLevel.SuperAdmin}
+          updatedMembers={content.addedSuperAdminInboxes.map(
+            (inbox) => inbox.inboxId,
+          )}
+          initiatedBy={content.initiatedByInboxId}
+        />
+      </Stack>
+    );
+  }
+
+  if (content.removedSuperAdminInboxes.length > 0) {
+    return (
+      <Stack gap="xxxs" align="center">
+        <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
+        <GroupMembersPermissionsContent
+          type="removed"
+          permissionLevel={PermissionLevel.SuperAdmin}
+          updatedMembers={content.removedSuperAdminInboxes.map(
+            (inbox) => inbox.inboxId,
+          )}
           initiatedBy={content.initiatedByInboxId}
         />
       </Stack>

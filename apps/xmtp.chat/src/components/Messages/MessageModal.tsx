@@ -46,7 +46,6 @@ export const MessageModal: React.FC = () => {
             }}>
             <Tabs.List>
               <Tabs.Tab value="properties">Properties</Tabs.Tab>
-              <Tabs.Tab value="encodedContent">Encoded content</Tabs.Tab>
               <Tabs.Tab value="decodedContent">Decoded content</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel
@@ -60,21 +59,6 @@ export const MessageModal: React.FC = () => {
               }}>
               <ScrollArea>
                 <MessageProperties message={message} />
-              </ScrollArea>
-            </Tabs.Panel>
-            <Tabs.Panel
-              value="encodedContent"
-              py="md"
-              flex={1}
-              style={{
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-              }}>
-              <ScrollArea>
-                <CodeWithCopy
-                  code={JSON.stringify(message.encodedContent, null, 2)}
-                />
               </ScrollArea>
             </Tabs.Panel>
             <Tabs.Panel

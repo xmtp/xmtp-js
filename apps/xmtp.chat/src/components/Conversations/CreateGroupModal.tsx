@@ -1,5 +1,5 @@
 import { Accordion, Badge, Button, Group, Stack, Text } from "@mantine/core";
-import { GroupPermissionsOptions } from "@xmtp/browser-sdk";
+import { GroupPermissionsOptions, IdentifierKind } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import type { PendingMember } from "@/components/Conversation/AddMembers";
@@ -30,7 +30,7 @@ const permissionsPolicyValue = (policy: GroupPermissionsOptions) => {
 };
 
 export const CreateGroupModal: React.FC = () => {
-  const { newGroup } = useConversations();
+  const { createGroup } = useConversations();
   const { addConversation } = useActions();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
@@ -56,10 +56,10 @@ export const CreateGroupModal: React.FC = () => {
       const addedMemberInboxIds = addedMembers
         .filter((member) => isValidInboxId(member.inboxId))
         .map((member) => member.inboxId);
-      const conversation = await newGroup(addedMemberInboxIds, {
-        name,
-        description,
-        imageUrlSquare,
+      const conversation = await createGroup(addedMemberInboxIds, {
+        groupName: name,
+        groupDescription: description,
+        groupImageUrlSquare: imageUrlSquare,
         permissions: permissionsPolicy,
         customPermissionPolicySet:
           permissionsPolicy === GroupPermissionsOptions.CustomPolicy
@@ -74,7 +74,7 @@ export const CreateGroupModal: React.FC = () => {
         await conversation.addMembersByIdentifiers(
           addedMemberAddresses.map((address) => ({
             identifier: address.toLowerCase(),
-            identifierKind: "Ethereum",
+            identifierKind: IdentifierKind.Ethereum,
           })),
         );
       }
@@ -86,7 +86,7 @@ export const CreateGroupModal: React.FC = () => {
       setLoading(false);
     }
   }, [
-    newGroup,
+    createGroup,
     addConversation,
     navigate,
     environment,

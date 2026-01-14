@@ -1,8 +1,9 @@
-import type {
-  Conversation,
-  DecodedMessage,
-  Identifier,
-  SafeCreateGroupOptions,
+import {
+  ConversationType,
+  type Conversation,
+  type CreateGroupOptions,
+  type DecodedMessage,
+  type Identifier,
 } from "@xmtp/browser-sdk";
 import { useState } from "react";
 import { useClient, type ContentTypes } from "@/contexts/XMTPContext";
@@ -96,14 +97,14 @@ export const useConversations = () => {
     }
   };
 
-  const newGroup = async (
+  const createGroup = async (
     inboxIds: string[],
-    options?: SafeCreateGroupOptions,
+    options?: CreateGroupOptions,
   ) => {
     setLoading(true);
 
     try {
-      const conversation = await client.conversations.newGroup(
+      const conversation = await client.conversations.createGroup(
         inboxIds,
         options,
       );
@@ -114,17 +115,18 @@ export const useConversations = () => {
     }
   };
 
-  const newGroupWithIdentifiers = async (
+  const createGroupWithIdentifiers = async (
     identifiers: Identifier[],
-    options?: SafeCreateGroupOptions,
+    options?: CreateGroupOptions,
   ) => {
     setLoading(true);
 
     try {
-      const conversation = await client.conversations.newGroupWithIdentifiers(
-        identifiers,
-        options,
-      );
+      const conversation =
+        await client.conversations.createGroupWithIdentifiers(
+          identifiers,
+          options,
+        );
       void addConversation(conversation);
       return conversation;
     } finally {
@@ -132,11 +134,11 @@ export const useConversations = () => {
     }
   };
 
-  const newDm = async (inboxId: string) => {
+  const createDm = async (inboxId: string) => {
     setLoading(true);
 
     try {
-      const conversation = await client.conversations.newDm(inboxId);
+      const conversation = await client.conversations.createDm(inboxId);
       void addConversation(conversation);
       return conversation;
     } finally {
@@ -144,12 +146,12 @@ export const useConversations = () => {
     }
   };
 
-  const newDmWithIdentifier = async (identifier: Identifier) => {
+  const createDmWithIdentifier = async (identifier: Identifier) => {
     setLoading(true);
 
     try {
       const conversation =
-        await client.conversations.newDmWithIdentifier(identifier);
+        await client.conversations.createDmWithIdentifier(identifier);
       void addConversation(conversation);
       return conversation;
     } finally {
@@ -160,8 +162,8 @@ export const useConversations = () => {
   const stream = async () => {
     const onValue = (conversation: Conversation<ContentTypes>) => {
       const shouldAdd =
-        conversation.metadata?.conversationType === "dm" ||
-        conversation.metadata?.conversationType === "group";
+        conversation.metadata?.conversationType === ConversationType.Dm ||
+        conversation.metadata?.conversationType === ConversationType.Group;
       if (shouldAdd) {
         void addConversation(conversation);
       }
@@ -196,10 +198,10 @@ export const useConversations = () => {
     getDmByInboxId,
     getMessageById,
     loading,
-    newDm,
-    newDmWithIdentifier,
-    newGroup,
-    newGroupWithIdentifiers,
+    createDm,
+    createDmWithIdentifier,
+    createGroup,
+    createGroupWithIdentifiers,
     stream,
     streamAllMessages,
     sync,

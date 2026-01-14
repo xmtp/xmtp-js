@@ -1,13 +1,13 @@
 import type {
   Identifier,
-  SafeInstallation,
-  SafeKeyPackageStatus,
+  KeyPackageStatus,
+  Installation as XmtpInstallation,
 } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useClient } from "@/contexts/XMTPContext";
 
-export type Installation = SafeInstallation & {
-  keyPackageStatus: SafeKeyPackageStatus | undefined;
+export type Installation = XmtpInstallation & {
+  keyPackageStatus: KeyPackageStatus | undefined;
 };
 
 export const useIdentity = (syncOnMount: boolean = false) => {
@@ -32,9 +32,9 @@ export const useIdentity = (syncOnMount: boolean = false) => {
     setSyncing(true);
 
     try {
-      const inboxState = await client.preferences.inboxState(true);
+      const inboxState = await client.preferences.fetchInboxState();
       setInboxId(inboxState.inboxId);
-      setAccountIdentifiers(inboxState.identifiers);
+      setAccountIdentifiers(inboxState.accountIdentifiers);
       setRecoveryIdentifier(inboxState.recoveryIdentifier);
       const installations = inboxState.installations.sort((a, b) => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -46,10 +46,9 @@ export const useIdentity = (syncOnMount: boolean = false) => {
         }
         return 0;
       });
-      const keyPackageStatuses =
-        await client.getKeyPackageStatusesForInstallationIds(
-          installations.map((installation) => installation.id),
-        );
+      const keyPackageStatuses = await client.fetchKeyPackageStatuses(
+        installations.map((installation) => installation.id),
+      );
       setInstallations(
         installations.map((installation) => ({
           ...installation,

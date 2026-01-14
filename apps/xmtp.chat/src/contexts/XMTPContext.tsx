@@ -1,16 +1,9 @@
 import {
   Client,
+  type BuiltInContentTypes,
   type ClientOptions,
-  type ExtractCodecContentTypes,
   type Signer,
 } from "@xmtp/browser-sdk";
-import { MarkdownCodec } from "@xmtp/content-type-markdown";
-import { ReactionCodec } from "@xmtp/content-type-reaction";
-import { ReadReceiptCodec } from "@xmtp/content-type-read-receipt";
-import { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
-import { ReplyCodec } from "@xmtp/content-type-reply";
-import { TransactionReferenceCodec } from "@xmtp/content-type-transaction-reference";
-import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import {
   createContext,
   useCallback,
@@ -19,23 +12,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { ActionsCodec } from "@/content-types/Actions";
-import { IntentCodec } from "@/content-types/Intent";
 import { useActions } from "@/stores/inbox/hooks";
 
-export type ContentTypes = ExtractCodecContentTypes<
-  [
-    ReactionCodec,
-    ReplyCodec,
-    RemoteAttachmentCodec,
-    TransactionReferenceCodec,
-    WalletSendCallsCodec,
-    ReadReceiptCodec,
-    ActionsCodec,
-    IntentCodec,
-    MarkdownCodec,
-  ]
->;
+export type ContentTypes = BuiltInContentTypes;
 
 export type InitializeClientOptions = {
   dbEncryptionKey?: Uint8Array;
@@ -48,16 +27,12 @@ export type XMTPContextValue = {
   /**
    * The XMTP client instance
    */
-  client?: Client<ContentTypes>;
+  client?: Client;
   /**
    * Set the XMTP client instance
    */
-  setClient: React.Dispatch<
-    React.SetStateAction<Client<ContentTypes> | undefined>
-  >;
-  initialize: (
-    options: InitializeClientOptions,
-  ) => Promise<Client<ContentTypes> | undefined>;
+  setClient: React.Dispatch<React.SetStateAction<Client | undefined>>;
+  initialize: (options: InitializeClientOptions) => Promise<Client | undefined>;
   initializing: boolean;
   error: Error | null;
   disconnect: () => void;
@@ -75,7 +50,7 @@ export type XMTPProviderProps = React.PropsWithChildren & {
   /**
    * Initial XMTP client instance
    */
-  client?: Client<ContentTypes>;
+  client?: Client;
 };
 
 export const XMTPProvider: React.FC<XMTPProviderProps> = ({
@@ -83,9 +58,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
   client: initialClient,
 }) => {
   const { reset } = useActions();
-  const [client, setClient] = useState<Client<ContentTypes> | undefined>(
-    initialClient,
-  );
+  const [client, setClient] = useState<Client | undefined>(initialClient);
 
   const [initializing, setInitializing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -117,7 +90,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
         // reset initializing state
         setInitializing(true);
 
-        let xmtpClient: Client<ContentTypes>;
+        let xmtpClient: Client;
 
         try {
           // create a new XMTP client
@@ -126,17 +99,6 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
             loggingLevel,
             dbEncryptionKey,
             appVersion: "xmtp.chat/0",
-            codecs: [
-              new ReactionCodec(),
-              new ReplyCodec(),
-              new RemoteAttachmentCodec(),
-              new TransactionReferenceCodec(),
-              new WalletSendCallsCodec(),
-              new ReadReceiptCodec(),
-              new ActionsCodec(),
-              new IntentCodec(),
-              new MarkdownCodec(),
-            ],
           });
           setClient(xmtpClient);
         } catch (e) {

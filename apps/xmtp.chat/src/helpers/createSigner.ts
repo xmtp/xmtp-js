@@ -1,4 +1,4 @@
-import type { Signer } from "@xmtp/browser-sdk";
+import { IdentifierKind, type Signer } from "@xmtp/browser-sdk";
 import { toBytes, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -8,7 +8,7 @@ export const createEphemeralSigner = (privateKey: Hex): Signer => {
     type: "EOA",
     getIdentifier: () => ({
       identifier: account.address.toLowerCase(),
-      identifierKind: "Ethereum",
+      identifierKind: IdentifierKind.Ethereum,
     }),
     signMessage: async (message: string) => {
       const signature = await account.signMessage({
@@ -27,7 +27,7 @@ export const createEOASigner = (
     type: "EOA",
     getIdentifier: () => ({
       identifier: address.toLowerCase(),
-      identifierKind: "Ethereum",
+      identifierKind: IdentifierKind.Ethereum,
     }),
     signMessage: async (message: string) => {
       const signature = await signMessage(message);
@@ -46,7 +46,7 @@ export const createSCWSigner = (
     type: "SCW",
     getIdentifier: () => ({
       identifier: address.toLowerCase(),
-      identifierKind: "Ethereum",
+      identifierKind: IdentifierKind.Ethereum,
     }),
     signMessage: async (message: string) => {
       const signature = await signMessage(message);

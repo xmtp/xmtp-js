@@ -1,9 +1,9 @@
 import {
-  AttachmentCodec,
-  RemoteAttachmentCodec,
+  decryptAttachment,
+  encryptAttachment,
   type Attachment,
   type RemoteAttachment,
-} from "@xmtp/content-type-remote-attachment";
+} from "@xmtp/browser-sdk";
 import { PinataSDK } from "pinata";
 
 const pinata = new PinataSDK({
@@ -78,13 +78,10 @@ export const uploadAttachment = async (
   const attachmentData: Attachment = {
     mimeType: file.type,
     filename: file.name,
-    data: attachment,
+    content: attachment,
   };
 
-  const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(
-    attachmentData,
-    new AttachmentCodec(),
-  );
+  const encryptedAttachment = await encryptAttachment(attachmentData);
 
   // Upload the encrypted payload to Pinata
   const encryptedBlob = new Blob(
@@ -106,7 +103,7 @@ export const uploadAttachment = async (
   // Return the RemoteAttachment with encryption metadata
   return {
     url,
-    contentDigest: encryptedAttachment.digest,
+    contentDigest: encryptedAttachment.contentDigest,
     salt: encryptedAttachment.salt,
     nonce: encryptedAttachment.nonce,
     secret: encryptedAttachment.secret,
@@ -114,6 +111,17 @@ export const uploadAttachment = async (
     contentLength: encryptedAttachment.payload.length,
     filename: file.name,
   };
+};
+
+export const downloadRemoteAttachment = async (content: RemoteAttachment) => {
+  const response = await fetch(content.url);
+  if (!response.ok) {
+    throw new Error(
+      `Unable to load attachment: [${response.status}] ${response.statusText}`,
+    );
+  }
+  const payload = new Uint8Array(await response.arrayBuffer());
+  return decryptAttachment(payload, content);
 };
 
 export const getFileType = (filename: string) => {

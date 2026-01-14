@@ -8,11 +8,10 @@ import {
   TextInput,
 } from "@mantine/core";
 import {
-  ContentTypeRemoteAttachment,
+  encodeRemoteAttachment,
+  encodeText,
   type RemoteAttachment,
-} from "@xmtp/content-type-remote-attachment";
-import { ContentTypeReply } from "@xmtp/content-type-reply";
-import { ContentTypeText } from "@xmtp/content-type-text";
+} from "@xmtp/browser-sdk";
 import { useCallback, useRef, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { useConversationContext } from "@/contexts/ConversationContext";
@@ -27,7 +26,8 @@ export type ComposerProps = {
 };
 
 export const Composer: React.FC<ComposerProps> = ({ conversationId }) => {
-  const { send, sending } = useConversation(conversationId);
+  const { sendText, sendReply, sendRemoteAttachment, sending } =
+    useConversation(conversationId);
   const { replyTarget, setReplyTarget } = useConversationContext();
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -75,17 +75,13 @@ export const Composer: React.FC<ComposerProps> = ({ conversationId }) => {
 
       try {
         if (replyTarget) {
-          await send(
-            {
-              reference: replyTarget.id,
-              referenceInboxId: replyTarget.senderInboxId,
-              contentType: ContentTypeRemoteAttachment,
-              content: remoteAttachmentRef.current,
-            },
-            ContentTypeReply,
-          );
+          await sendReply({
+            reference: replyTarget.id,
+            referenceInboxId: replyTarget.senderInboxId,
+            content: await encodeRemoteAttachment(remoteAttachmentRef.current),
+          });
         } else {
-          await send(remoteAttachmentRef.current, ContentTypeRemoteAttachment);
+          await sendRemoteAttachment(remoteAttachmentRef.current);
         }
         setAttachment(null);
         remoteAttachmentRef.current = null;
@@ -98,17 +94,13 @@ export const Composer: React.FC<ComposerProps> = ({ conversationId }) => {
     if (message) {
       try {
         if (replyTarget) {
-          await send(
-            {
-              reference: replyTarget.id,
-              referenceInboxId: replyTarget.senderInboxId,
-              contentType: ContentTypeText,
-              content: message,
-            },
-            ContentTypeReply,
-          );
+          await sendReply({
+            reference: replyTarget.id,
+            referenceInboxId: replyTarget.senderInboxId,
+            content: await encodeText(message),
+          });
         } else {
-          await send(message, ContentTypeText);
+          await sendText(message);
         }
         setMessage("");
       } catch {
@@ -125,7 +117,9 @@ export const Composer: React.FC<ComposerProps> = ({ conversationId }) => {
     sending,
     uploadingAttachment,
     replyTarget,
-    send,
+    sendText,
+    sendReply,
+    sendRemoteAttachment,
     setReplyTarget,
   ]);
 

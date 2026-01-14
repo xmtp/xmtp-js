@@ -1,14 +1,13 @@
 import { Box, Button, Group, Loader, Paper, Text } from "@mantine/core";
-import {
-  AttachmentCodec,
-  RemoteAttachmentCodec,
-  type Attachment,
-  type RemoteAttachment,
-} from "@xmtp/content-type-remote-attachment";
+import { type RemoteAttachment } from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AttachmentDetails } from "@/components/Messages/AttachmentDetails";
 import type { MessageContentAlign } from "@/components/Messages/MessageContentWrapper";
-import { formatFileSize, getFileType } from "@/helpers/attachment";
+import {
+  downloadRemoteAttachment,
+  formatFileSize,
+  getFileType,
+} from "@/helpers/attachment";
 
 const urlCache = new Map<
   string,
@@ -60,17 +59,11 @@ export const RemoteAttachmentContent: React.FC<
         }
 
         setIsLoading(true);
-        const decryptedAttachment =
-          await RemoteAttachmentCodec.load<Attachment>(content, {
-            codecFor: () => new AttachmentCodec(),
-          });
 
-        const blob = new Blob(
-          [decryptedAttachment.data as Uint8Array<ArrayBuffer>],
-          {
-            type: decryptedAttachment.mimeType,
-          },
-        );
+        const attachment = await downloadRemoteAttachment(content);
+        const blob = new Blob([attachment.content as Uint8Array<ArrayBuffer>], {
+          type: attachment.mimeType,
+        });
         const blobUrl = URL.createObjectURL(blob);
 
         // Cache the blob URL
@@ -122,7 +115,7 @@ export const RemoteAttachmentContent: React.FC<
           </Text>
         </Group>
         <AttachmentDetails
-          filename={content.filename}
+          filename={content.filename ?? ""}
           fileSize={fileSize}
           align={align}
         />
@@ -143,7 +136,7 @@ export const RemoteAttachmentContent: React.FC<
             </Button>
           </Group>
           <AttachmentDetails
-            filename={content.filename}
+            filename={content.filename ?? ""}
             fileSize={fileSize}
             align={align}
           />
@@ -164,7 +157,7 @@ export const RemoteAttachmentContent: React.FC<
           </Button>
         </Group>
         <AttachmentDetails
-          filename={content.filename}
+          filename={content.filename ?? ""}
           fileSize={fileSize}
           align={align}
         />
@@ -172,7 +165,7 @@ export const RemoteAttachmentContent: React.FC<
     );
   }
 
-  const fileType = getFileType(content.filename);
+  const fileType = getFileType(content.filename ?? "");
 
   return (
     <Paper p="sm" radius="md" withBorder>
@@ -214,7 +207,7 @@ export const RemoteAttachmentContent: React.FC<
           />
         )}
         <AttachmentDetails
-          filename={content.filename}
+          filename={content.filename ?? ""}
           fileSize={fileSize}
           align={align}
         />
