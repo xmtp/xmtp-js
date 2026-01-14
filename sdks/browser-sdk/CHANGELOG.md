@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 6.1.1
+
+### Patch Changes
+
+- 6c26498: Fixed browser SDK logging options
+
 ## 6.1.0
 
 This release introduces a new feature. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of this new feature.
