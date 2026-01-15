@@ -13,8 +13,12 @@ try {
   console.info(`Loaded keys from ".env" file.`);
 } catch {}
 
+process.env.XMTP_DB_DIRECTORY = process.env.XMTP_DB_DIRECTORY ?? ".database";
+
 const agent = process.env.XMTP_WALLET_KEY
-  ? await Agent.createFromEnv()
+  ? await Agent.createFromEnv({
+      appVersion: "@xmtp/xmtp-js-agent-sdk-demo",
+    })
   : await Agent.create(createSigner(createUser()), {
       dbPath: null,
     });
