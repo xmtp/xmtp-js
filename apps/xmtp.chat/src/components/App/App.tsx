@@ -3,6 +3,7 @@ import { AppLayout } from "@/components/App/AppLayout";
 import { BasicLayout } from "@/components/App/BasicLayout";
 import { Disconnect } from "@/components/App/Disconnect";
 import { ErrorModal } from "@/components/App/ErrorModal";
+import { New } from "@/components/App/New";
 import { SelectConversation } from "@/components/App/SelectConversation";
 import { Welcome } from "@/components/App/Welcome";
 import { LoadConversation } from "@/components/Conversation/LoadConversation";
@@ -38,6 +39,7 @@ export const App: React.FC = () => {
         </Route>
         <Route path="/disconnect" element={<Disconnect />} />
         <Route path="/dm/:address" element={<LoadDMLegacy />} />
+        <Route path="/new" element={<New />} />
         <Route path="/:environment" element={<AppLayout />}>
           <Route
             index
