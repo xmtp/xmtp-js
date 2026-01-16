@@ -123,6 +123,10 @@ jobs:
         run: yarn lint
       - name: Run typecheck
         run: yarn typecheck
+      - name: Start dev environment
+        run: ./dev/up
+      - name: Sleep for 5 seconds
+        run: sleep 5s
       - name: Test SDK
         working-directory: ./sdks/${{ inputs.prerelease_sdk }}
         run: yarn test
