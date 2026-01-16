@@ -76,7 +76,7 @@ export const useSettings = () => {
   });
   const [gatewayHost, setGatewayHost] = useLocalStorage({
     key: "XMTP_GATEWAY_HOST",
-    defaultValue: null,
+    defaultValue: "",
     getInitialValueInEffect: false,
   });
 
