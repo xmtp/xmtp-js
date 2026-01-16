@@ -4903,17 +4903,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@xmtp/node-sdk@npm:5.1.1"
-  dependencies:
-    "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/node-bindings": "npm:1.8.1"
-  checksum: 10/5fafa6650cbab8cd758c4ee15a9b31de79fc0b91ee24b8d83485e7171d7e59b8c9b40a45fee025b4293c412b5af3ae8e51769b23b81517dd28c179dc901397c3
-  languageName: node
-  linkType: hard
-
-"@xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:5.1.1, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
