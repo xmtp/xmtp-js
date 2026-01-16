@@ -304,4 +304,27 @@ describe("Filters", () => {
       expect(result).toBe(false);
     });
   });
+
+  describe("usesCodec", () => {
+    it("should return true for messages using a custom codec", async () => {
+      const testCodec = new TestCodec();
+      const client = await createClient({
+        codecs: [testCodec],
+      });
+      const group = await client.conversations.createGroup([]);
+      const messageId = await group.send(testCodec.encode({ test: "test" }));
+      const message = client.conversations.getMessageById(messageId)!;
+      const result = filter.usesCodec(message, TestCodec);
+      expect(result).toBe(true);
+    });
+
+    it("should return false for messages using a different codec", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      const messageId = await group.sendText("Hello world");
+      const message = client.conversations.getMessageById(messageId)!;
+      const result = filter.usesCodec(message, TestCodec);
+      expect(result).toBe(false);
+    });
+  });
 });
