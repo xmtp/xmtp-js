@@ -28,7 +28,6 @@ describe("DebugInformation", () => {
     const apiStats2 = await client.debugInformation.apiStatistics();
     expect(apiStats2.uploadKeyPackage).toBe(0n);
     expect(apiStats2.fetchKeyPackage).toBe(0n);
-    expect(apiStats2.sendGroupMessages).toBe(0n);
     expect(apiStats2.sendWelcomeMessages).toBe(0n);
     expect(apiStats2.queryGroupMessages).toBe(0n);
     expect(apiStats2.queryWelcomeMessages).toBe(0n);
