@@ -24,7 +24,6 @@ export const useConnectXmtp = () => {
     useSCW,
     autoConnect,
     setAutoConnect,
-    gatewayHost,
   } = useSettings();
 
   const connect = useCallback(() => {
@@ -42,7 +41,6 @@ export const useConnectXmtp = () => {
         env: environment,
         loggingLevel,
         signer: ephemeralSigner,
-        gatewayHost,
       });
       setAutoConnect(true);
       return;
@@ -59,7 +57,6 @@ export const useConnectXmtp = () => {
         : undefined,
       env: environment,
       loggingLevel,
-      gatewayHost,
       signer: useSCW
         ? createSCWSigner(
             account.address,

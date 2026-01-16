@@ -74,11 +74,6 @@ export const useSettings = () => {
     defaultValue: true,
     getInitialValueInEffect: false,
   });
-  const [gatewayHost, setGatewayHost] = useLocalStorage({
-    key: "XMTP_GATEWAY_HOST",
-    defaultValue: "",
-    getInitialValueInEffect: false,
-  });
 
   // fix for old logging level values
   useEffect(() => {
@@ -97,7 +92,6 @@ export const useSettings = () => {
     ephemeralAccountEnabled,
     ephemeralAccountKey,
     forceSCW,
-    gatewayHost,
     loggingLevel,
     useSCW,
     showDisclaimer,
@@ -109,7 +103,6 @@ export const useSettings = () => {
     setEphemeralAccountEnabled,
     setEphemeralAccountKey,
     setForceSCW,
-    setGatewayHost,
     setLoggingLevel,
     setUseSCW,
     setShowDisclaimer,

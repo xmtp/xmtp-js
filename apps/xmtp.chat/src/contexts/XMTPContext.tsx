@@ -21,7 +21,6 @@ export type InitializeClientOptions = {
   env?: ClientOptions["env"];
   loggingLevel?: ClientOptions["loggingLevel"];
   signer: Signer;
-  gatewayHost?: string;
 };
 
 export type XMTPContextValue = {
@@ -75,7 +74,6 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
       env,
       loggingLevel,
       signer,
-      gatewayHost,
     }: InitializeClientOptions) => {
       // only initialize a client if one doesn't already exist
       if (!client) {
@@ -101,7 +99,6 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
             loggingLevel,
             dbEncryptionKey,
             appVersion: "xmtp.chat/0",
-            gatewayHost,
           });
           setClient(xmtpClient);
         } catch (e) {
