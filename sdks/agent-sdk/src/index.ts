@@ -21,4 +21,4 @@ export {
 export type * from "@xmtp/node-sdk";
 export { isHexString, validHex } from "@xmtp/node-sdk";
 // Agent SDK
-export * from "./core/index.js";
+export * from "./core/index";

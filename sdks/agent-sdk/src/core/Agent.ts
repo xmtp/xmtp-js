@@ -26,13 +26,13 @@ import {
   type WalletSendCalls,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
-import { filter } from "@/core/filter.js";
-import { getInstallationInfo } from "@/debug.js";
-import { createSigner, createUser } from "@/user/User.js";
-import { AgentError, AgentStreamingError } from "./AgentError.js";
-import { ClientContext } from "./ClientContext.js";
-import { ConversationContext } from "./ConversationContext.js";
-import { MessageContext } from "./MessageContext.js";
+import { filter } from "@/core/filter";
+import { getInstallationInfo } from "@/debug";
+import { createSigner, createUser } from "@/user/User";
+import { AgentError, AgentStreamingError } from "./AgentError";
+import { ClientContext } from "./ClientContext";
+import { ConversationContext } from "./ConversationContext";
+import { MessageContext } from "./MessageContext";
 
 type ConversationStream<ContentTypes> = Awaited<
   ReturnType<Client<ContentTypes>["conversations"]["stream"]>

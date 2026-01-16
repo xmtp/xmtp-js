@@ -5,8 +5,8 @@ import {
   ReactionSchema,
 } from "@xmtp/node-sdk";
 import { describe, expect, it } from "vitest";
-import { filter } from "@/core/filter.js";
-import { createClient, TestCodec } from "@test/helpers.js";
+import { filter } from "@/core/filter";
+import { createClient, TestCodec } from "@test/helpers";
 
 describe("Filters", () => {
   describe("fromSelf", () => {

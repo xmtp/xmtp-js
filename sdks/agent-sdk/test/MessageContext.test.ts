@@ -4,8 +4,8 @@ import {
   type EnrichedReply,
 } from "@xmtp/node-sdk";
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { MessageContext } from "@/core/MessageContext.js";
-import { createClient } from "@test/helpers.js";
+import { MessageContext } from "@/core/MessageContext";
+import { createClient } from "@test/helpers";
 
 describe("MessageContext", () => {
   describe("usesCodec", () => {

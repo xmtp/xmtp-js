@@ -1,10 +1,10 @@
 import { type BuiltInContentTypes, type Client } from "@xmtp/node-sdk";
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
-import { Agent } from "@/core/Agent.js";
-import type { DecodedMessageWithContent } from "@/core/filter.js";
-import { MessageContext } from "@/core/MessageContext.js";
-import { CommandRouter } from "@/middleware/CommandRouter.js";
-import { createClient, sleep } from "@test/helpers.js";
+import { Agent } from "@/core/Agent";
+import type { DecodedMessageWithContent } from "@/core/filter";
+import { MessageContext } from "@/core/MessageContext";
+import { CommandRouter } from "@/middleware/CommandRouter";
+import { createClient, sleep } from "@test/helpers";
 
 describe("CommandRouter", () => {
   let agent: Agent<BuiltInContentTypes>;

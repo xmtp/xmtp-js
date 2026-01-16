@@ -1,1 +1,1 @@
-export * from "./CommandRouter.js";
+export * from "./CommandRouter";

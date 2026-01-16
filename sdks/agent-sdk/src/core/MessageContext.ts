@@ -14,9 +14,9 @@ import {
   type TransactionReference,
   type WalletSendCalls,
 } from "@xmtp/node-sdk";
-import { filter, type DecodedMessageWithContent } from "@/core/filter.js";
-import type { AgentBaseContext } from "./Agent.js";
-import { ConversationContext } from "./ConversationContext.js";
+import { filter, type DecodedMessageWithContent } from "@/core/filter";
+import type { AgentBaseContext } from "./Agent";
+import { ConversationContext } from "./ConversationContext";
 
 export type MessageContextParams<
   MessageContentType = unknown,

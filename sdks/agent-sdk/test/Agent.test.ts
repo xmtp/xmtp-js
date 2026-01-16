@@ -16,12 +16,12 @@ import {
   Agent,
   type AgentErrorMiddleware,
   type AgentMiddleware,
-} from "@/core/Agent.js";
-import type { ClientContext } from "@/core/ClientContext.js";
-import { ConversationContext } from "@/core/ConversationContext.js";
-import { filter } from "@/core/filter.js";
-import { MessageContext } from "@/core/MessageContext.js";
-import { createClient, sleep } from "@test/helpers.js";
+} from "@/core/Agent";
+import type { ClientContext } from "@/core/ClientContext";
+import { ConversationContext } from "@/core/ConversationContext";
+import { filter } from "@/core/filter";
+import { MessageContext } from "@/core/MessageContext";
+import { createClient, sleep } from "@test/helpers";
 
 describe("Agent", () => {
   let agent: Agent<BuiltInContentTypes>;

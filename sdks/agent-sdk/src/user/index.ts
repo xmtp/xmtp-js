@@ -1,2 +1,2 @@
-export * from "./User.js";
-export * from "./NameResolver.js";
+export * from "./User";
+export * from "./NameResolver";

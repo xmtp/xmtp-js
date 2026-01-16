@@ -1,8 +1,5 @@
-import {
-  type AgentMessageHandler,
-  type AgentMiddleware,
-} from "@/core/Agent.js";
-import type { MessageContext } from "@/core/MessageContext.js";
+import { type AgentMessageHandler, type AgentMiddleware } from "@/core/Agent";
+import type { MessageContext } from "@/core/MessageContext";
 
 /** Content type supported by the "CommandRouter" */
 type SupportedType = string;

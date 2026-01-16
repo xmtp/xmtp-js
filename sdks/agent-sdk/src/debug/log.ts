@@ -1,5 +1,5 @@
 import { Client } from "@xmtp/node-sdk";
-import type { Agent } from "@/core/Agent.js";
+import type { Agent } from "@/core/Agent";
 
 export const logDetails = async <ContentTypes>(agent: Agent<ContentTypes>) => {
   const xmtp = `\x1b[38;2;252;76;52m

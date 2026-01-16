@@ -12,7 +12,7 @@ import {
   createRemoteAttachmentFromFile,
   downloadRemoteAttachment,
   encryptAttachment,
-} from "@/util/AttachmentUtil.js";
+} from "@/util/AttachmentUtil";
 
 describe("AttachmentUtil", () => {
   const testUrl = "https://localhost/test_file";

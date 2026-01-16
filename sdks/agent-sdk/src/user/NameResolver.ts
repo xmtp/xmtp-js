@@ -1,7 +1,7 @@
 import { escape } from "node:querystring";
 import { isAddress } from "viem";
-import { AgentError } from "@/core/AgentError.js";
-import { LimitedMap } from "@/util/LimitedMap.js";
+import { AgentError } from "@/core/AgentError";
+import { LimitedMap } from "@/util/LimitedMap";
 
 const cache = new LimitedMap<string, string | null>(1000);
 

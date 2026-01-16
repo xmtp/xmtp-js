@@ -1,11 +1,11 @@
 import { loadEnvFile } from "node:process";
-import { downloadRemoteAttachment } from "@/util/AttachmentUtil.js";
-import { Agent, AgentError } from "./core/index.js";
-import { getTestUrl, logDetails } from "./debug/log.js";
-import { isHexString } from "./index.js";
-import { CommandRouter } from "./middleware/CommandRouter.js";
-import { createNameResolver } from "./user.js";
-import { createSigner, createUser } from "./user/User.js";
+import { downloadRemoteAttachment } from "@/util/AttachmentUtil";
+import { Agent, AgentError } from "./core/index";
+import { getTestUrl, logDetails } from "./debug/log";
+import { isHexString } from "./index";
+import { CommandRouter } from "./middleware/CommandRouter";
+import { createNameResolver } from "./user";
+import { createSigner, createUser } from "./user/User";
 
 try {
   loadEnvFile(".env");
