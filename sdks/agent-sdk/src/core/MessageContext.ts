@@ -18,23 +18,24 @@ import { filter, type DecodedMessageWithContent } from "@/core/filter.js";
 import type { AgentBaseContext } from "./Agent.js";
 import { ConversationContext } from "./ConversationContext.js";
 
-export type MessageContextParams<ContentTypes = unknown> = Omit<
-  AgentBaseContext<ContentTypes>,
-  "message"
-> & {
-  message: DecodedMessageWithContent<ContentTypes>;
+export type MessageContextParams<
+  MessageContentType = unknown,
+  ContentTypes = unknown,
+> = Omit<AgentBaseContext<ContentTypes>, "message"> & {
+  message: DecodedMessageWithContent<MessageContentType>;
 };
 
 export class MessageContext<
+  MessageContentType = unknown,
   ContentTypes = unknown,
 > extends ConversationContext<ContentTypes> {
-  #message: DecodedMessageWithContent<ContentTypes>;
+  #message: DecodedMessageWithContent<MessageContentType>;
 
   constructor({
     message,
     conversation,
     client,
-  }: MessageContextParams<ContentTypes>) {
+  }: MessageContextParams<MessageContentType, ContentTypes>) {
     super({ conversation, client });
     this.#message = message;
   }

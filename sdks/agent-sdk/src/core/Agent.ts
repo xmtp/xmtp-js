@@ -43,23 +43,25 @@ type MessageStream<ContentTypes> = Awaited<
 >;
 
 type EventHandlerMap<ContentTypes> = {
-  attachment: [ctx: MessageContext<RemoteAttachment>];
+  attachment: [ctx: MessageContext<RemoteAttachment, ContentTypes>];
   conversation: [ctx: ConversationContext<ContentTypes>];
-  "group-update": [ctx: MessageContext<GroupUpdated>];
+  "group-update": [ctx: MessageContext<GroupUpdated, ContentTypes>];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
-  markdown: [ctx: MessageContext<string>];
-  message: [ctx: MessageContext<ContentTypes>];
-  reaction: [ctx: MessageContext<Reaction>];
-  "read-receipt": [ctx: MessageContext<ReadReceipt>];
-  reply: [ctx: MessageContext<Reply>];
+  markdown: [ctx: MessageContext<string, ContentTypes>];
+  message: [ctx: MessageContext<unknown, ContentTypes>];
+  reaction: [ctx: MessageContext<Reaction, ContentTypes>];
+  "read-receipt": [ctx: MessageContext<ReadReceipt, ContentTypes>];
+  reply: [ctx: MessageContext<Reply, ContentTypes>];
   start: [ctx: ClientContext<ContentTypes>];
   stop: [ctx: ClientContext<ContentTypes>];
-  text: [ctx: MessageContext<string>];
-  "transaction-reference": [ctx: MessageContext<TransactionReference>];
+  text: [ctx: MessageContext<string, ContentTypes>];
+  "transaction-reference": [
+    ctx: MessageContext<TransactionReference, ContentTypes>,
+  ];
   unhandledError: [error: Error];
-  unknownMessage: [ctx: MessageContext<ContentTypes>];
-  "wallet-send-calls": [ctx: MessageContext<WalletSendCalls>];
+  unknownMessage: [ctx: MessageContext<unknown, ContentTypes>];
+  "wallet-send-calls": [ctx: MessageContext<WalletSendCalls, ContentTypes>];
 };
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
@@ -87,7 +89,7 @@ export type AgentMessageHandler<ContentTypes = unknown> = (
 ) => Promise<void> | void;
 
 export type AgentMiddleware<ContentTypes = unknown> = (
-  ctx: MessageContext<ContentTypes>,
+  ctx: MessageContext<unknown, ContentTypes>,
   next: () => Promise<void> | void,
 ) => Promise<void>;
 
@@ -451,7 +453,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async #runMiddlewareChain(
-    context: MessageContext<ContentTypes>,
+    context: MessageContext<unknown, ContentTypes>,
     topic: EventName<ContentTypes> = "unknownMessage",
   ) {
     const finalEmit = async () => {
