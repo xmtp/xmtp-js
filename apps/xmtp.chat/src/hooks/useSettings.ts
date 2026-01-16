@@ -80,6 +80,9 @@ export const useSettings = () => {
     getInitialValueInEffect: false,
   });
 
+  // Convert empty string (coming from localStorage) to undefined for gateway host
+  const normalizedGatewayHost = gatewayHost || undefined;
+
   // fix for old logging level values
   useEffect(() => {
     if (typeof loggingLevel === "string") {
@@ -97,7 +100,7 @@ export const useSettings = () => {
     ephemeralAccountEnabled,
     ephemeralAccountKey,
     forceSCW,
-    gatewayHost,
+    gatewayHost: normalizedGatewayHost,
     loggingLevel,
     useSCW,
     showDisclaimer,
