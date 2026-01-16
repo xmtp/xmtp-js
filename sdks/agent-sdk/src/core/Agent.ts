@@ -355,7 +355,6 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           if (!(message instanceof DecodedMessage)) {
             return;
           }
-          // console.log("message received in stream", message);
           try {
             switch (true) {
               case filter.isGroupUpdate(message):
