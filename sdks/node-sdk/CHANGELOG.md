@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 5.1.1
+
+### Patch Changes
+
+- d629632: Defaulted to an `undefined` gateway host when an empty string was provided
+
 ## 5.1.0
 
 This release introduces a new feature. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of this new feature.

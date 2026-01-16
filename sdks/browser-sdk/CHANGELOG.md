@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 6.1.2
+
+### Patch Changes
+
+- d629632: Defaulted to an `undefined` gateway host when an empty string was provided
+
 ## 6.1.1
 
 ### Patch Changes
