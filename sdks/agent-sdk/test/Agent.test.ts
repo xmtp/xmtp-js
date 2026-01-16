@@ -41,7 +41,9 @@ describe("Agent", () => {
 
     it("types the content in message event listener", () => {
       agent.on("unknownMessage", (ctx) => {
-        expectTypeOf(ctx).toEqualTypeOf<MessageContext<BuiltInContentTypes>>();
+        expectTypeOf(ctx).toEqualTypeOf<
+          MessageContext<unknown, BuiltInContentTypes>
+        >();
       });
     });
 

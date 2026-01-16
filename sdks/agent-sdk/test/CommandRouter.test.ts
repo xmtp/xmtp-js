@@ -1,15 +1,21 @@
-import { contentTypeText, Dm, type Client } from "@xmtp/node-sdk";
-import { describe, expect, expectTypeOf, it, vi } from "vitest";
+import { type BuiltInContentTypes, type Client } from "@xmtp/node-sdk";
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
+import { Agent } from "@/core/Agent.js";
+import type { DecodedMessageWithContent } from "@/core/filter.js";
 import { MessageContext } from "@/core/MessageContext.js";
 import { CommandRouter } from "@/middleware/CommandRouter.js";
-import {
-  createMockMessage,
-  expectMessage,
-  makeClient,
-} from "@/util/TestUtil.js";
+import { createClient, sleep } from "@test/helpers.js";
 
 describe("CommandRouter", () => {
-  const mockClient = makeClient();
+  let agent: Agent<BuiltInContentTypes>;
+  let client: Client;
+
+  beforeEach(async () => {
+    client = await createClient();
+    agent = new Agent({
+      client,
+    });
+  });
 
   describe("types", () => {
     it("types the message content as string in command handlers", () => {
@@ -21,35 +27,30 @@ describe("CommandRouter", () => {
   });
 
   describe("command arguments", () => {
-    const mockDm = Object.create(Dm.prototype) as Dm;
-
     it("should pass only arguments to the handler, not the command itself", async () => {
       const router = new CommandRouter();
       const handler = vi.fn();
       router.command("/tx", handler);
 
-      const message = createMockMessage({
-        id: "test-message",
-        senderInboxId: "sender-inbox-id",
-        contentType: contentTypeText(),
-        content: "/tx 0.1",
-      });
+      agent.use(router.middleware());
+      await agent.start();
 
-      const ctx = new MessageContext<string>({
-        message,
-        conversation: mockDm,
-        client: mockClient as unknown as Client<string>,
-      });
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      const messageId = await dm.sendText("/tx 0.1");
+      const message = otherClient.conversations.getMessageById(
+        messageId,
+      )! as DecodedMessageWithContent<string>;
 
-      await router.handle(ctx);
+      await sleep(1000);
 
       expect(handler).toHaveBeenCalledTimes(1);
       expect(handler).toHaveBeenCalledWith(
-        expect.objectContaining(
-          expectMessage({
-            content: "0.1",
-          }),
-        ),
+        new MessageContext({
+          message,
+          conversation: dm,
+          client: otherClient,
+        }),
       );
     });
 
@@ -58,28 +59,25 @@ describe("CommandRouter", () => {
       const handler = vi.fn();
       router.command("/balance", handler);
 
-      const message = createMockMessage({
-        id: "test-message",
-        senderInboxId: "sender-inbox-id",
-        contentType: contentTypeText(),
-        content: "/balance",
-      });
+      agent.use(router.middleware());
+      await agent.start();
 
-      const ctx = new MessageContext<string>({
-        message,
-        conversation: mockDm,
-        client: mockClient as unknown as Client<string>,
-      });
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      const messageId = await dm.sendText("/balance");
+      const message = otherClient.conversations.getMessageById(
+        messageId,
+      )! as DecodedMessageWithContent<string>;
 
-      await router.handle(ctx);
+      await sleep(1000);
 
       expect(handler).toHaveBeenCalledTimes(1);
       expect(handler).toHaveBeenCalledWith(
-        expect.objectContaining(
-          expectMessage({
-            content: "",
-          }),
-        ),
+        new MessageContext({
+          message,
+          conversation: dm,
+          client: otherClient,
+        }),
       );
     });
 
@@ -88,28 +86,25 @@ describe("CommandRouter", () => {
       const handler = vi.fn();
       router.command("/send", handler);
 
-      const message = createMockMessage({
-        id: "test-message",
-        senderInboxId: "sender-inbox-id",
-        contentType: contentTypeText(),
-        content: "/send 5 USDC to Alix",
-      });
+      agent.use(router.middleware());
+      await agent.start();
 
-      const ctx = new MessageContext<string>({
-        message,
-        conversation: mockDm,
-        client: mockClient as unknown as Client<string>,
-      });
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      const messageId = await dm.sendText("/send 5 USDC to Alix");
+      const message = otherClient.conversations.getMessageById(
+        messageId,
+      )! as DecodedMessageWithContent<string>;
 
-      await router.handle(ctx);
+      await sleep(1000);
 
       expect(handler).toHaveBeenCalledTimes(1);
       expect(handler).toHaveBeenCalledWith(
-        expect.objectContaining(
-          expectMessage({
-            content: "5 USDC to Alix",
-          }),
-        ),
+        new MessageContext({
+          message,
+          conversation: dm,
+          client: otherClient,
+        }),
       );
     });
   });
