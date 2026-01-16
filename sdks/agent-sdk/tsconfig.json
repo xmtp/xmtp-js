@@ -17,5 +17,5 @@
     "target": "ESNext",
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src/**/*", "vitest.config.ts"]
+  "include": ["src", "vitest.config.ts", "vitest.setup.ts", "test"]
 }

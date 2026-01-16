@@ -1,12 +1,12 @@
 import { contentTypeText, Dm, type Client } from "@xmtp/node-sdk";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import { MessageContext } from "@/core/MessageContext.js";
+import { CommandRouter } from "@/middleware/CommandRouter.js";
 import {
   createMockMessage,
   expectMessage,
   makeClient,
 } from "@/util/TestUtil.js";
-import { CommandRouter } from "./CommandRouter.js";
 
 describe("CommandRouter", () => {
   const mockClient = makeClient();
