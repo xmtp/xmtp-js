@@ -3,66 +3,16 @@ import {
   type ContentTypeId,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
-import {
-  Client,
-  generateInboxId,
-  IdentifierKind,
-  type ClientOptions,
-  type Identifier,
-  type Signer,
-} from "@xmtp/node-sdk";
-import { createWalletClient, http, toBytes } from "viem";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { sepolia } from "viem/chains";
-
-export const createUser = (key?: `0x${string}`) => {
-  const accountKey = key ?? generatePrivateKey();
-  const account = privateKeyToAccount(accountKey);
-  return {
-    key: accountKey,
-    account,
-    wallet: createWalletClient({
-      account,
-      chain: sepolia,
-      transport: http(),
-    }),
-  };
-};
-
-export const createIdentifier = (user: User): Identifier => ({
-  identifier: user.account.address.toLowerCase(),
-  identifierKind: IdentifierKind.Ethereum,
-});
-
-export const createSigner = () => {
-  const user = createUser();
-  const identifier = createIdentifier(user);
-  const signer: Signer = {
-    type: "EOA",
-    getIdentifier: () => identifier,
-    signMessage: async (message: string) => {
-      const signature = await user.wallet.signMessage({
-        message,
-      });
-      return toBytes(signature);
-    },
-  };
-  return {
-    address: user.account.address.toLowerCase(),
-    identifier,
-    signer,
-    user,
-  };
-};
-
-export type User = ReturnType<typeof createUser>;
+import { Client, generateInboxId, type ClientOptions } from "@xmtp/node-sdk";
+import { createSigner, createUser } from "@/user/User";
 
 export const createClient = async <ContentCodecs extends ContentCodec[] = []>(
   options?: Omit<ClientOptions, "codecs"> & {
     codecs?: ContentCodecs;
   },
 ) => {
-  const { signer, identifier } = createSigner();
+  const signer = createSigner(createUser());
+  const identifier = await signer.getIdentifier();
   const inboxId = generateInboxId(identifier);
 
   let dbPath: string;
