@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/agent-sdk",
-  "version": "1.2.4",
+  "version": "1.2.4-dev",
   "description": "XMTP Agent SDK for interacting with XMTP networks",
   "keywords": [
     "agents",
@@ -74,7 +74,7 @@
     "@xmtp/content-type-text": "^2.0.2",
     "@xmtp/content-type-transaction-reference": "^2.0.2",
     "@xmtp/content-type-wallet-send-calls": "^2.0.0",
-    "@xmtp/node-sdk": "4.6.0",
+    "@xmtp/node-sdk": "4.6.0-dev.02e173d",
     "viem": "^2.37.6"
   },
   "devDependencies": {
