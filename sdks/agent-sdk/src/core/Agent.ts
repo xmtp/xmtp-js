@@ -165,8 +165,6 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     initializedOptions.appVersion ??= "agent-sdk/alpha";
     initializedOptions.disableDeviceSync ??= true;
 
-    const upgradedCodecs = [...(initializedOptions.codecs ?? [])];
-
     if (process.env.XMTP_FORCE_DEBUG) {
       const loggingLevel = process.env.XMTP_FORCE_DEBUG_LEVEL || LogLevel.Warn;
       initializedOptions.loggingLevel = loggingLevel as LogLevel;
@@ -175,7 +173,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
     const client = await Client.create(signer, {
       ...initializedOptions,
-      codecs: upgradedCodecs,
+      codecs: initializedOptions.codecs,
     });
 
     const info = await getInstallationInfo(client);
