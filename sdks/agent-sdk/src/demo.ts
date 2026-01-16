@@ -89,6 +89,12 @@ agent.on("stop", (ctx) => {
   console.log("Agent stopped", ctx);
 });
 
+agent.on("unknownMessage", (ctx) => {
+  console.log(
+    `Unknown message type, displaying fallback content: ${ctx.message.fallback}`,
+  );
+});
+
 agent.on("group", async (ctx) => {
   await ctx.sendMarkdown("**Hello, World!**");
 });
