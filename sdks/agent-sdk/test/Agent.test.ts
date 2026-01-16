@@ -21,7 +21,7 @@ import type { ClientContext } from "@/core/ClientContext";
 import { ConversationContext } from "@/core/ConversationContext";
 import { filter } from "@/core/filter";
 import { MessageContext } from "@/core/MessageContext";
-import { createClient, sleep } from "@test/helpers";
+import { createClient } from "@test/helpers";
 
 describe("Agent", () => {
   let agent: Agent<BuiltInContentTypes>;
@@ -156,12 +156,12 @@ describe("Agent", () => {
       const messages = await dm.messages();
       const message = messages[1]!;
 
-      await sleep(1000);
-
-      expect(
-        textEventSpy,
-        "Should not emit events for message from self, but should for message from other",
-      ).toHaveBeenCalledTimes(1);
+      await vi.waitFor(() => {
+        expect(
+          textEventSpy,
+          "Should not emit events for message from self, but should for message from other",
+        ).toHaveBeenCalledTimes(1);
+      });
       expect(
         unknownMessageSpy,
         "Filtered text messages don't go to unknownMessage",
@@ -210,12 +210,12 @@ describe("Agent", () => {
       });
       const reaction = agent.client.conversations.getMessageById(reactionId)!;
 
-      await sleep(1000);
-
-      expect(
-        reactionEventSpy,
-        "Should only emit reaction event for message from other sender",
-      ).toHaveBeenCalledTimes(1);
+      await vi.waitFor(() => {
+        expect(
+          reactionEventSpy,
+          "Should only emit reaction event for message from other sender",
+        ).toHaveBeenCalledTimes(1);
+      });
       expect(
         unknownMessageSpy,
         "Filtered text messages don't go to unknownMessage",
@@ -244,9 +244,9 @@ describe("Agent", () => {
       const messages = await group.messages();
       const message = messages[1]!;
 
-      await sleep(1000);
-
-      expect(groupUpdateEventSpy).toHaveBeenCalledTimes(1);
+      await vi.waitFor(() => {
+        expect(groupUpdateEventSpy).toHaveBeenCalledTimes(1);
+      });
       expect(groupUpdateEventSpy).toHaveBeenCalledWith(
         new MessageContext({
           message,
@@ -290,12 +290,12 @@ describe("Agent", () => {
         referenceInboxId: client.inboxId,
       });
 
-      await sleep(1000);
-
-      expect(
-        messageEventSpy,
-        "Generic 'message' event should fire for all message types",
-      ).toHaveBeenCalledTimes(4);
+      await vi.waitFor(() => {
+        expect(
+          messageEventSpy,
+          "Generic 'message' event should fire for all message types",
+        ).toHaveBeenCalledTimes(4);
+      });
       expect(textEventSpy).toHaveBeenCalledTimes(1);
       expect(reactionEventSpy).toHaveBeenCalledTimes(1);
       expect(replyEventSpy).toHaveBeenCalledTimes(1);
@@ -316,9 +316,9 @@ describe("Agent", () => {
         client.inboxId,
       ]);
 
-      await sleep(1000);
-
-      expect(conversationEventSpy).toHaveBeenCalledTimes(2);
+      await vi.waitFor(() => {
+        expect(conversationEventSpy).toHaveBeenCalledTimes(2);
+      });
       expect(conversationEventSpy).toHaveBeenNthCalledWith(
         1,
         new ConversationContext({
@@ -346,10 +346,10 @@ describe("Agent", () => {
       const otherClient = await createClient();
       const dm = await otherClient.conversations.createDm(client.inboxId);
 
-      await sleep(1000);
-
-      expect(dmEventSpy).toHaveBeenCalledTimes(1);
-      expect(conversationEventSpy).toHaveBeenCalledTimes(1);
+      await vi.waitFor(() => {
+        expect(dmEventSpy).toHaveBeenCalledTimes(1);
+        expect(conversationEventSpy).toHaveBeenCalledTimes(1);
+      });
 
       expect(dmEventSpy).toHaveBeenCalledWith(
         new ConversationContext({
@@ -372,10 +372,10 @@ describe("Agent", () => {
         client.inboxId,
       ]);
 
-      await sleep(1000);
-
-      expect(groupEventSpy).toHaveBeenCalledTimes(1);
-      expect(conversationEventSpy).toHaveBeenCalledTimes(1);
+      await vi.waitFor(() => {
+        expect(groupEventSpy).toHaveBeenCalledTimes(1);
+        expect(conversationEventSpy).toHaveBeenCalledTimes(1);
+      });
 
       expect(groupEventSpy).toHaveBeenCalledWith(
         new ConversationContext({
@@ -407,9 +407,9 @@ describe("Agent", () => {
       const messages = await dm.messages();
       const message = messages[1]!;
 
-      await sleep(1000);
-
-      expect(middleware).toHaveBeenCalledTimes(1);
+      await vi.waitFor(() => {
+        expect(middleware).toHaveBeenCalledTimes(1);
+      });
       expect(middleware).toHaveBeenCalledWith(
         new MessageContext({
           message,
@@ -434,13 +434,13 @@ describe("Agent", () => {
       const messages = await dm.messages();
       const message = messages[1]!;
 
-      await sleep(1000);
-
-      // Middleware should only be called once (for the message from other user)
-      expect(
-        middlewareCallsSpy,
-        "Middleware should only process messages from other users, not self",
-      ).toHaveBeenCalledTimes(1);
+      await vi.waitFor(() => {
+        // Middleware should only be called once (for the message from other user)
+        expect(
+          middlewareCallsSpy,
+          "Middleware should only process messages from other users, not self",
+        ).toHaveBeenCalledTimes(1);
+      });
 
       // Verify middleware was called with the message from the other user
       expect(middlewareCallsSpy).toHaveBeenCalledWith(
@@ -480,16 +480,16 @@ describe("Agent", () => {
       const messageId1 = await dm.sendText("Hello world");
       const messageId2 = await dm.sendText("Hello world");
 
-      await sleep(1000);
-
-      expect(middlewareCalls).toEqual([
-        `mw1-${messageId1}`,
-        `mw2-${messageId1}`,
-        `mw3-${messageId1}`,
-        `mw1-${messageId2}`,
-        `mw2-${messageId2}`,
-        `mw3-${messageId2}`,
-      ]);
+      await vi.waitFor(() => {
+        expect(middlewareCalls).toEqual([
+          `mw1-${messageId1}`,
+          `mw2-${messageId1}`,
+          `mw3-${messageId1}`,
+          `mw1-${messageId2}`,
+          `mw2-${messageId2}`,
+          `mw3-${messageId2}`,
+        ]);
+      });
     });
 
     it("should stop the processing chain when the middleware returns", async () => {
@@ -526,15 +526,15 @@ describe("Agent", () => {
         referenceInboxId: client.inboxId,
       });
 
-      await sleep(1000);
-
-      expect(middlewareCalls).toEqual([
-        `mw1-${messageId1}`,
-        `filterReply-${messageId1}`,
-        `mw3-${messageId1}`,
-        `mw1-${messageId2}`,
-        `filterReply-${messageId2}`,
-      ]);
+      await vi.waitFor(() => {
+        expect(middlewareCalls).toEqual([
+          `mw1-${messageId1}`,
+          `filterReply-${messageId1}`,
+          `mw3-${messageId1}`,
+          `mw1-${messageId2}`,
+          `filterReply-${messageId2}`,
+        ]);
+      });
     });
   });
 
@@ -552,17 +552,17 @@ describe("Agent", () => {
       const dm = await otherClient.conversations.createDm(client.inboxId);
       await dm.sendText("Hello world");
 
-      await sleep(1000);
+      await vi.waitFor(() => {
+        expect(handler).toHaveBeenCalledTimes(1);
+      });
 
-      expect(handler).toHaveBeenCalledTimes(1);
-
-      await sleep(1000);
-
-      await dm.sync();
-      const messages = await dm.messages();
-      const message = messages[2]!;
-      expect(message.senderInboxId).toBe(client.inboxId);
-      expect(message.content).toBe("gm");
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        const message = messages[2]!;
+        expect(message.senderInboxId).toBe(client.inboxId);
+        expect(message.content).toBe("gm");
+      });
     });
   });
 
@@ -638,9 +638,9 @@ describe("Agent", () => {
       const dm = await otherClient.conversations.createDm(client.inboxId);
       await dm.sendText("Hello world");
 
-      await sleep(1000);
-
-      expect(callOrder).toEqual(["1", "2", "E1", "E2", "3", "4", "EMIT"]);
+      await vi.waitFor(() => {
+        expect(callOrder).toEqual(["1", "2", "E1", "E2", "3", "4", "EMIT"]);
+      });
       expect(
         onError,
         "error chain recovered, no final error is emitted",
@@ -681,9 +681,9 @@ describe("Agent", () => {
       const dm = await otherClient.conversations.createDm(client.inboxId);
       await dm.sendText("Hello world");
 
-      await sleep(1000);
-
-      expect(callOrder).toEqual(["1", "2"]);
+      await vi.waitFor(() => {
+        expect(callOrder).toEqual(["1", "2"]);
+      });
     });
 
     it("can end an error queue when returning", async () => {
@@ -719,9 +719,9 @@ describe("Agent", () => {
       const dm = await otherClient.conversations.createDm(client.inboxId);
       await dm.sendText("Hello world");
 
-      await sleep(1000);
-
-      expect(callOrder).toEqual(["mw1", "e1"]);
+      await vi.waitFor(() => {
+        expect(callOrder).toEqual(["mw1", "e1"]);
+      });
     });
 
     it("emits an error if no custom error middleware is registered", async () => {
@@ -745,9 +745,9 @@ describe("Agent", () => {
       const dm = await otherClient.conversations.createDm(client.inboxId);
       await dm.sendText("Hello world");
 
-      await sleep(1000);
-
-      expect(callOrder).toEqual([errorMessage]);
+      await vi.waitFor(() => {
+        expect(callOrder).toEqual([errorMessage]);
+      });
     });
   });
 });

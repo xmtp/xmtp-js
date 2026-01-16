@@ -15,9 +15,6 @@ import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 
-export const sleep = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
-
 export const createUser = (key?: `0x${string}`) => {
   const accountKey = key ?? generatePrivateKey();
   const account = privateKeyToAccount(accountKey);
