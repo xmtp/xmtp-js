@@ -21,7 +21,7 @@ import type { ClientContext } from "@/core/ClientContext";
 import { ConversationContext } from "@/core/ConversationContext";
 import { filter } from "@/core/filter";
 import { MessageContext } from "@/core/MessageContext";
-import { createClient } from "@test/helpers";
+import { createClient } from "@/util/test";
 
 describe("Agent", () => {
   let agent: Agent<BuiltInContentTypes>;

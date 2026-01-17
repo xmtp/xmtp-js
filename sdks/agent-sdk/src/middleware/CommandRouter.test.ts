@@ -4,7 +4,7 @@ import { Agent } from "@/core/Agent";
 import type { DecodedMessageWithContent } from "@/core/filter";
 import { MessageContext } from "@/core/MessageContext";
 import { CommandRouter } from "@/middleware/CommandRouter";
-import { createClient } from "@test/helpers";
+import { createClient } from "@/util/test";
 
 describe("CommandRouter", () => {
   let agent: Agent<BuiltInContentTypes>;

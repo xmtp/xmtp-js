@@ -18,11 +18,5 @@
     "target": "ESNext",
     "types": ["node", "vitest/globals"]
   },
-  "include": [
-    "rollup.config.js",
-    "src",
-    "test",
-    "vitest.config.ts",
-    "vitest.setup.ts"
-  ]
+  "include": ["rollup.config.js", "src", "vitest.config.ts", "vitest.setup.ts"]
 }

@@ -5,7 +5,7 @@ import {
 } from "@xmtp/node-sdk";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { MessageContext } from "@/core/MessageContext";
-import { createClient } from "@test/helpers";
+import { createClient } from "@/util/test";
 
 describe("MessageContext", () => {
   it("should properly type the content when using reply as input", async () => {

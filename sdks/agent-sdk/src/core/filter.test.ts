@@ -6,7 +6,7 @@ import {
 } from "@xmtp/node-sdk";
 import { describe, expect, it } from "vitest";
 import { filter } from "@/core/filter";
-import { createClient, TestCodec } from "@test/helpers";
+import { createClient, TestCodec } from "@/util/test";
 
 describe("Filters", () => {
   describe("fromSelf", () => {
