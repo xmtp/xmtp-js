@@ -4,7 +4,7 @@ import type { MessageContext } from "@/core/MessageContext";
 /** Content type supported by the "CommandRouter" */
 type SupportedType = string;
 
-export class CommandRouter {
+export class CommandRouter<ContentTypes = unknown> {
   #commandMap = new Map<string, AgentMessageHandler<SupportedType>>();
   #defaultHandler: AgentMessageHandler<SupportedType> | null = null;
 
@@ -55,7 +55,7 @@ export class CommandRouter {
     return false;
   }
 
-  middleware(): AgentMiddleware {
+  middleware(): AgentMiddleware<ContentTypes> {
     return async (ctx, next) => {
       if (ctx.isText()) {
         const handled = await this.handle(ctx);

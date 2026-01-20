@@ -58,7 +58,7 @@
     "dev": "tsx watch src/demo.ts",
     "fix": "npx prettier --log-level error -w . && npx eslint . --fix",
     "gen:keys": "tsx src/bin/generateKeys.ts",
-    "start": "yarn demo",
+    "start": "yarn dev",
     "test": "yarn typecheck && vitest run --typecheck",
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
