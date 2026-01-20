@@ -17,11 +17,11 @@ import {
   type Client,
   type Conversation,
   type DecodedMessage,
+  type EnrichedReply,
   type GroupUpdated,
   type Reaction,
   type ReadReceipt,
   type RemoteAttachment,
-  type Reply,
   type TransactionReference,
   type WalletSendCalls,
 } from "@xmtp/node-sdk";
@@ -83,7 +83,7 @@ const isReaction = (
 
 const isReply = (
   message: DecodedMessage,
-): message is DecodedMessageWithContent<Reply> => {
+): message is DecodedMessageWithContent<EnrichedReply> => {
   return contentTypesAreEqual(message.contentType, contentTypeReply());
 };
 
@@ -114,7 +114,9 @@ const isText = (
   return contentTypesAreEqual(message.contentType, contentTypeText());
 };
 
-const isTextReply = (message: DecodedMessage) => {
+const isTextReply = (
+  message: DecodedMessage,
+): message is DecodedMessageWithContent<EnrichedReply<string>> => {
   return isReply(message) && typeof message.content.content === "string";
 };
 
@@ -139,7 +141,7 @@ const isWalletSendCalls = (
 const usesCodec = <T extends ContentCodec>(
   message: DecodedMessage,
   codecClass: new () => T,
-): message is DecodedMessageWithContent<T> => {
+): message is DecodedMessageWithContent<ReturnType<T["decode"]>> => {
   return contentTypesAreEqual(
     message.contentType,
     new codecClass().contentType,
