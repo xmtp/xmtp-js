@@ -86,7 +86,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": false,
+    "provenance": true,
     "registry": "https://registry.npmjs.org/"
   }
 }
