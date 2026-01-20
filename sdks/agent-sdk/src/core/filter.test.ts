@@ -3,6 +3,8 @@ import {
   encodeText,
   ReactionAction,
   ReactionSchema,
+  type EnrichedReply,
+  type Reaction,
 } from "@xmtp/node-sdk";
 import { describe, expect, it } from "vitest";
 import { filter } from "@/core/filter";
@@ -192,6 +194,9 @@ describe("Filters", () => {
       });
       const message = client.conversations.getMessageById(messageId)!;
       const result = filter.isReaction(message);
+      if (result) {
+        assertType<Reaction>(message.content);
+      }
       expect(result).toBe(true);
     });
 
@@ -218,6 +223,9 @@ describe("Filters", () => {
       const messages = await group.messages();
       const message = messages[0]!;
       const result = filter.isReply(message);
+      if (result) {
+        assertType<EnrichedReply>(message.content);
+      }
       expect(result).toBe(true);
     });
 
@@ -240,6 +248,9 @@ describe("Filters", () => {
       const messages = await group.messages();
       const message = messages[0]!;
       const result = filter.isText(message);
+      if (result) {
+        assertType<string>(message.content);
+      }
       expect(result).toBe(true);
     });
 
@@ -271,6 +282,9 @@ describe("Filters", () => {
       const messages = await group.messages();
       const message = messages[0]!;
       const result = filter.isTextReply(message);
+      if (result) {
+        assertType<EnrichedReply<string>>(message.content);
+      }
       expect(result).toBe(true);
     });
 
@@ -315,6 +329,9 @@ describe("Filters", () => {
       const messageId = await group.send(testCodec.encode({ test: "test" }));
       const message = client.conversations.getMessageById(messageId)!;
       const result = filter.usesCodec(message, TestCodec);
+      if (result) {
+        assertType<Record<string, string>>(message.content);
+      }
       expect(result).toBe(true);
     });
 
