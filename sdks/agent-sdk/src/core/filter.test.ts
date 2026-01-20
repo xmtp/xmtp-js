@@ -4,7 +4,12 @@ import {
   ReactionAction,
   ReactionSchema,
   type EnrichedReply,
+  type GroupUpdated,
   type Reaction,
+  type ReadReceipt,
+  type RemoteAttachment,
+  type TransactionReference,
+  type WalletSendCalls,
 } from "@xmtp/node-sdk";
 import { describe, expect, it } from "vitest";
 import { filter } from "@/core/filter";
@@ -315,6 +320,180 @@ describe("Filters", () => {
       const messages = await group.messages();
       const message = messages[0]!;
       const result = filter.isTextReply(message);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isGroupUpdate", () => {
+    it("should return true for group update messages", async () => {
+      const client = await createClient();
+      const otherClient = await createClient();
+      const group = await client.conversations.createGroup([
+        otherClient.inboxId,
+      ]);
+      const messages = await group.messages();
+      const message = messages[0]!;
+      const result = filter.isGroupUpdate(message);
+      if (result) {
+        assertType<GroupUpdated>(message.content);
+      }
+      expect(result).toBe(true);
+    });
+
+    it("should return false for non-group update messages", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      await group.sendText("Hello world");
+      const messages = await group.messages();
+      const message = messages[0]!;
+      const result = filter.isGroupUpdate(message);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isRemoteAttachment", () => {
+    it("should return true for remote attachment messages", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      await group.sendRemoteAttachment({
+        url: "https://example.com/test.pdf",
+        contentDigest: "test",
+        secret: new Uint8Array([1, 2, 3]),
+        salt: new Uint8Array([1, 2, 3]),
+        nonce: new Uint8Array([1, 2, 3]),
+        scheme: "https",
+        contentLength: 100,
+        filename: "test.pdf",
+      });
+      const messages = await group.messages();
+      const message = messages[0]!;
+      const result = filter.isRemoteAttachment(message);
+      if (result) {
+        assertType<RemoteAttachment>(message.content);
+      }
+      expect(result).toBe(true);
+    });
+
+    it("should return false for non-remote attachment messages", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      await group.sendText("Hello world");
+      const messages = await group.messages();
+      const message = messages[0]!;
+      const result = filter.isRemoteAttachment(message);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isMarkdown", () => {
+    it("should return true for markdown messages", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      await group.sendMarkdown("Hello world");
+      const messages = await group.messages();
+      const message = messages[0]!;
+      const result = filter.isMarkdown(message);
+      if (result) {
+        assertType<string>(message.content);
+      }
+      expect(result).toBe(true);
+    });
+
+    it("should return false for non-markdown messages", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      await group.sendText("Hello world");
+      const messages = await group.messages();
+      const message = messages[0]!;
+      const result = filter.isMarkdown(message);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isReadReceipt", () => {
+    it("should return true for read receipt messages", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      const messageId = await group.sendReadReceipt();
+      const message = client.conversations.getMessageById(messageId)!;
+      const result = filter.isReadReceipt(message);
+      if (result) {
+        assertType<ReadReceipt>(message.content);
+      }
+      expect(result).toBe(true);
+    });
+
+    it("should return false for non-read receipt messages", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      await group.sendText("Hello world");
+      const messages = await group.messages();
+      const message = messages[0]!;
+      const result = filter.isReadReceipt(message);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isTransactionReference", () => {
+    it("should return true for transaction reference messages", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      await group.sendTransactionReference({
+        networkId: "1",
+        reference: "1234567890",
+      });
+      const messages = await group.messages();
+      const message = messages[0]!;
+      const result = filter.isTransactionReference(message);
+      if (result) {
+        assertType<TransactionReference>(message.content);
+      }
+      expect(result).toBe(true);
+    });
+
+    it("should return false for non-transaction reference messages", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      await group.sendText("Hello world");
+      const messages = await group.messages();
+      const message = messages[0]!;
+      const result = filter.isTransactionReference(message);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("isWalletSendCalls", () => {
+    it("should return true for wallet send calls messages", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      await group.sendWalletSendCalls({
+        version: "1.0",
+        chainId: "1",
+        from: "0x1234567890",
+        calls: [
+          {
+            to: "0x1234567890",
+            data: "0x1234567890",
+            value: "0x1234567890",
+          },
+        ],
+      });
+      const messages = await group.messages();
+      const message = messages[0]!;
+      const result = filter.isWalletSendCalls(message);
+      if (result) {
+        assertType<WalletSendCalls>(message.content);
+      }
+      expect(result).toBe(true);
+    });
+
+    it("should return false for non-wallet send calls messages", async () => {
+      const client = await createClient();
+      const group = await client.conversations.createGroup([]);
+      await group.sendText("Hello world");
+      const messages = await group.messages();
+      const message = messages[0]!;
+      const result = filter.isWalletSendCalls(message);
       expect(result).toBe(false);
     });
   });
