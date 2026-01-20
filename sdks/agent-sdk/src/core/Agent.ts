@@ -206,6 +206,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       XMTP_DB_ENCRYPTION_KEY,
       XMTP_ENV,
       XMTP_WALLET_KEY,
+      XMTP_GATEWAY_HOST,
     } = process.env;
 
     if (!isHexString(XMTP_WALLET_KEY)) {
@@ -228,6 +229,10 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
     if (XMTP_ENV && Object.keys(ApiUrls).includes(XMTP_ENV)) {
       initializedOptions.env = XMTP_ENV as XmtpEnv;
+    }
+
+    if (typeof XMTP_GATEWAY_HOST === "string") {
+      initializedOptions.gatewayHost = XMTP_GATEWAY_HOST;
     }
 
     if (typeof XMTP_DB_DIRECTORY === "string") {
