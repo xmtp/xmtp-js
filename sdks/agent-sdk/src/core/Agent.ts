@@ -232,7 +232,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
 
     if (typeof XMTP_GATEWAY_HOST === "string") {
-      initializedOptions.gatewayHost = XMTP_GATEWAY_HOST;
+      initializedOptions.gatewayHost = XMTP_GATEWAY_HOST || undefined;
     }
 
     if (typeof XMTP_DB_DIRECTORY === "string") {
