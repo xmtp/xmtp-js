@@ -31,20 +31,20 @@
       "import": "./dist/index.js"
     },
     "./debug": {
-      "types": "./dist/debug.d.ts",
-      "import": "./dist/debug.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./middleware": {
-      "types": "./dist/middleware.d.ts",
-      "import": "./dist/middleware.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./user": {
-      "types": "./dist/user.d.ts",
-      "import": "./dist/user.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./util": {
-      "types": "./dist/util.d.ts",
-      "import": "./dist/util.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "main": "dist/index.js",
