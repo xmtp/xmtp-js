@@ -29,7 +29,7 @@ on:
           - agent-sdk
         default: node-sdk
       prerelease_dependency_version:
-        description: "Dependency version (i.e. 1.7.0-dev.b057f23) for @xmtp/node-bindings (when releasing Node SDK) or @xmtp/node-sdk (when releasing Agent SDK)"
+        description: "Dependency version (i.e. 1.7.0-dev.b057f23) for @xmtp/node-bindings (when releasing Node SDK) or @xmtp/node-sdk (when releasing Agent SDK), leave blank to use existing version"
         type: string
       prerelease_tag:
         description: "Release tag"
@@ -112,6 +112,7 @@ jobs:
       - name: Update npm to latest
         run: npm install -g npm@latest
       - name: Update dependency version
+        if: ${{ inputs.prerelease_dependency_version != '' }}
         working-directory: ./sdks/${{ inputs.prerelease_sdk }}
         run: yarn add ${{ fromJSON(env.SDK_DEPS)[inputs.prerelease_sdk] }}@${{ inputs.prerelease_dependency_version }}
       - name: Install dependencies
