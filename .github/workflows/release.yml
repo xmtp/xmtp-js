@@ -112,7 +112,7 @@ jobs:
       - name: Update npm to latest
         run: npm install -g npm@latest
       - name: Update dependency version
-        if: ${{ inputs.prerelease_dependency_version != '' }}
+        if: ${{ github.event.inputs.prerelease_dependency_version != '' }}
         working-directory: ./sdks/${{ inputs.prerelease_sdk }}
         run: yarn add ${{ fromJSON(env.SDK_DEPS)[inputs.prerelease_sdk] }}@${{ inputs.prerelease_dependency_version }}
       - name: Install dependencies
