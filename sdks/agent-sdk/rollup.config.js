@@ -20,6 +20,7 @@ const plugins = [
   typescript({
     declaration: false,
     declarationMap: false,
+    exclude: ["**/*.test.ts", "**/demo.ts"],
   }),
 ];
 
