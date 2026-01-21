@@ -37,15 +37,6 @@ export class ConversationContext<
     return filter.isGroup(this.#conversation);
   }
 
-  // Send methods, which don't need a message context, are in ConversationContext to make them available in both dm and group event handlers
-  async sendMarkdown(markdown: string): Promise<void> {
-    await this.#conversation.sendMarkdown(markdown);
-  }
-
-  async sendText(text: string): Promise<void> {
-    await this.#conversation.sendText(text);
-  }
-
   async sendRemoteAttachment(
     unencryptedFile: File,
     uploadCallback: AttachmentUploadCallback,
