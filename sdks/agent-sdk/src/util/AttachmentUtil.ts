@@ -1,15 +1,10 @@
 import {
   decryptAttachment,
-  encryptAttachment as xmtpEncryptAttachment,
+  encryptAttachment,
   type Attachment,
+  type EncryptedAttachment,
   type RemoteAttachment,
-  type EncryptedAttachment as XmtpEncryptedAttachment,
 } from "@xmtp/node-sdk";
-
-export type EncryptedAttachment = {
-  content: XmtpEncryptedAttachment;
-  mimeType: string;
-};
 
 export type AttachmentUploadCallback = (
   attachment: EncryptedAttachment,
@@ -36,20 +31,6 @@ export async function downloadRemoteAttachment(
 }
 
 /**
- * Encrypts an attachment for secure remote storage.
- *
- * @param attachmentData - The attachment to encrypt, including its data, filename, and MIME type
- * @returns A promise that resolves with the encrypted attachment containing the encrypted content and metadata
- */
-export function encryptAttachment(attachmentData: Attachment) {
-  const encryptedAttachment = xmtpEncryptAttachment(attachmentData);
-  return {
-    content: encryptedAttachment,
-    mimeType: attachmentData.mimeType,
-  };
-}
-
-/**
  * Creates a remote attachment object from an encrypted attachment and file URL.
  *
  * @param encryptedAttachment - The encrypted attachment containing encryption keys and metadata
@@ -63,14 +44,14 @@ export function createRemoteAttachment(
   const url = new URL(fileUrl);
 
   return {
-    url: url.toString(),
-    contentDigest: encryptedAttachment.content.contentDigest,
-    salt: encryptedAttachment.content.salt,
-    nonce: encryptedAttachment.content.nonce,
-    secret: encryptedAttachment.content.secret,
+    contentDigest: encryptedAttachment.contentDigest,
+    contentLength: encryptedAttachment.payload.length,
+    filename: encryptedAttachment.filename,
+    nonce: encryptedAttachment.nonce,
+    salt: encryptedAttachment.salt,
     scheme: url.protocol,
-    contentLength: encryptedAttachment.content.payload.length,
-    filename: encryptedAttachment.content.filename,
+    secret: encryptedAttachment.secret,
+    url: url.toString(),
   };
 }
 

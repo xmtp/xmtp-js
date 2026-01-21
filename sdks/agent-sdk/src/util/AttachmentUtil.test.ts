@@ -1,3 +1,4 @@
+import { encryptAttachment } from "@xmtp/node-sdk";
 import {
   afterEach,
   beforeEach,
@@ -11,7 +12,6 @@ import {
   createRemoteAttachment,
   createRemoteAttachmentFromFile,
   downloadRemoteAttachment,
-  encryptAttachment,
 } from "@/util/AttachmentUtil";
 
 describe("AttachmentUtil", () => {
@@ -68,7 +68,7 @@ describe("AttachmentUtil", () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         arrayBuffer: async () =>
-          Promise.resolve(encryptedAttachment.content.payload.buffer),
+          Promise.resolve(encryptedAttachment.payload.buffer),
       });
 
       const remoteAttachment = createRemoteAttachment(
