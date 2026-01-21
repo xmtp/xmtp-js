@@ -96,7 +96,7 @@ agent.on("unknownMessage", (ctx) => {
 });
 
 agent.on("group", async (ctx) => {
-  await ctx.sendMarkdown("**Hello, World!**");
+  await ctx.conversation.sendMarkdown("**Hello, World!**");
 });
 
 await agent.start();
