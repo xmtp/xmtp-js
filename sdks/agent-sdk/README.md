@@ -76,7 +76,7 @@ Agents can also recognize the following environment variables:
 | Variable                 | Purpose                                                                     | Example                        |
 | ------------------------ | --------------------------------------------------------------------------- | ------------------------------ |
 | `XMTP_FORCE_DEBUG`       | [Activate debugging logs](https://docs.xmtp.org/agents/deploy/debug-agents) | `XMTP_FORCE_DEBUG=true`        |
-| `XMTP_FORCE_DEBUG_LEVEL` | Specify the logging level (defaults to `"Info"`)                            | `XMTP_FORCE_DEBUG_LEVEL=Debug` |
+| `XMTP_FORCE_DEBUG_LEVEL` | Specify the logging level (defaults to `"Warn"`)                            | `XMTP_FORCE_DEBUG_LEVEL=Debug` |
 
 ## Core Concepts
 
