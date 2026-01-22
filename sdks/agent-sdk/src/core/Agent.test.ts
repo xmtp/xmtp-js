@@ -5,6 +5,7 @@ import {
   type BuiltInContentTypes,
   type Client,
   type Dm,
+  type EnrichedReply,
   type Group,
   type GroupUpdated,
   type Reaction,
@@ -67,7 +68,7 @@ describe("Agent", () => {
 
     it("types content for 'reply' events", () => {
       agent.on("reply", (ctx) => {
-        expectTypeOf(ctx.message.content).toEqualTypeOf<Reply>();
+        expectTypeOf(ctx.message.content).toEqualTypeOf<EnrichedReply>();
       });
     });
 

@@ -15,12 +15,12 @@ import {
   type Conversation,
   type CreateDmOptions,
   type CreateGroupOptions,
+  type EnrichedReply,
   type GroupUpdated,
   type HexString,
   type Reaction,
   type ReadReceipt,
   type RemoteAttachment,
-  type Reply,
   type StreamOptions,
   type TransactionReference,
   type WalletSendCalls,
@@ -52,7 +52,7 @@ type EventHandlerMap<ContentTypes> = {
   message: [ctx: MessageContext<unknown, ContentTypes>];
   reaction: [ctx: MessageContext<Reaction, ContentTypes>];
   "read-receipt": [ctx: MessageContext<ReadReceipt, ContentTypes>];
-  reply: [ctx: MessageContext<Reply, ContentTypes>];
+  reply: [ctx: MessageContext<EnrichedReply, ContentTypes>];
   start: [ctx: ClientContext<ContentTypes>];
   stop: [ctx: ClientContext<ContentTypes>];
   text: [ctx: MessageContext<string, ContentTypes>];
