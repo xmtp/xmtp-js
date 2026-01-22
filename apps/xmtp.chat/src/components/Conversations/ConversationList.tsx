@@ -35,7 +35,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
       style={{ flexGrow: 1 }}
       data={conversations}
       itemContent={(_, conversation) => (
-        <ErrorBoundary key={conversation.id}>
+        <ErrorBoundary>
           <ConversationCard conversationId={conversation.id} />
         </ErrorBoundary>
       )}
