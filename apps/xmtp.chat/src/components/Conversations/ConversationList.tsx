@@ -2,6 +2,7 @@ import type { Conversation } from "@xmtp/browser-sdk";
 import { useMemo, type ComponentProps } from "react";
 import { useParams } from "react-router";
 import { Virtuoso } from "react-virtuoso";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import type { ContentTypes } from "@/contexts/XMTPContext";
 import { ConversationCard } from "./ConversationCard";
 import classes from "./ConversationList.module.css";
@@ -34,10 +35,9 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
       style={{ flexGrow: 1 }}
       data={conversations}
       itemContent={(_, conversation) => (
-        <ConversationCard
-          key={conversation.id}
-          conversationId={conversation.id}
-        />
+        <ErrorBoundary key={conversation.id}>
+          <ConversationCard conversationId={conversation.id} />
+        </ErrorBoundary>
       )}
     />
   );

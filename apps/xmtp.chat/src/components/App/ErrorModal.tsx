@@ -15,11 +15,22 @@ export const ErrorModal: React.FC = () => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       setUnhandledRejectionError(event.reason as Error);
     };
+    const handleBoundaryError = (event: CustomEvent<Error>) => {
+      setUnhandledRejectionError(event.detail);
+    };
     window.addEventListener("unhandledrejection", handleUnhandledRejection);
+    window.addEventListener(
+      "errorboundary",
+      handleBoundaryError as EventListener,
+    );
     return () => {
       window.removeEventListener(
         "unhandledrejection",
         handleUnhandledRejection,
+      );
+      window.removeEventListener(
+        "errorboundary",
+        handleBoundaryError as EventListener,
       );
     };
   }, []);
