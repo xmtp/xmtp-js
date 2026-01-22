@@ -9,7 +9,8 @@
     "noUncheckedIndexedAccess": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@test/*": ["./test/*"]
+      "@test/*": ["./test/*"],
+      "~/*": ["./*"]
     },
     "preserveConstEnums": true,
     "skipLibCheck": true,

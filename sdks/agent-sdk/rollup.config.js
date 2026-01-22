@@ -1,3 +1,4 @@
+import json from "@rollup/plugin-json";
 import typescript from "@rollup/plugin-typescript";
 import { defineConfig } from "rollup";
 import { dts } from "rollup-plugin-dts";
@@ -16,6 +17,9 @@ const external = [
 ];
 
 const plugins = [
+  json({
+    preferConst: true,
+  }),
   tsConfigPaths(),
   typescript({
     declaration: false,

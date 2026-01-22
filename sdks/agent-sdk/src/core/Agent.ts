@@ -26,6 +26,7 @@ import {
   type WalletSendCalls,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
+import { version as appVersion } from "~/package.json";
 import { filter } from "@/core/filter";
 import { getInstallationInfo } from "@/debug";
 import { createSigner, createUser } from "@/user/User";
@@ -162,7 +163,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
     const initializedOptions = { ...(options ?? {}) };
-    initializedOptions.appVersion ??= "agent-sdk/alpha";
+    initializedOptions.appVersion ??= `agent-sdk/${appVersion}`;
     initializedOptions.disableDeviceSync ??= true;
 
     if (process.env.XMTP_FORCE_DEBUG) {

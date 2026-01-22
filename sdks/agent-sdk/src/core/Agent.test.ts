@@ -12,6 +12,7 @@ import {
   type RemoteAttachment,
   type Reply,
 } from "@xmtp/node-sdk";
+import { version as appVersion } from "~/package.json";
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import {
   Agent,
@@ -22,6 +23,7 @@ import type { ClientContext } from "@/core/ClientContext";
 import { ConversationContext } from "@/core/ConversationContext";
 import { filter } from "@/core/filter";
 import { MessageContext } from "@/core/MessageContext";
+import { createSigner, createUser } from "@/user/User";
 import { createClient } from "@/util/test";
 
 describe("Agent", () => {
@@ -576,6 +578,23 @@ describe("Agent", () => {
       await agent.stop();
 
       expect(stopSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe("create", () => {
+    it("should set appVersion to include package version by default", async () => {
+      const signer = createSigner(createUser());
+      const agent = await Agent.create(signer);
+      expect(agent.client.appVersion).toBe(`agent-sdk/${appVersion}`);
+    });
+
+    it("should allow custom appVersion to override default", async () => {
+      const signer = createSigner(createUser());
+      const customVersion = "custom-app/1.0.0";
+      const agent = await Agent.create(signer, {
+        appVersion: customVersion,
+      });
+      expect(agent.client.appVersion).toBe(customVersion);
     });
   });
 
