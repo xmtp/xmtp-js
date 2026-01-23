@@ -29,6 +29,7 @@ import {
 import { version as appVersion } from "~/package.json";
 import { filter } from "@/core/filter";
 import { getInstallationInfo } from "@/debug";
+import { getValidLogLevels, parseLogLevel } from "@/debug/log";
 import { createSigner, createUser } from "@/user/User";
 import { AgentError, AgentStreamingError } from "./AgentError";
 import { ClientContext } from "./ClientContext";
@@ -166,9 +167,18 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     initializedOptions.appVersion ??= `agent-sdk/${appVersion}`;
     initializedOptions.disableDeviceSync ??= true;
 
-    if (process.env.XMTP_FORCE_DEBUG) {
-      const loggingLevel = process.env.XMTP_FORCE_DEBUG_LEVEL || LogLevel.Warn;
-      initializedOptions.loggingLevel = loggingLevel as LogLevel;
+    if (process.env.XMTP_FORCE_DEBUG_LEVEL) {
+      const rawLevel = process.env.XMTP_FORCE_DEBUG_LEVEL;
+      const logLevel = parseLogLevel(rawLevel);
+
+      if (logLevel) {
+        initializedOptions.loggingLevel = logLevel;
+      } else {
+        console.warn(
+          `[WARNING] Invalid XMTP_FORCE_DEBUG_LEVEL "${rawLevel}". Defaulting to "${LogLevel.Warn}". Valid values are: ${getValidLogLevels().join(", ")}`,
+        );
+        initializedOptions.loggingLevel = LogLevel.Warn;
+      }
       initializedOptions.structuredLogging = true;
     }
 

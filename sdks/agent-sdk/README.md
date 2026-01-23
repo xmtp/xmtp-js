@@ -73,10 +73,9 @@ const agent = await Agent.createFromEnv();
 
 Agents can also recognize the following environment variables:
 
-| Variable                 | Purpose                                                                     | Example                        |
-| ------------------------ | --------------------------------------------------------------------------- | ------------------------------ |
-| `XMTP_FORCE_DEBUG`       | [Activate debugging logs](https://docs.xmtp.org/agents/deploy/debug-agents) | `XMTP_FORCE_DEBUG=true`        |
-| `XMTP_FORCE_DEBUG_LEVEL` | Specify the logging level (defaults to `"Warn"`)                            | `XMTP_FORCE_DEBUG_LEVEL=Debug` |
+| Variable                 | Purpose                                                                                            | Example                        |
+| ------------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `XMTP_FORCE_DEBUG_LEVEL` | [Activate debugging logs](https://docs.xmtp.org/agents/deploy/debug-agents) at the specified level | `XMTP_FORCE_DEBUG_LEVEL=Debug` |
 
 ## Core Concepts
 
