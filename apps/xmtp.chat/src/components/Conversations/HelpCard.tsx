@@ -34,7 +34,7 @@ export const HelpCard: React.FC = () => {
           <Flex align="center" gap="xs">
             <IconHelp size={18} />
             <Text fw={700} truncate>
-              Need help?
+              Need development help?
             </Text>
           </Flex>
           <Text size="sm" c="dimmed">
