@@ -1,11 +1,13 @@
 import { IdentifierKind } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useClient } from "@/contexts/XMTPContext";
+import { useConversations } from "@/stores/inbox/hooks";
 
 export const HELP_ADDRESS = "0x212906fdbdb70771461e6cb3376a740132e56b14";
 
 export const useHelpDm = () => {
   const client = useClient();
+  const conversations = useConversations();
   const [exists, setExists] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +31,7 @@ export const useHelpDm = () => {
     };
 
     void checkHelpDm();
-  }, [client]);
+  }, [client, conversations]);
 
   return { exists, loading };
 };
