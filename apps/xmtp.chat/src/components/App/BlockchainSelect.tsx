@@ -4,6 +4,7 @@ import { useSwitchChain } from "wagmi";
 import {
   arbitrum,
   base,
+  gnosis,
   linea,
   mainnet,
   optimism,
@@ -16,6 +17,7 @@ import { useSettings } from "@/hooks/useSettings";
 const ALLOWED_CHAINS: number[] = [
   arbitrum.id,
   base.id,
+  gnosis.id,
   linea.id,
   mainnet.id,
   optimism.id,
