@@ -1,9 +1,11 @@
-import { Badge, Box, Group, Text } from "@mantine/core";
+import { Badge, Box, Group, Stack, Text } from "@mantine/core";
 import { useCallback, useEffect, useRef } from "react";
 import { ConversationsList } from "@/components/Conversations/ConversationList";
 import { ConversationsMenu } from "@/components/Conversations/ConversationsMenu";
+import { HelpCard } from "@/components/Conversations/HelpCard";
 import { useClient } from "@/contexts/XMTPContext";
 import { useConversations } from "@/hooks/useConversations";
+import { useHelpDm } from "@/hooks/useHelpDm";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const ConversationsNavbar: React.FC = () => {
@@ -17,6 +19,7 @@ export const ConversationsNavbar: React.FC = () => {
     streamAllMessages,
     syncAll,
   } = useConversations();
+  const { exists: helpDmExists } = useHelpDm();
   const stopConversationStreamRef = useRef<(() => void) | null>(null);
   const stopAllMessagesStreamRef = useRef<(() => void) | null>(null);
 
@@ -88,19 +91,22 @@ export const ConversationsNavbar: React.FC = () => {
         />
       }
       withScrollArea={false}>
-      {conversations.length === 0 ? (
-        <Box
-          display="flex"
-          style={{
-            flexGrow: 1,
-            alignItems: "center",
-            justifyContent: "center",
-          }}>
-          <Text>No conversations found</Text>
-        </Box>
-      ) : (
-        <ConversationsList conversations={conversations} />
-      )}
+      <Stack gap={0} style={{ flexGrow: 1, minHeight: 0 }}>
+        {!helpDmExists && <HelpCard />}
+        {conversations.length === 0 ? (
+          <Box
+            display="flex"
+            style={{
+              flexGrow: 1,
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+            <Text>No conversations found</Text>
+          </Box>
+        ) : (
+          <ConversationsList conversations={conversations} />
+        )}
+      </Stack>
     </ContentLayout>
   );
 };
