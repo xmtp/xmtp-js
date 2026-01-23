@@ -2,7 +2,7 @@ import { IdentifierKind } from "@xmtp/browser-sdk";
 import { useEffect, useState } from "react";
 import { useClient } from "@/contexts/XMTPContext";
 
-export const HELP_ADDRESS = "0x526b023a6de826434061ba757298e47e552eaed5";
+export const HELP_ADDRESS = "0x212906fdbdb70771461e6cb3376a740132e56b14";
 
 export const useHelpDm = () => {
   const client = useClient();
