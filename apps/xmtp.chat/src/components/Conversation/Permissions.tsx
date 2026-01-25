@@ -6,9 +6,9 @@ import {
   PermissionUpdateType,
   Group as XmtpGroup,
   type Conversation,
+  type PermissionPolicySet,
 } from "@xmtp/browser-sdk";
 import { useEffect, useMemo, useState } from "react";
-import type { PolicySet } from "@/types";
 
 const PERMISSION_VALUES = [
   { value: "0", label: "Everyone" },
@@ -30,7 +30,7 @@ const toPermissionValue = (permission: PermissionPolicy) => {
   }
 };
 
-export const defaultPolicySet: PolicySet = {
+export const defaultPolicySet: PermissionPolicySet = {
   addAdminPolicy: PermissionPolicy.SuperAdmin,
   addMemberPolicy: PermissionPolicy.Allow,
   removeAdminPolicy: PermissionPolicy.SuperAdmin,
@@ -42,7 +42,7 @@ export const defaultPolicySet: PolicySet = {
   updateAppDataPolicy: PermissionPolicy.Allow,
 };
 
-export const adminPolicySet: PolicySet = {
+export const adminPolicySet: PermissionPolicySet = {
   addAdminPolicy: PermissionPolicy.SuperAdmin,
   addMemberPolicy: PermissionPolicy.Admin,
   removeAdminPolicy: PermissionPolicy.SuperAdmin,
@@ -57,7 +57,7 @@ export const adminPolicySet: PolicySet = {
 export const processPermissionsUpdate = async (
   conversation: Conversation,
   permissionsPolicy: GroupPermissionsOptions,
-  policySet: PolicySet,
+  policySet: PermissionPolicySet,
 ) => {
   if (!(conversation instanceof XmtpGroup)) {
     return;
@@ -197,7 +197,7 @@ export type PermissionsProps = {
   onPermissionsPolicyChange: (
     permissionsPolicy: GroupPermissionsOptions,
   ) => void;
-  onPolicySetChange: (policySet: PolicySet) => void;
+  onPolicySetChange: (policySet: PermissionPolicySet) => void;
 };
 
 export const Permissions: React.FC<PermissionsProps> = ({
@@ -207,7 +207,8 @@ export const Permissions: React.FC<PermissionsProps> = ({
 }) => {
   const [permissionsPolicy, setPermissionsPolicy] =
     useState<GroupPermissionsOptions>(GroupPermissionsOptions.Default);
-  const [policySet, setPolicySet] = useState<PolicySet>(defaultPolicySet);
+  const [policySet, setPolicySet] =
+    useState<PermissionPolicySet>(defaultPolicySet);
 
   const policyTooltip = useMemo(() => {
     if (permissionsPolicy === GroupPermissionsOptions.Default) {

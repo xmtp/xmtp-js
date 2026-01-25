@@ -1,5 +1,9 @@
 import { Button, Group } from "@mantine/core";
-import { GroupPermissionsOptions, Group as XmtpGroup } from "@xmtp/browser-sdk";
+import {
+  GroupPermissionsOptions,
+  Group as XmtpGroup,
+  type PermissionPolicySet,
+} from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router";
 import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
@@ -13,13 +17,13 @@ import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useConversation } from "@/hooks/useConversation";
 import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
-import type { PolicySet } from "@/types";
 
 export const ManagePermissionsModal: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [permissionsPolicy, setPermissionsPolicy] =
     useState<GroupPermissionsOptions>(GroupPermissionsOptions.Default);
-  const [policySet, setPolicySet] = useState<PolicySet>(defaultPolicySet);
+  const [policySet, setPolicySet] =
+    useState<PermissionPolicySet>(defaultPolicySet);
 
   const { conversationId } = useOutletContext<ConversationOutletContext>();
   const { conversation } = useConversation(conversationId);
