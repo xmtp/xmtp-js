@@ -2,7 +2,7 @@ import { useLocalStorage } from "@mantine/hooks";
 import { LogLevel, type ClientOptions, type XmtpEnv } from "@xmtp/browser-sdk";
 import { useEffect } from "react";
 import type { Hex } from "viem";
-import type { ConnectorString } from "@/hooks/useConnectWallet";
+import type { ConnectorString } from "@/hooks/useWallet";
 
 const loggingLevelStringToEnum = {
   off: LogLevel.Off,

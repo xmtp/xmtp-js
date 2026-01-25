@@ -1,19 +1,19 @@
 import { Button } from "@mantine/core";
 import { useCallback } from "react";
-import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useSettings } from "@/hooks/useSettings";
+import { useWallet } from "@/hooks/useWallet";
 
 export const ConnectWallet: React.FC = () => {
-  const { connect, disconnect, loading, isConnected } = useConnectWallet();
-  const { connector, ephemeralAccountEnabled } = useSettings();
+  const { connect, disconnect, loading, isConnected } = useWallet();
+  const { ephemeralAccountEnabled } = useSettings();
 
   const handleConnect = useCallback(() => {
     if (isConnected) {
       disconnect();
     } else {
-      connect(connector)();
+      connect();
     }
-  }, [connect, connector, isConnected, disconnect]);
+  }, [connect, isConnected, disconnect]);
 
   return (
     <Button

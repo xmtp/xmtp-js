@@ -17,10 +17,10 @@ import { InstallationTable } from "@/components/InboxTools/InstallationTable";
 import { NetworkSelect } from "@/components/InboxTools/NetworkSelect";
 import { createEOASigner, createSCWSigner } from "@/helpers/createSigner";
 import { isValidInboxId } from "@/helpers/strings";
-import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useEphemeralSigner } from "@/hooks/useEphemeralSigner";
 import { useMemberId } from "@/hooks/useMemberId";
 import { useSettings } from "@/hooks/useSettings";
+import { useWallet } from "@/hooks/useWallet";
 import { ContentLayout } from "@/layouts/ContentLayout";
 
 export const InboxTools: React.FC = () => {
@@ -29,7 +29,7 @@ export const InboxTools: React.FC = () => {
     isConnected,
     disconnect,
     loading: walletLoading,
-  } = useConnectWallet();
+  } = useWallet();
   const { address: ephemeralAddress, signer: ephemeralSigner } =
     useEphemeralSigner();
   const { signMessageAsync } = useSignMessage();

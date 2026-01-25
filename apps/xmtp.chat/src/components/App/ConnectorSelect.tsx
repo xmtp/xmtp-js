@@ -1,10 +1,7 @@
 import { Grid } from "@mantine/core";
 import { AccountCard } from "@/components/App/AccountCard";
-import {
-  useConnectWallet,
-  type ConnectorString,
-} from "@/hooks/useConnectWallet";
 import { useSettings } from "@/hooks/useSettings";
+import { useWallet, type ConnectorString } from "@/hooks/useWallet";
 import { CoinbaseWallet } from "@/icons/CoinbaseWallet";
 import { InjectedWallet } from "@/icons/InjectedWallet";
 import { MetamaskWallet } from "@/icons/MetamaskWallet";
@@ -12,7 +9,7 @@ import { WalletConnectWallet } from "@/icons/WalletConnectWallet";
 import classes from "./ConnectorSelect.module.css";
 
 export const ConnectorSelect: React.FC = () => {
-  const { isConnected, loading } = useConnectWallet();
+  const { isConnected, loading } = useWallet();
   const { connector, setConnector, ephemeralAccountEnabled, useSCW } =
     useSettings();
 

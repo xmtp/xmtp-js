@@ -3,25 +3,29 @@ import { useCallback } from "react";
 import { ConnectedAddress } from "@/components/App/ConnectedAddress";
 import { LoggingSelect } from "@/components/App/LoggingSelect";
 import { NetworkSelect } from "@/components/App/NetworkSelect";
-import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useConnectXmtp } from "@/hooks/useConnectXmtp";
 import { useEphemeralSigner } from "@/hooks/useEphemeralSigner";
 import { useSettings } from "@/hooks/useSettings";
+import { useWallet } from "@/hooks/useWallet";
 import classes from "./ConnectXMTP.module.css";
 
-export type ConnectXMTPProps = {
-  onDisconnectWallet: () => void;
-};
-
-export const ConnectXMTP = ({ onDisconnectWallet }: ConnectXMTPProps) => {
-  const { isConnected, address } = useConnectWallet();
+export const ConnectXMTP: React.FC = () => {
+  const { isConnected, address, disconnect } = useWallet();
   const { address: ephemeralAddress } = useEphemeralSigner();
   const { connect, loading } = useConnectXmtp();
-  const { ephemeralAccountEnabled } = useSettings();
+  const { ephemeralAccountEnabled, setEphemeralAccountEnabled } = useSettings();
 
   const handleConnectClick = useCallback(() => {
     connect();
   }, [connect]);
+
+  const handleDisconnectClick = useCallback(() => {
+    if (isConnected) {
+      disconnect();
+    } else {
+      setEphemeralAccountEnabled(false);
+    }
+  }, [isConnected, disconnect]);
 
   return (
     <Paper withBorder radius="md">
@@ -38,7 +42,7 @@ export const ConnectXMTP = ({ onDisconnectWallet }: ConnectXMTPProps) => {
           <ConnectedAddress
             size="sm"
             address={address ?? ephemeralAddress}
-            onClick={onDisconnectWallet}
+            onClick={handleDisconnectClick}
           />
           <Group gap="xs" align="center">
             <Button

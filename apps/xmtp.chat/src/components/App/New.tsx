@@ -2,12 +2,12 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useXMTP } from "@/contexts/XMTPContext";
-import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useConnectXmtp } from "@/hooks/useConnectXmtp";
 import { useSettings } from "@/hooks/useSettings";
+import { useWallet } from "@/hooks/useWallet";
 
 export const New = () => {
-  const { isConnected } = useConnectWallet();
+  const { isConnected } = useWallet();
   const {
     environment,
     ephemeralAccountEnabled,
