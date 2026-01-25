@@ -1,5 +1,4 @@
 import { Anchor, Box, Flex, Group, Image, Text } from "@mantine/core";
-import logo from "@/assets/xmtp-icon.png";
 
 export const AppFooter: React.FC = () => {
   return (
@@ -12,7 +11,13 @@ export const AppFooter: React.FC = () => {
           target="_blank"
           flex={0}>
           <Flex align="center" py="md" display="inline-flex">
-            <Image src={logo} alt="XMTP" w="24px" h="24px" fit="contain" />
+            <Image
+              src="/xmtp-icon.png"
+              alt="XMTP"
+              w="24px"
+              h="24px"
+              fit="contain"
+            />
             <Text size="xl" fw={700} ml="xs">
               XMTP
             </Text>
