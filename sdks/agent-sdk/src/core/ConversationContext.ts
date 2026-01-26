@@ -1,6 +1,3 @@
-import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
-import { ContentTypeRemoteAttachment } from "@xmtp/content-type-remote-attachment";
-import { ContentTypeText } from "@xmtp/content-type-text";
 import {
   ConsentState,
   type Client,
@@ -8,12 +5,12 @@ import {
   type Dm,
   type Group,
 } from "@xmtp/node-sdk";
-import { filter } from "@/core/filter.js";
+import { filter } from "@/core/filter";
 import {
   createRemoteAttachmentFromFile,
   type AttachmentUploadCallback,
-} from "@/util/AttachmentUtil.js";
-import { ClientContext } from "./ClientContext.js";
+} from "@/util/AttachmentUtil";
+import { ClientContext } from "./ClientContext";
 
 export class ConversationContext<
   ContentTypes = unknown,
@@ -40,15 +37,6 @@ export class ConversationContext<
     return filter.isGroup(this.#conversation);
   }
 
-  // Send methods, which don't need a message context, are in ConversationContext to make them available in both dm and group event handlers
-  async sendMarkdown(markdown: string): Promise<void> {
-    await this.conversation.send(markdown, ContentTypeMarkdown);
-  }
-
-  async sendText(text: string): Promise<void> {
-    await this.conversation.send(text, ContentTypeText);
-  }
-
   async sendRemoteAttachment(
     unencryptedFile: File,
     uploadCallback: AttachmentUploadCallback,
@@ -57,7 +45,7 @@ export class ConversationContext<
       unencryptedFile,
       uploadCallback,
     );
-    await this.conversation.send(remoteAttachment, ContentTypeRemoteAttachment);
+    await this.#conversation.sendRemoteAttachment(remoteAttachment);
   }
 
   get conversation() {
@@ -65,14 +53,14 @@ export class ConversationContext<
   }
 
   get isAllowed() {
-    return this.#conversation.consentState === ConsentState.Allowed;
+    return this.#conversation.consentState() === ConsentState.Allowed;
   }
 
   get isDenied() {
-    return this.#conversation.consentState === ConsentState.Denied;
+    return this.#conversation.consentState() === ConsentState.Denied;
   }
 
   get isUnknown() {
-    return this.#conversation.consentState === ConsentState.Unknown;
+    return this.#conversation.consentState() === ConsentState.Unknown;
   }
 }

@@ -1,14 +1,11 @@
-import type { TextCodec } from "@xmtp/content-type-text";
-import {
-  type AgentMessageHandler,
-  type AgentMiddleware,
-} from "@/core/Agent.js";
-import type { MessageContext } from "@/core/MessageContext.js";
+import type { BuiltInContentTypes } from "@xmtp/node-sdk";
+import { type AgentMessageHandler, type AgentMiddleware } from "@/core/Agent";
+import type { MessageContext } from "@/core/MessageContext";
 
 /** Content type supported by the "CommandRouter" */
-type SupportedType = ReturnType<TextCodec["decode"]>;
+type SupportedType = string;
 
-export class CommandRouter {
+export class CommandRouter<ContentTypes = BuiltInContentTypes> {
   #commandMap = new Map<string, AgentMessageHandler<SupportedType>>();
   #defaultHandler: AgentMessageHandler<SupportedType> | null = null;
 
@@ -59,7 +56,7 @@ export class CommandRouter {
     return false;
   }
 
-  middleware(): AgentMiddleware {
+  middleware(): AgentMiddleware<ContentTypes> {
     return async (ctx, next) => {
       if (ctx.isText()) {
         const handled = await this.handle(ctx);

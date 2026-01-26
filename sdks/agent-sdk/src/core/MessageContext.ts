@@ -1,44 +1,41 @@
+import type {
+  ContentCodec,
+  EncodedContent,
+} from "@xmtp/content-type-primitives";
 import {
-  ContentTypeMarkdown,
-  type MarkdownCodec,
-} from "@xmtp/content-type-markdown";
-import type { ContentCodec } from "@xmtp/content-type-primitives";
-import {
-  ContentTypeReaction,
+  encodeMarkdown,
+  encodeText,
+  ReactionAction,
+  ReactionSchema,
   type Reaction,
-  type ReactionCodec,
-} from "@xmtp/content-type-reaction";
-import type { ReadReceiptCodec } from "@xmtp/content-type-read-receipt";
-import type { RemoteAttachmentCodec } from "@xmtp/content-type-remote-attachment";
-import {
-  ContentTypeReply,
+  type ReadReceipt,
+  type RemoteAttachment,
   type Reply,
-  type ReplyCodec,
-} from "@xmtp/content-type-reply";
-import { ContentTypeText, type TextCodec } from "@xmtp/content-type-text";
-import type { TransactionReferenceCodec } from "@xmtp/content-type-transaction-reference";
-import type { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
-import { filter, type DecodedMessageWithContent } from "@/core/filter.js";
-import type { AgentBaseContext } from "./Agent.js";
-import { ConversationContext } from "./ConversationContext.js";
+  type TransactionReference,
+  type WalletSendCalls,
+} from "@xmtp/node-sdk";
+import { filter, type DecodedMessageWithContent } from "@/core/filter";
+import type { AgentBaseContext } from "./Agent";
+import { ConversationContext } from "./ConversationContext";
 
-export type MessageContextParams<ContentTypes = unknown> = Omit<
-  AgentBaseContext<ContentTypes>,
-  "message"
-> & {
-  message: DecodedMessageWithContent<ContentTypes>;
+export type MessageContextParams<
+  MessageContentType = unknown,
+  ContentTypes = unknown,
+> = Omit<AgentBaseContext<ContentTypes>, "message"> & {
+  message: DecodedMessageWithContent<MessageContentType>;
 };
 
 export class MessageContext<
+  MessageContentType = unknown,
   ContentTypes = unknown,
 > extends ConversationContext<ContentTypes> {
-  #message: DecodedMessageWithContent<ContentTypes>;
+  #message: DecodedMessageWithContent<MessageContentType>;
 
   constructor({
     message,
     conversation,
     client,
-  }: MessageContextParams<ContentTypes>) {
+  }: MessageContextParams<MessageContentType, ContentTypes>) {
     super({ conversation, client });
     this.#message = message;
   }
@@ -49,77 +46,70 @@ export class MessageContext<
     return filter.usesCodec(this.#message, codecClass);
   }
 
-  isMarkdown(): this is MessageContext<ReturnType<MarkdownCodec["decode"]>> {
+  isMarkdown(): this is MessageContext<string> {
     return filter.isMarkdown(this.#message);
   }
 
-  isText(): this is MessageContext<ReturnType<TextCodec["decode"]>> {
+  isText(): this is MessageContext<string> {
     return filter.isText(this.#message);
   }
 
-  isReply(): this is MessageContext<ReturnType<ReplyCodec["decode"]>> {
+  isReply(): this is MessageContext<Reply> {
     return filter.isReply(this.#message);
   }
 
-  isReaction(): this is MessageContext<ReturnType<ReactionCodec["decode"]>> {
+  isReaction(): this is MessageContext<Reaction> {
     return filter.isReaction(this.#message);
   }
 
-  isReadReceipt(): this is MessageContext<
-    ReturnType<ReadReceiptCodec["decode"]>
-  > {
+  isReadReceipt(): this is MessageContext<ReadReceipt> {
     return filter.isReadReceipt(this.#message);
   }
 
-  isRemoteAttachment(): this is MessageContext<
-    ReturnType<RemoteAttachmentCodec["decode"]>
-  > {
+  isRemoteAttachment(): this is MessageContext<RemoteAttachment> {
     return filter.isRemoteAttachment(this.#message);
   }
 
-  isTransactionReference(): this is MessageContext<
-    ReturnType<TransactionReferenceCodec["decode"]>
-  > {
+  isTransactionReference(): this is MessageContext<TransactionReference> {
     return filter.isTransactionReference(this.#message);
   }
 
-  isWalletSendCalls(): this is MessageContext<
-    ReturnType<WalletSendCallsCodec["decode"]>
-  > {
+  isWalletSendCalls(): this is MessageContext<WalletSendCalls> {
     return filter.isWalletSendCalls(this.#message);
   }
 
-  async sendReaction(content: string, schema: Reaction["schema"] = "unicode") {
+  async sendReaction(
+    content: string,
+    schema: Reaction["schema"] = ReactionSchema.Unicode,
+  ) {
     const reaction: Reaction = {
-      action: "added",
+      action: ReactionAction.Added,
       reference: this.#message.id,
       referenceInboxId: this.#message.senderInboxId,
       schema,
       content,
     };
-    await this.conversation.send(reaction, ContentTypeReaction);
+    await this.conversation.sendReaction(reaction);
   }
 
-  async #sendReply(text: string, contentType = ContentTypeText) {
-    const reply: Reply = {
+  async #sendReply(content: EncodedContent) {
+    await this.conversation.sendReply({
+      content,
       reference: this.#message.id,
       referenceInboxId: this.#message.senderInboxId,
-      contentType,
-      content: text,
-    };
-    await this.conversation.send(reply, ContentTypeReply);
+    });
   }
 
   async sendMarkdownReply(markdown: string) {
-    await this.#sendReply(markdown, ContentTypeMarkdown);
+    await this.#sendReply(encodeMarkdown(markdown));
   }
 
   async sendTextReply(text: string) {
-    await this.#sendReply(text, ContentTypeText);
+    await this.#sendReply(encodeText(text));
   }
 
   async getSenderAddress() {
-    const inboxState = await this.client.preferences.inboxStateFromInboxIds([
+    const inboxState = await this.client.preferences.getInboxStates([
       this.#message.senderInboxId,
     ]);
     return inboxState[0]?.identifiers[0]?.identifier;

@@ -1,12 +1,11 @@
 import { loadEnvFile } from "node:process";
-import { TextCodec } from "@xmtp/content-type-text";
-import { downloadRemoteAttachment } from "@/util/AttachmentUtil.js";
-import { Agent, AgentError } from "./core/index.js";
-import { getTestUrl, logDetails } from "./debug/log.js";
-import { isHexString } from "./index.js";
-import { CommandRouter } from "./middleware/CommandRouter.js";
-import { createNameResolver } from "./user.js";
-import { createSigner, createUser } from "./user/User.js";
+import { downloadRemoteAttachment } from "@/util/AttachmentUtil";
+import { Agent, AgentError } from "./core/index";
+import { getTestUrl, logDetails } from "./debug/log";
+import { isHexString } from "./index";
+import { CommandRouter } from "./middleware/CommandRouter";
+import { createNameResolver } from "./user";
+import { createSigner, createUser } from "./user/User";
 
 try {
   loadEnvFile(".env");
@@ -22,7 +21,7 @@ const agent = process.env.XMTP_WALLET_KEY
 const router = new CommandRouter();
 
 router.command("/version", async (ctx) => {
-  await ctx.conversation.send(`v${process.env.npm_package_version}`);
+  await ctx.conversation.sendText(`v${process.env.npm_package_version}`);
 });
 
 agent.use(router.middleware());
@@ -30,7 +29,6 @@ agent.use(router.middleware());
 agent.on("attachment", async (ctx) => {
   const receivedAttachment = await downloadRemoteAttachment(
     ctx.message.content,
-    agent,
   );
   console.log(`Received attachment: ${receivedAttachment.filename}`);
 });
@@ -49,7 +47,7 @@ agent.on("reply", (ctx) => {
 
 agent.on("text", async (ctx) => {
   if (ctx.message.content.startsWith("@agent")) {
-    await ctx.conversation.send("How can I help you?");
+    await ctx.conversation.sendText("How can I help you?");
   }
 });
 
@@ -92,15 +90,13 @@ agent.on("stop", (ctx) => {
 });
 
 agent.on("unknownMessage", (ctx) => {
-  // Narrow down by codec
-  if (ctx.usesCodec(TextCodec)) {
-    const content = ctx.message.content;
-    console.log(`Text content: ${content.toUpperCase()}`);
-  }
+  console.log(
+    `Unknown message type, displaying fallback content: ${ctx.message.fallback}`,
+  );
 });
 
 agent.on("group", async (ctx) => {
-  await ctx.sendMarkdown("**Hello, World!**");
+  await ctx.conversation.sendMarkdown("**Hello, World!**");
 });
 
 await agent.start();

@@ -1,1 +1,1 @@
-export * from "./AttachmentUtil.js";
+export * from "./AttachmentUtil";

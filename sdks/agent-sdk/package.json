@@ -31,57 +31,51 @@
       "import": "./dist/index.js"
     },
     "./debug": {
-      "types": "./dist/debug.d.ts",
-      "import": "./dist/debug.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./middleware": {
-      "types": "./dist/middleware.d.ts",
-      "import": "./dist/middleware.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./user": {
-      "types": "./dist/user.d.ts",
-      "import": "./dist/user.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./util": {
-      "types": "./dist/util.d.ts",
-      "import": "./dist/util.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "main": "dist/index.js",
   "files": [
-    "dist",
-    "!dist/**/*.test.*",
-    "!dist/demo.*"
+    "dist"
   ],
   "scripts": {
-    "build": "yarn clean:dist && tsc -p tsconfig.build.json && tsc-alias && attw --pack --profile node16 . --ignore-rules cjs-resolves-to-esm",
+    "build": "yarn clean:dist && rollup -c",
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
     "clean:dist": "rm -rf dist",
     "dev": "tsx watch src/demo.ts",
     "fix": "npx prettier --log-level error -w . && npx eslint . --fix",
     "gen:keys": "tsx src/bin/generateKeys.ts",
-    "start": "yarn demo",
+    "start": "yarn dev",
     "test": "yarn typecheck && vitest run --typecheck",
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xmtp/content-type-markdown": "^1.0.0",
-    "@xmtp/content-type-reaction": "^2.0.2",
-    "@xmtp/content-type-read-receipt": "^2.0.2",
-    "@xmtp/content-type-remote-attachment": "^2.0.4",
-    "@xmtp/content-type-reply": "^2.0.2",
-    "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/content-type-transaction-reference": "^2.0.2",
-    "@xmtp/content-type-wallet-send-calls": "^2.0.0",
-    "@xmtp/node-sdk": "4.6.0",
+    "@xmtp/content-type-primitives": "^3.0.0",
+    "@xmtp/node-sdk": "5.1.1",
     "viem": "^2.37.6"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.2",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-typescript": "^12.3.0",
     "@types/node": "^24.9.1",
     "@vitest/coverage-v8": "^4.0.16",
-    "tsc-alias": "^1.8.16",
+    "rollup": "^4.55.1",
+    "rollup-plugin-dts": "^6.3.0",
+    "rollup-plugin-tsconfig-paths": "^1.5.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.0",
@@ -93,7 +87,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": false,
+    "provenance": true,
     "registry": "https://registry.npmjs.org/"
   }
 }

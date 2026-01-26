@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createNameResolver } from "./NameResolver.js";
+import { createNameResolver } from "@/user/NameResolver";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;

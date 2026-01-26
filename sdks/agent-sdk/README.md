@@ -23,9 +23,7 @@ yarn add @xmtp/agent-sdk
 ## Quick Start
 
 ```ts
-import { Agent } from "@xmtp/agent-sdk";
-import { getTestUrl } from "@xmtp/agent-sdk/debug";
-import { createUser, createSigner } from "@xmtp/agent-sdk/user";
+import { Agent, createUser, createSigner, getTestUrl } from "@xmtp/agent-sdk";
 
 // 1. Create a local user + signer (you can plug in your own wallet signer)
 const user = createUser();
@@ -75,10 +73,9 @@ const agent = await Agent.createFromEnv();
 
 Agents can also recognize the following environment variables:
 
-| Variable                 | Purpose                                                              | Example                        |
-| ------------------------ | -------------------------------------------------------------------- | ------------------------------ |
-| `XMTP_FORCE_DEBUG`       | [Activate debugging logs](https://docs.xmtp.org/agents/debug-agents) | `XMTP_FORCE_DEBUG=true`        |
-| `XMTP_FORCE_DEBUG_LEVEL` | Specify the logging level (defaults to `"info"`)                     | `XMTP_FORCE_DEBUG_LEVEL=debug` |
+| Variable                 | Purpose                                                                                            | Example                        |
+| ------------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `XMTP_FORCE_DEBUG_LEVEL` | [Activate debugging logs](https://docs.xmtp.org/agents/deploy/debug-agents) at the specified level | `XMTP_FORCE_DEBUG_LEVEL=Debug` |
 
 ## Core Concepts
 
@@ -237,15 +234,14 @@ agent.on("unhandledError", (error) => {
 
 #### Provided Middleware
 
-Built‑in, officially supported middleware is provided via `@xmtp/agent-sdk/middleware`.
+Built‑in, officially supported middleware is provided by the Agent SDK.
 
 **Example: CommandRouter**
 
 The `CommandRouter` makes it easy to handle slash commands out of the box.
 
 ```ts
-import { Agent } from "@xmtp/agent-sdk";
-import { CommandRouter } from "@xmtp/agent-sdk/middleware";
+import { Agent, CommandRouter } from "@xmtp/agent-sdk";
 
 const agent = await Agent.createFromEnv();
 const router = new CommandRouter()
@@ -346,10 +342,10 @@ await group.send("Hello group!");
 
 ### 6. Utilities
 
-The Agent SDK comes with subpackages that include utilities. You can for example get a testing URL or details of your Agent from the debug utilities:
+The Agent SDK includes various utilities. You can for example get a testing URL or details of your Agent:
 
 ```ts
-import { getTestUrl, logDetails } from "@xmtp/agent-sdk/debug";
+import { getTestUrl, logDetails } from "@xmtp/agent-sdk";
 
 // Get a test URL for your agent
 const testUrl = getTestUrl(agent.client);
@@ -362,11 +358,7 @@ await logDetails(agent.client);
 There are also utilities to simplify user management, such as signer creation or name resolutions:
 
 ```ts
-import {
-  createUser,
-  createSigner,
-  createNameResolver,
-} from "@xmtp/agent-sdk/user";
+import { createUser, createSigner, createNameResolver } from "@xmtp/agent-sdk";
 
 // Create a new user with a random private key
 const user = createUser();
@@ -387,7 +379,7 @@ The Agent SDK supports sending encrypted remote attachments. Files are encrypted
 **Example**
 
 ```ts
-import { type AttachmentUploadCallback } from "@xmtp/agent-sdk/util";
+import { type AttachmentUploadCallback } from "@xmtp/agent-sdk";
 
 agent.on("text", async (ctx) => {
   if (ctx.message.content === "/send-file") {
@@ -429,7 +421,7 @@ agent.on("text", async (ctx) => {
 Other agents can then download and decrypt the attachment using the `"attachment"` topic:
 
 ```ts
-import { downloadRemoteAttachment } from "@xmtp/agent-sdk/util";
+import { downloadRemoteAttachment } from "@xmtp/agent-sdk";
 
 agent.on("attachment", async (ctx) => {
   const receivedAttachment = await downloadRemoteAttachment(

@@ -1,5 +1,33 @@
-import { Client } from "@xmtp/node-sdk";
-import type { Agent } from "@/core/Agent.js";
+import { Client, LogLevel } from "@xmtp/node-sdk";
+import type { Agent } from "@/core/Agent";
+
+const validLogLevels: LogLevel[] = [
+  LogLevel.Off,
+  LogLevel.Error,
+  LogLevel.Warn,
+  LogLevel.Info,
+  LogLevel.Debug,
+  LogLevel.Trace,
+];
+
+const isLogLevel = (level: string): level is LogLevel => {
+  return validLogLevels.includes(level as LogLevel);
+};
+
+export const getValidLogLevels = (): LogLevel[] => {
+  return [...validLogLevels];
+};
+
+export const parseLogLevel = (rawLevel: string) => {
+  const normalizedLevel =
+    rawLevel.charAt(0).toUpperCase() + rawLevel.slice(1).toLowerCase();
+
+  if (isLogLevel(normalizedLevel)) {
+    return normalizedLevel;
+  }
+
+  return null;
+};
 
 export const logDetails = async <ContentTypes>(agent: Agent<ContentTypes>) => {
   const xmtp = `\x1b[38;2;252;76;52m
@@ -21,8 +49,9 @@ export const logDetails = async <ContentTypes>(agent: Agent<ContentTypes>) => {
 
   const conversations = await client.conversations.list();
   const inboxState = await client.preferences.inboxState();
-  const keyPackageStatuses =
-    await client.getKeyPackageStatusesForInstallationIds([installationId]);
+  const keyPackageStatuses = await client.fetchKeyPackageStatuses([
+    installationId,
+  ]);
 
   let createdDate = new Date();
   let expiryDate = new Date();
@@ -74,7 +103,7 @@ export const getInstallationInfo = async <ContentTypes>(
   const myInboxId = client.inboxId;
   const myInstallationId = client.installationId;
 
-  const inboxStates = await Client.inboxStateFromInboxIds(
+  const inboxStates = await Client.fetchInboxStates(
     [myInboxId],
     client.options?.env,
   );

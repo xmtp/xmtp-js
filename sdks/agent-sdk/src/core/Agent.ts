@@ -1,22 +1,11 @@
 import EventEmitter from "node:events";
 import fs from "node:fs";
 import path from "node:path";
-import type { GroupUpdatedCodec } from "@xmtp/content-type-group-updated";
-import { MarkdownCodec } from "@xmtp/content-type-markdown";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
-import { ReactionCodec } from "@xmtp/content-type-reaction";
-import { ReadReceiptCodec } from "@xmtp/content-type-read-receipt";
-import {
-  AttachmentCodec,
-  RemoteAttachmentCodec,
-} from "@xmtp/content-type-remote-attachment";
-import { ReplyCodec } from "@xmtp/content-type-reply";
-import type { TextCodec } from "@xmtp/content-type-text";
-import { TransactionReferenceCodec } from "@xmtp/content-type-transaction-reference";
-import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import {
   ApiUrls,
   Client,
+  DecodedMessage,
   Dm,
   Group,
   IdentifierKind,
@@ -26,18 +15,26 @@ import {
   type Conversation,
   type CreateDmOptions,
   type CreateGroupOptions,
-  type DecodedMessage,
+  type EnrichedReply,
+  type GroupUpdated,
   type HexString,
+  type Reaction,
+  type ReadReceipt,
+  type RemoteAttachment,
   type StreamOptions,
+  type TransactionReference,
+  type WalletSendCalls,
   type XmtpEnv,
 } from "@xmtp/node-sdk";
-import { filter } from "@/core/filter.js";
-import { getInstallationInfo } from "@/debug.js";
-import { createSigner, createUser } from "@/user/User.js";
-import { AgentError, AgentStreamingError } from "./AgentError.js";
-import { ClientContext } from "./ClientContext.js";
-import { ConversationContext } from "./ConversationContext.js";
-import { MessageContext } from "./MessageContext.js";
+import { version as appVersion } from "~/package.json";
+import { filter } from "@/core/filter";
+import { getInstallationInfo } from "@/debug";
+import { getValidLogLevels, parseLogLevel } from "@/debug/log";
+import { createSigner, createUser } from "@/user/User";
+import { AgentError, AgentStreamingError } from "./AgentError";
+import { ClientContext } from "./ClientContext";
+import { ConversationContext } from "./ConversationContext";
+import { MessageContext } from "./MessageContext";
 
 type ConversationStream<ContentTypes> = Awaited<
   ReturnType<Client<ContentTypes>["conversations"]["stream"]>
@@ -48,31 +45,25 @@ type MessageStream<ContentTypes> = Awaited<
 >;
 
 type EventHandlerMap<ContentTypes> = {
-  attachment: [
-    ctx: MessageContext<ReturnType<RemoteAttachmentCodec["decode"]>>,
-  ];
+  attachment: [ctx: MessageContext<RemoteAttachment, ContentTypes>];
   conversation: [ctx: ConversationContext<ContentTypes>];
-  "group-update": [
-    ctx: MessageContext<ReturnType<GroupUpdatedCodec["decode"]>>,
-  ];
+  "group-update": [ctx: MessageContext<GroupUpdated, ContentTypes>];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
-  markdown: [ctx: MessageContext<ReturnType<MarkdownCodec["decode"]>>];
-  message: [ctx: MessageContext<ContentTypes>];
-  reaction: [ctx: MessageContext<ReturnType<ReactionCodec["decode"]>>];
-  "read-receipt": [ctx: MessageContext<ReturnType<ReadReceiptCodec["decode"]>>];
-  reply: [ctx: MessageContext<ReturnType<ReplyCodec["decode"]>>];
+  markdown: [ctx: MessageContext<string, ContentTypes>];
+  message: [ctx: MessageContext<unknown, ContentTypes>];
+  reaction: [ctx: MessageContext<Reaction, ContentTypes>];
+  "read-receipt": [ctx: MessageContext<ReadReceipt, ContentTypes>];
+  reply: [ctx: MessageContext<EnrichedReply, ContentTypes>];
   start: [ctx: ClientContext<ContentTypes>];
   stop: [ctx: ClientContext<ContentTypes>];
-  text: [ctx: MessageContext<ReturnType<TextCodec["decode"]>>];
+  text: [ctx: MessageContext<string, ContentTypes>];
   "transaction-reference": [
-    ctx: MessageContext<ReturnType<TransactionReferenceCodec["decode"]>>,
+    ctx: MessageContext<TransactionReference, ContentTypes>,
   ];
   unhandledError: [error: Error];
-  unknownMessage: [ctx: MessageContext<ContentTypes>];
-  "wallet-send-calls": [
-    ctx: MessageContext<ReturnType<WalletSendCallsCodec["decode"]>>,
-  ];
+  unknownMessage: [ctx: MessageContext<unknown, ContentTypes>];
+  "wallet-send-calls": [ctx: MessageContext<WalletSendCalls, ContentTypes>];
 };
 
 type EventName<ContentTypes> = keyof EventHandlerMap<ContentTypes>;
@@ -100,7 +91,7 @@ export type AgentMessageHandler<ContentTypes = unknown> = (
 ) => Promise<void> | void;
 
 export type AgentMiddleware<ContentTypes = unknown> = (
-  ctx: MessageContext<ContentTypes>,
+  ctx: MessageContext<unknown, ContentTypes>,
   next: () => Promise<void> | void,
 ) => Promise<void>;
 
@@ -173,31 +164,27 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
   ) {
     const initializedOptions = { ...(options ?? {}) };
-    initializedOptions.appVersion ??= "agent-sdk/alpha";
+    initializedOptions.appVersion ??= `agent-sdk/${appVersion}`;
     initializedOptions.disableDeviceSync ??= true;
 
-    const upgradedCodecs = [
-      ...(initializedOptions.codecs ?? []),
-      new AttachmentCodec(),
-      new MarkdownCodec(),
-      new ReactionCodec(),
-      new ReadReceiptCodec(),
-      new RemoteAttachmentCodec(),
-      new ReplyCodec(),
-      new TransactionReferenceCodec(),
-      new WalletSendCallsCodec(),
-    ];
+    if (process.env.XMTP_FORCE_DEBUG_LEVEL) {
+      const rawLevel = process.env.XMTP_FORCE_DEBUG_LEVEL;
+      const logLevel = parseLogLevel(rawLevel);
 
-    if (process.env.XMTP_FORCE_DEBUG) {
-      const loggingLevel = process.env.XMTP_FORCE_DEBUG_LEVEL || LogLevel.warn;
-      initializedOptions.debugEventsEnabled = true;
-      initializedOptions.loggingLevel = loggingLevel as LogLevel;
+      if (logLevel) {
+        initializedOptions.loggingLevel = logLevel;
+      } else {
+        console.warn(
+          `[WARNING] Invalid XMTP_FORCE_DEBUG_LEVEL "${rawLevel}". Defaulting to "${LogLevel.Warn}". Valid values are: ${getValidLogLevels().join(", ")}`,
+        );
+        initializedOptions.loggingLevel = LogLevel.Warn;
+      }
       initializedOptions.structuredLogging = true;
     }
 
     const client = await Client.create(signer, {
       ...initializedOptions,
-      codecs: upgradedCodecs,
+      codecs: initializedOptions.codecs,
     });
 
     const info = await getInstallationInfo(client);
@@ -372,6 +359,11 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       this.#messageStream = await this.#client.conversations.streamAllMessages({
         ...options,
         onValue: async (message) => {
+          // this case should not happen,
+          // but we must handle it for proper types
+          if (!(message instanceof DecodedMessage)) {
+            return;
+          }
           try {
             switch (true) {
               case filter.isGroupUpdate(message):
@@ -469,7 +461,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async #runMiddlewareChain(
-    context: MessageContext<ContentTypes>,
+    context: MessageContext<unknown, ContentTypes>,
     topic: EventName<ContentTypes> = "unknownMessage",
   ) {
     const finalEmit = async () => {
@@ -582,7 +574,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   createDmWithAddress(address: EthAddress, options?: CreateDmOptions) {
-    return this.#client.conversations.newDmWithIdentifier(
+    return this.#client.conversations.createDmWithIdentifier(
       {
         identifier: address,
         identifierKind: IdentifierKind.Ethereum,
@@ -601,7 +593,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         identifierKind: IdentifierKind.Ethereum,
       };
     });
-    return this.#client.conversations.newGroupWithIdentifiers(
+    return this.#client.conversations.createGroupWithIdentifiers(
       identifiers,
       options,
     );

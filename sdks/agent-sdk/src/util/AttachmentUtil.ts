@@ -1,16 +1,10 @@
 import {
-  AttachmentCodec,
-  RemoteAttachmentCodec,
+  decryptAttachment,
+  encryptAttachment,
   type Attachment,
+  type EncryptedAttachment,
   type RemoteAttachment,
-} from "@xmtp/content-type-remote-attachment";
-import type { Agent } from "@/core/Agent.js";
-
-export type EncryptedAttachment = {
-  content: Awaited<ReturnType<typeof RemoteAttachmentCodec.encodeEncrypted>>;
-  filename: string;
-  mimeType: string;
-};
+} from "@xmtp/node-sdk";
 
 export type AttachmentUploadCallback = (
   attachment: EncryptedAttachment,
@@ -23,32 +17,17 @@ export type AttachmentUploadCallback = (
  * @param agent - The agent instance used to lookup the necessary decoding codec
  * @returns A promise that resolves with the decrypted attachment
  */
-export function downloadRemoteAttachment<ContentTypes>(
+export async function downloadRemoteAttachment(
   remoteAttachment: RemoteAttachment,
-  agent: Agent<ContentTypes>,
 ) {
-  return RemoteAttachmentCodec.load<Attachment>(remoteAttachment, agent.client);
-}
-
-/**
- * Encrypts an attachment for secure remote storage.
- *
- * @param attachmentData - The attachment to encrypt, including its data, filename, and MIME type
- * @returns A promise that resolves with the encrypted attachment containing the encrypted content and metadata
- */
-export async function encryptAttachment(
-  attachmentData: Attachment,
-): Promise<EncryptedAttachment> {
-  const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(
-    attachmentData,
-    new AttachmentCodec(),
-  );
-
-  return {
-    content: encryptedAttachment,
-    filename: attachmentData.filename,
-    mimeType: attachmentData.mimeType,
-  };
+  const response = await fetch(remoteAttachment.url);
+  if (!response.ok) {
+    throw new Error(
+      `unable to fetch remote attachment at "${remoteAttachment.url}": [${response.status}] ${response.statusText}`,
+    );
+  }
+  const payload = new Uint8Array(await response.arrayBuffer());
+  return decryptAttachment(payload, remoteAttachment);
 }
 
 /**
@@ -65,14 +44,14 @@ export function createRemoteAttachment(
   const url = new URL(fileUrl);
 
   return {
-    url: url.toString(),
-    contentDigest: encryptedAttachment.content.digest,
-    salt: encryptedAttachment.content.salt,
-    nonce: encryptedAttachment.content.nonce,
-    secret: encryptedAttachment.content.secret,
-    scheme: url.protocol,
-    contentLength: encryptedAttachment.content.payload.length,
+    contentDigest: encryptedAttachment.contentDigest,
+    contentLength: encryptedAttachment.payload.length,
     filename: encryptedAttachment.filename,
+    nonce: encryptedAttachment.nonce,
+    salt: encryptedAttachment.salt,
+    scheme: url.protocol,
+    secret: encryptedAttachment.secret,
+    url: url.toString(),
   };
 }
 
@@ -93,12 +72,12 @@ export async function createRemoteAttachmentFromFile(
   const attachment = new Uint8Array(arrayBuffer);
 
   const attachmentData: Attachment = {
-    data: attachment,
+    content: attachment,
     filename: unencryptedFile.name,
     mimeType: unencryptedFile.type,
   };
 
-  const encryptedAttachment = await encryptAttachment(attachmentData);
+  const encryptedAttachment = encryptAttachment(attachmentData);
 
   const fileUrl = await uploadCallback(encryptedAttachment);
 

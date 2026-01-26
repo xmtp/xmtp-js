@@ -3,12 +3,14 @@
     "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "Node18",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
     "noUncheckedIndexedAccess": true,
-    "outDir": "dist",
     "paths": {
       "@/*": ["./src/*"],
-      "@test/*": ["./test/*"]
+      "@test/*": ["./test/*"],
+      "~/*": ["./*"]
     },
     "preserveConstEnums": true,
     "skipLibCheck": true,
@@ -17,5 +19,5 @@
     "target": "ESNext",
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src/**/*", "vitest.config.ts"]
+  "include": ["rollup.config.js", "src", "vitest.config.ts", "vitest.setup.ts"]
 }
