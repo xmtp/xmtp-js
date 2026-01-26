@@ -1,5 +1,9 @@
 import { Accordion, Badge, Button, Group, Stack, Text } from "@mantine/core";
-import { GroupPermissionsOptions, IdentifierKind } from "@xmtp/browser-sdk";
+import {
+  GroupPermissionsOptions,
+  IdentifierKind,
+  type PermissionPolicySet,
+} from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import type { PendingMember } from "@/components/Conversation/AddMembers";
@@ -16,7 +20,6 @@ import { useConversations } from "@/hooks/useConversations";
 import { useSettings } from "@/hooks/useSettings";
 import { ContentLayout } from "@/layouts/ContentLayout";
 import { useActions } from "@/stores/inbox/hooks";
-import type { PolicySet } from "@/types";
 
 const permissionsPolicyValue = (policy: GroupPermissionsOptions) => {
   switch (policy) {
@@ -39,7 +42,8 @@ export const CreateGroupModal: React.FC = () => {
   const [addedMembers, setAddedMembers] = useState<PendingMember[]>([]);
   const [permissionsPolicy, setPermissionsPolicy] =
     useState<GroupPermissionsOptions>(GroupPermissionsOptions.Default);
-  const [policySet, setPolicySet] = useState<PolicySet>(defaultPolicySet);
+  const [policySet, setPolicySet] =
+    useState<PermissionPolicySet>(defaultPolicySet);
   const navigate = useNavigate();
   const { environment } = useSettings();
   const fullScreen = useCollapsedMediaQuery();
