@@ -40,7 +40,7 @@ export const AppLayout: React.FC = () => {
       }
       void navigate("/");
     }
-  }, []);
+  }, [client]);
 
   useEffect(() => {
     if (!client) {

@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useAppLock, type AppLockState } from "@/hooks/useAppLock";
 import { useActions } from "@/stores/inbox/hooks";
 
 export type ContentTypes = BuiltInContentTypes;
@@ -37,6 +38,9 @@ export type XMTPContextValue = {
   initializing: boolean;
   error: Error | null;
   disconnect: () => void;
+  lockState: AppLockState;
+  acquireLock: () => void;
+  releaseLock: () => void;
 };
 
 export const XMTPContext = createContext<XMTPContextValue>({
@@ -45,6 +49,9 @@ export const XMTPContext = createContext<XMTPContextValue>({
   initializing: false,
   error: null,
   disconnect: () => {},
+  lockState: "available",
+  acquireLock: () => false,
+  releaseLock: () => {},
 });
 
 export type XMTPProviderProps = React.PropsWithChildren & {
@@ -60,7 +67,15 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
 }) => {
   const { reset } = useActions();
   const [client, setClient] = useState<Client | undefined>(initialClient);
-
+  // when another session claims the lock, disconnect without releasing
+  const handleLockLost = useCallback(() => {
+    if (client) {
+      client.close();
+      setClient(undefined);
+      reset();
+    }
+  }, [client, reset]);
+  const { lockState, acquireLock, releaseLock } = useAppLock(handleLockLost);
   const [initializing, setInitializing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   // client is initializing
@@ -79,8 +94,10 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
     }: InitializeClientOptions) => {
       // only initialize a client if one doesn't already exist
       if (!client) {
-        // if the client is already initializing, don't do anything
-        if (initializingRef.current) {
+        const lockAcquired = acquireLock();
+        // if the client is already initializing or the lock can't be acquired,
+        // don't do anything
+        if (initializingRef.current || !lockAcquired) {
           return undefined;
         }
 
@@ -107,6 +124,8 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
         } catch (e) {
           setClient(undefined);
           setError(e as Error);
+          // release lock on error
+          releaseLock();
           // re-throw error for upstream consumption
           throw e;
         } finally {
@@ -118,7 +137,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
       }
       return client;
     },
-    [client],
+    [client, acquireLock, releaseLock],
   );
 
   const disconnect = useCallback(() => {
@@ -126,8 +145,9 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
       client.close();
       setClient(undefined);
       reset();
+      releaseLock();
     }
-  }, [client, setClient]);
+  }, [client, setClient, releaseLock, reset]);
 
   // memo-ize the context value to prevent unnecessary re-renders
   const value = useMemo(
@@ -138,8 +158,20 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
       initializing,
       error,
       disconnect,
+      lockState,
+      acquireLock,
+      releaseLock,
     }),
-    [client, initialize, initializing, error, disconnect],
+    [
+      client,
+      initialize,
+      initializing,
+      error,
+      disconnect,
+      lockState,
+      acquireLock,
+      releaseLock,
+    ],
   );
 
   return <XMTPContext.Provider value={value}>{children}</XMTPContext.Provider>;

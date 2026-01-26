@@ -10,7 +10,7 @@ import { useSettings } from "@/hooks/useSettings";
 export const useConnectXmtp = () => {
   const navigate = useNavigate();
   const { signer: ephemeralSigner } = useEphemeralSigner();
-  const { initializing, client, initialize } = useXMTP();
+  const { initializing, client, initialize, lockState } = useXMTP();
   const account = useAccount();
   const { signMessageAsync } = useSignMessage();
   const {
@@ -28,14 +28,14 @@ export const useConnectXmtp = () => {
   } = useSettings();
 
   const connect = useCallback(() => {
-    // if client is already connected, return
-    if (client) {
+    // if client is already connected or lock is not available, return
+    if (client || lockState !== "available") {
       return;
     }
 
     // connect ephemeral account if enabled
     if (ephemeralAccountEnabled) {
-      void initialize({
+      initialize({
         dbEncryptionKey: encryptionKey
           ? hexToUint8Array(encryptionKey)
           : undefined,
@@ -43,8 +43,15 @@ export const useConnectXmtp = () => {
         loggingLevel,
         signer: ephemeralSigner,
         gatewayHost,
-      });
-      setAutoConnect(true);
+      })
+        .then(() => {
+          setAutoConnect(true);
+        })
+        .catch((error: unknown) => {
+          // disable auto connect on error to prevent retry loop
+          setAutoConnect(false);
+          throw error;
+        });
       return;
     }
 
@@ -53,7 +60,7 @@ export const useConnectXmtp = () => {
       return;
     }
 
-    void initialize({
+    initialize({
       dbEncryptionKey: encryptionKey
         ? hexToUint8Array(encryptionKey)
         : undefined,
@@ -69,8 +76,15 @@ export const useConnectXmtp = () => {
         : createEOASigner(account.address, (message: string) =>
             signMessageAsync({ message }),
           ),
-    });
-    setAutoConnect(true);
+    })
+      .then(() => {
+        setAutoConnect(true);
+      })
+      .catch((error: unknown) => {
+        // disable auto connect on error to prevent retry loop
+        setAutoConnect(false);
+        throw error;
+      });
   }, [
     client,
     initialize,
