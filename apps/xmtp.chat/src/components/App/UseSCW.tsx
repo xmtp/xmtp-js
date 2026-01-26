@@ -1,10 +1,10 @@
 import { Group, Switch, Text, Tooltip } from "@mantine/core";
 import React from "react";
-import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useSettings } from "@/hooks/useSettings";
+import { useWallet } from "@/hooks/useWallet";
 
 export const UseSCW: React.FC = () => {
-  const { isConnected } = useConnectWallet();
+  const { isConnected } = useWallet();
   const { useSCW, setUseSCW, ephemeralAccountEnabled, connector } =
     useSettings();
 

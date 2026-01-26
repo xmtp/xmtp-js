@@ -1,10 +1,10 @@
 import { Button, Group, Switch, Text, Tooltip } from "@mantine/core";
 import { useCallback } from "react";
-import { useConnectWallet } from "@/hooks/useConnectWallet";
 import { useSettings } from "@/hooks/useSettings";
+import { useWallet } from "@/hooks/useWallet";
 
 export const UseEphemeral: React.FC = () => {
-  const { isConnected } = useConnectWallet();
+  const { isConnected } = useWallet();
   const {
     ephemeralAccountEnabled,
     setEphemeralAccountEnabled,
