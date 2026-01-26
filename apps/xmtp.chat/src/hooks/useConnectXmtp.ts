@@ -86,19 +86,23 @@ export const useConnectXmtp = () => {
         throw error;
       });
   }, [
-    client,
-    initialize,
-    setEphemeralAccountKey,
-    ephemeralAccountEnabled,
-    ephemeralAccountKey,
-    encryptionKey,
-    environment,
-    loggingLevel,
-    useSCW,
     account.address,
     account.chainId,
-    signMessageAsync,
+    client,
+    blockchain,
+    encryptionKey,
+    environment,
+    ephemeralAccountEnabled,
+    ephemeralAccountKey,
+    ephemeralSigner,
+    gatewayHost,
+    initialize,
+    lockState,
+    loggingLevel,
     setAutoConnect,
+    setEphemeralAccountKey,
+    signMessageAsync,
+    useSCW,
   ]);
 
   useEffect(() => {
