@@ -84,6 +84,7 @@ export const useAppLock = (onLockLost?: () => void) => {
   );
 
   const releaseLock = useCallback((): void => {
+    hadLockRef.current = false;
     setLockId(null);
     setLastActive(null);
   }, [setLockId, setLastActive]);
