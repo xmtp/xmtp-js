@@ -49,14 +49,14 @@ export const AppLayout: React.FC = () => {
 
     // the session's actual environment from client options
     const sessionEnvironment = client.options?.env ?? "dev";
+    const isInvalidEnvironment =
+      !envParam ||
+      !isValidEnvironment(envParam) ||
+      envParam !== sessionEnvironment;
 
     let timeout: NodeJS.Timeout;
 
-    if (
-      !envParam ||
-      !isValidEnvironment(envParam) ||
-      envParam !== sessionEnvironment
-    ) {
+    if (isInvalidEnvironment) {
       // invalid or mismatched URL environment, redirect to session's environment
       setMessage("Invalid environment, redirecting...");
       timeout = setTimeout(() => {
