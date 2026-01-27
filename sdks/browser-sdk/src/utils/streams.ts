@@ -93,7 +93,7 @@ export type StreamValueMutator<T = unknown, V = T> = (
  */
 export const createStream = async <T = unknown, V = T>(
   streamFunction: StreamFunction<T>,
-  streamValueMutator?: StreamValueMutator<T, V>,
+  streamValueMutator?: StreamValueMutator<T, V | undefined>,
   options?: StreamOptions<T, V>,
 ) => {
   const {
@@ -128,15 +128,19 @@ export const createStream = async <T = unknown, V = T>(
           if (isPromise(mutatedValue)) {
             void mutatedValue
               .then((mutatedValue) => {
-                asyncStream.push(mutatedValue);
-                onValue?.(mutatedValue);
+                if (mutatedValue !== undefined) {
+                  asyncStream.push(mutatedValue);
+                  onValue?.(mutatedValue);
+                }
               })
               .catch((error: unknown) => {
                 onError?.(error as Error);
               });
           } else {
-            asyncStream.push(mutatedValue);
-            onValue?.(mutatedValue);
+            if (mutatedValue !== undefined) {
+              asyncStream.push(mutatedValue);
+              onValue?.(mutatedValue);
+            }
           }
         } else {
           asyncStream.push(value as unknown as V);
