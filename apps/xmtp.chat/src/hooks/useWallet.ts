@@ -19,16 +19,13 @@ export const useWallet = () => {
     connector: connectorString,
   } = useSettings();
 
-  const connectWallet = useCallback(
-    () => () => {
-      const connector = connectors.find((c) => c.name === connectorString);
-      if (!connector) {
-        throw new Error(`Connector ${connectorString} not found`);
-      }
-      connect({ connector });
-    },
-    [connectors, connect, connectorString],
-  );
+  const connectWallet = useCallback(() => {
+    const connector = connectors.find((c) => c.name === connectorString);
+    if (!connector) {
+      throw new Error(`Connector ${connectorString} not found`);
+    }
+    connect({ connector });
+  }, [connectors, connect, connectorString]);
 
   const disconnectWallet = useCallback(
     (onSuccess?: () => void) => {
