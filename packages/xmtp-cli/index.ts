@@ -6,6 +6,7 @@ import { hideBin } from "yargs/helpers";
 import { registerContentTypesCommand } from "./commands/content-types";
 import { registerDebugCommand } from "./commands/debug";
 import { registerGroupsCommand } from "./commands/groups";
+import { registerInitCommand } from "./commands/init";
 import { registerKeysCommand } from "./commands/keys";
 import { registerListCommand } from "./commands/list";
 import { registerPermissionsCommand } from "./commands/permissions";
@@ -20,9 +21,9 @@ const argv = yargs(hideBin(process.argv))
   .scriptName("xmtp")
   .version(pkg.version)
   .middleware((argv: { _: (string | number)[]; [key: string]: unknown }) => {
-    // Skip env loading for help/keys commands
+    // Skip env loading for help/keys/init commands
     const command = argv._[0];
-    if (command === "keys") {
+    if (command === "keys" || command === "init") {
       return;
     }
 
@@ -67,6 +68,7 @@ registerDebugCommand(argv);
 registerPermissionsCommand(argv);
 registerListCommand(argv);
 registerContentTypesCommand(argv);
+registerInitCommand(argv);
 registerKeysCommand(argv);
 registerRevokeCommand(argv);
 registerSyncCommand(argv);
