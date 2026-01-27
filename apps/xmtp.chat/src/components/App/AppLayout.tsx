@@ -24,7 +24,7 @@ const REDIRECT_TIMEOUT = 2000;
 export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { client, disconnect } = useXMTP();
+  const { client } = useXMTP();
   const { setRedirectUrl } = useRedirect();
   const [opened, { toggle }] = useDisclosure();
   const [message, setMessage] = useState("Connecting...");
@@ -40,38 +40,40 @@ export const AppLayout: React.FC = () => {
       }
       void navigate("/");
     }
-  }, []);
+  }, [client]);
 
   useEffect(() => {
     if (!client) {
       return;
     }
 
+    // the session's actual environment from client options
+    const sessionEnvironment = client.options?.env ?? "dev";
+    const isInvalidEnvironment =
+      !envParam ||
+      !isValidEnvironment(envParam) ||
+      envParam !== sessionEnvironment;
+
     let timeout: NodeJS.Timeout;
 
-    // check for invalid environment
-    if (envParam) {
-      if (!isValidEnvironment(envParam)) {
-        setMessage("Invalid environment, redirecting...");
-        timeout = setTimeout(() => {
-          void navigate(`/${environment}`);
-        }, REDIRECT_TIMEOUT);
-      } else if (envParam !== environment) {
-        setMessage("Environment mismatch, switching and redirecting...");
-        timeout = setTimeout(() => {
-          setEnvironment(envParam);
-          disconnect();
-          void navigate("/");
-        }, REDIRECT_TIMEOUT);
-      } else {
-        setValidEnvironment(true);
-      }
+    if (isInvalidEnvironment) {
+      // invalid or mismatched URL environment, redirect to session's environment
+      setMessage("Invalid environment, redirecting...");
+      timeout = setTimeout(() => {
+        void navigate(`/${sessionEnvironment}`);
+      }, REDIRECT_TIMEOUT);
+    } else if (environment !== sessionEnvironment) {
+      // localStorage was updated externally, revert it
+      setEnvironment(sessionEnvironment);
+      setValidEnvironment(true);
+    } else {
+      setValidEnvironment(true);
     }
 
     return () => {
       clearTimeout(timeout);
     };
-  }, [client, environment, envParam, disconnect, navigate]);
+  }, [client, envParam, environment, navigate, setEnvironment]);
 
   return !client || !validEnvironment ? (
     <CenteredLayout fullScreen>
