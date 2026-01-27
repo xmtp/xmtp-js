@@ -4630,7 +4630,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^4.0.16"
     "@web/rollup-plugin-copy": "npm:^0.5.1"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/wasm-bindings": "npm:1.8.1"
+    "@xmtp/wasm-bindings": "npm:1.9.0-rc4"
     playwright: "npm:^1.57.0"
     rollup: "npm:^4.54.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -4974,10 +4974,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.8.1":
-  version: 1.8.1
-  resolution: "@xmtp/wasm-bindings@npm:1.8.1"
-  checksum: 10/e06d4fdafbc4ab8a6da1c926016045f3dd2ad3bf1ff4a6e704cd78a488da53d7bebecb84d4066812048b96eace24e334fb634e55598d9f6facfbe2753c3862d9
+"@xmtp/wasm-bindings@npm:1.9.0-rc4":
+  version: 1.9.0-rc4
+  resolution: "@xmtp/wasm-bindings@npm:1.9.0-rc4"
+  checksum: 10/a767e5b51ca5db981109869187f876b140fbe4c20c1a5fedace64047698fa7116e3e0204af4718b4181af4bdec1c4cd3fd49fce7ad4af3fa2219832b49ec92cb
   languageName: node
   linkType: hard
 

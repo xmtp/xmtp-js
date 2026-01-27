@@ -142,7 +142,7 @@ export type ConversationsAction =
       };
     }
   | {
-      action: "conversations.streamMessageDeletions";
+      action: "conversations.streamDeletedMessages";
       id: string;
       result: undefined;
       data: {
