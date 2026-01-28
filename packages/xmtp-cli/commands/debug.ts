@@ -308,7 +308,10 @@ async function runInfoOperation(): Promise<void> {
     console.log(`   Inbox ID: ${agent.client.inboxId}`);
     console.log(`   Address: ${agent.client.accountIdentifier?.identifier}`);
     console.log(`   Installation ID: ${agent.client.installationId}`);
-    console.log(`   Environment: ${process.env.XMTP_ENV ?? "production"}`);
+    console.log(`   Environment: ${process.env.XMTP_ENV ?? "dev"}`);
+    if (process.env.XMTP_GATEWAY_HOST) {
+      console.log(`   Gateway: ${process.env.XMTP_GATEWAY_HOST}`);
+    }
     console.log(`   Installations: ${inboxState.installations.length}`);
     console.log(`   Conversations: ${breakdown.total}`);
     console.log(`   DMs: ${breakdown.dms}`);
