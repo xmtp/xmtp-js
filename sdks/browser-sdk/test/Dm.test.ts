@@ -194,7 +194,7 @@ describe("Dm", () => {
     expect(await dm2.consentState()).toBe(ConsentState.Allowed);
   });
 
-  it.only("should handle disappearing messages", async () => {
+  it("should handle disappearing messages", async () => {
     const { signer: signer1 } = createSigner();
     const { signer: signer2 } = createSigner();
     const client1 = await createRegisteredClient(signer1);
