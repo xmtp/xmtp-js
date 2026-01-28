@@ -432,7 +432,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
       conversationType?: ConversationType;
       consentStates?: ConsentState[];
     },
@@ -453,9 +453,11 @@ export class Conversations<ContentTypes = unknown> {
     };
     const convertMessage = (value: Message) => {
       const enrichedMessage = this.getMessageById(value.id);
-      return enrichedMessage ?? value;
+      if (enrichedMessage === undefined) {
+        console.warn(`Streamed message with ID "${value.id}" not found`);
+      }
+      return enrichedMessage;
     };
-
     return createStream(streamAllMessages, convertMessage, options);
   }
 
@@ -468,7 +470,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllGroupMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
       consentStates?: ConsentState[];
     },
   ) {
@@ -488,7 +490,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllDmMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
       consentStates?: ConsentState[];
     },
   ) {
