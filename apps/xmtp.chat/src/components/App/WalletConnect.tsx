@@ -7,7 +7,7 @@ import { UseSCW } from "@/components/App/UseSCW";
 
 export const WalletConnect = () => {
   return (
-    <Paper withBorder radius="md">
+    <Paper withBorder radius="md" miw={600}>
       <Stack gap={0}>
         <Group gap="sm" align="center" justify="center" flex={1} p="md">
           <UseSCW />
