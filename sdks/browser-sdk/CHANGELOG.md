@@ -51,7 +51,8 @@ for (const message of messages) {
 The `streamMessageDeletions` method has been deprecated and will be removed in a future release. Use the new `streamDeletedMessages` method. This new method streams the entire decoded message of deleted messages rather than just the message ID.
 
 ```ts
-const deletedMessagesStream = await client.conversations.streamDeletedMessages();
+const deletedMessagesStream =
+  await client.conversations.streamDeletedMessages();
 
 for await (const message of deletedMessagesStream) {
   // message is a DecodedMessage
