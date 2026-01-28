@@ -420,9 +420,10 @@ export class Conversations<ContentTypes = unknown> {
             value,
           ) as T;
         default:
-          throw new Error(
+          console.warn(
             `Unknown conversation type: ${value.metadata.conversationType}`,
           );
+          return undefined;
       }
     };
 

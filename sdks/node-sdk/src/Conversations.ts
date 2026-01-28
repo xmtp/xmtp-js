@@ -350,24 +350,19 @@ export class Conversations<ContentTypes = unknown> {
     const convertConversation = async (value: Conversation) => {
       const metadata = await value.groupMetadata();
       const conversationType = metadata.conversationType();
-      let conversation: Group<ContentTypes> | Dm<ContentTypes> | undefined;
       switch (conversationType) {
         case ConversationType.Dm:
-          conversation = new Dm<ContentTypes>(
-            this.#client,
-            this.#codecRegistry,
-            value,
-          );
-          break;
+          return new Dm<ContentTypes>(this.#client, this.#codecRegistry, value);
         case ConversationType.Group:
-          conversation = new Group<ContentTypes>(
+          return new Group<ContentTypes>(
             this.#client,
             this.#codecRegistry,
             value,
           );
-          break;
+        default:
+          console.warn(`Unknown conversation type: ${conversationType}`);
+          return undefined;
       }
-      return conversation;
     };
 
     return createStream(stream, convertConversation, options);
