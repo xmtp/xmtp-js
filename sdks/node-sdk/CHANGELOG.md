@@ -2,7 +2,49 @@
 
 ## 5.2.0
 
-This release introduces a new feature, improvements, and critical bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements and fixes.
+This release introduces new features and critical bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements and fixes.
+
+### Message type guards
+
+New utility functions have been added to help identify message content types. These type guards provide a convenient way to check message types and narrow TypeScript types when working with decoded messages.
+
+```ts
+import {
+  isText,
+  isMarkdown,
+  isReaction,
+  isReply,
+  isTextReply,
+  isAttachment,
+  isRemoteAttachment,
+  isMultiRemoteAttachment,
+  isTransactionReference,
+  isReadReceipt,
+  isGroupUpdated,
+  isWalletSendCalls,
+  isActions,
+  isIntent,
+} from "@xmtp/node-sdk";
+
+const messages = await group.messages();
+
+for (const message of messages) {
+  if (isText(message)) {
+    // message.content is narrowed to string
+    console.log(message.content);
+  }
+
+  if (isReaction(message)) {
+    // message.content is narrowed to Reaction
+    console.log(message.content.content);
+  }
+
+  if (isTextReply(message)) {
+    // message.content is narrowed to EnrichedReply<string>
+    console.log(message.content.content);
+  }
+}
+```
 
 ### Stream deleted messages
 

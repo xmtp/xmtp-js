@@ -85,3 +85,4 @@ export {
 export * from "./utils/signer";
 export * from "./utils/errors";
 export type * from "./utils/streams";
+export * from "./utils/messages";

@@ -5,6 +5,7 @@ export * from "./utils/inboxId";
 export type * from "./utils/signer";
 export type * from "./utils/streams";
 export * from "./utils/validation";
+export * from "./utils/messages";
 export type { AsyncStreamProxy } from "./AsyncStream";
 export { Client } from "./Client";
 export { Conversation } from "./Conversation";
