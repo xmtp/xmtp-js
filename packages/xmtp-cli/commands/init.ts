@@ -40,14 +40,6 @@ export function registerInitCommand(yargs: Argv) {
           type: "string",
           choices: ["dev", "production", "local"],
           description: "XMTP environment (sets XMTP_ENV)",
-        })
-        .check((argv) => {
-          if (!argv.ephemeral && !argv.privateKey && !argv.gateway && !argv.env) {
-            throw new Error(
-              "You must specify at least one option: --ephemeral, --private-key, --gateway, or --env",
-            );
-          }
-          return true;
         });
     },
     async (argv: {
@@ -92,29 +84,26 @@ export async function runInitCommand(options: InitOptions): Promise<void> {
   const filePath = join(currentDir, ".env");
 
   const lines: string[] = ["# XMTP Configuration"];
-  let walletAddress: string | undefined;
 
   // Handle wallet key generation
-  if (options.ephemeral || options.privateKey) {
-    let walletKey: `0x${string}`;
+  // Default to ephemeral if no --private-key specified
 
-    if (options.ephemeral) {
-      console.log("Generating ephemeral wallet key...");
-      walletKey = generatePrivateKey();
-    } else if (options.privateKey) {
-      console.log("Using provided private key...");
-      walletKey = validatePrivateKey(options.privateKey);
-    } else {
-      throw new Error("Unexpected state");
-    }
+  let walletKey: `0x${string}`;
 
-    const account = privateKeyToAccount(walletKey);
-    const encryptionKeyHex = generateEncryptionKeyHex();
-    walletAddress = account.address;
-
-    lines.push(`XMTP_WALLET_KEY=${walletKey}`);
-    lines.push(`XMTP_DB_ENCRYPTION_KEY=${encryptionKeyHex}`);
+  if (options.privateKey) {
+    console.log("Using provided private key...");
+    walletKey = validatePrivateKey(options.privateKey);
+  } else {
+    console.log("Generating ephemeral wallet key...");
+    walletKey = generatePrivateKey();
   }
+
+  const account = privateKeyToAccount(walletKey);
+  const encryptionKeyHex = generateEncryptionKeyHex();
+  const walletAddress = account.address;
+
+  lines.push(`XMTP_WALLET_KEY=${walletKey}`);
+  lines.push(`XMTP_DB_ENCRYPTION_KEY=${encryptionKeyHex}`);
 
   // Handle gateway configuration
   if (options.gateway) {
@@ -122,19 +111,15 @@ export async function runInitCommand(options: InitOptions): Promise<void> {
   }
 
   // Handle environment configuration
-  // Default to 'dev' if no gateway and no env specified, but only if we're setting wallet keys
-  const env =
-    options.env ||
-    (options.gateway ? undefined : options.ephemeral || options.privateKey ? "dev" : undefined);
+  // Default to 'dev' if no env specified and no gateway
+  const env = options.env || (options.gateway ? undefined : "dev");
 
   if (env) {
     lines.push(`XMTP_ENV=${env}`);
   }
 
-  // Add wallet address as comment if we generated/used a wallet key
-  if (walletAddress) {
-    lines.push(`# Wallet address: ${walletAddress}`);
-  }
+  // Add wallet address as comment
+  lines.push(`# Wallet address: ${walletAddress}`);
 
   // Add trailing newline
   lines.push("");
@@ -145,10 +130,7 @@ export async function runInitCommand(options: InitOptions): Promise<void> {
   await writeFile(filePath, envContent);
 
   console.log("\nInitialization complete!");
-
-  if (walletAddress) {
-    console.log(`  Wallet address: ${walletAddress}`);
-  }
+  console.log(`  Wallet address: ${walletAddress}`);
 
   if (env) {
     console.log(`  Environment: ${env}`);
@@ -160,7 +142,7 @@ export async function runInitCommand(options: InitOptions): Promise<void> {
 
   console.log(`  Config file: ${filePath}`);
 
-  if (options.ephemeral) {
+  if (!options.privateKey) {
     console.log(
       "\nNote: This is an ephemeral key. Back up your .env file if you need to preserve this identity.",
     );
