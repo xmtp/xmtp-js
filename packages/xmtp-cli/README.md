@@ -70,17 +70,20 @@ XMTP_GATEWAY_HOST=https://...  # XMTP Gateway URL (optional)
 Initialize your XMTP environment configuration. Creates a `.env` file with the necessary configuration.
 
 ```bash
-# Generate a new ephemeral wallet (recommended for testing)
+# Quick start - generates ephemeral wallet with dev environment (default)
+xmtp init
+
+# Explicitly generate ephemeral wallet
 xmtp init --ephemeral
 
 # Use an existing private key
 xmtp init --private-key 0x1234...
 
 # Configure with a custom gateway
-xmtp init --ephemeral --gateway https://my-gateway.example.com
+xmtp init --gateway https://my-gateway.example.com
 
 # Configure for production environment
-xmtp init --ephemeral --env production
+xmtp init --env production
 
 # Combine options
 xmtp init --private-key 0x1234... --gateway https://my-gateway.example.com --env production
@@ -88,10 +91,10 @@ xmtp init --private-key 0x1234... --gateway https://my-gateway.example.com --env
 
 **Options:**
 
-- `--ephemeral` - Generate a new random wallet key (conflicts with `--private-key`)
+- `--ephemeral` - Generate a new random wallet key (default behavior, conflicts with `--private-key`)
 - `--private-key <key>` - Use an existing private key in hex format with 0x prefix (conflicts with `--ephemeral`)
 - `--gateway <url>` - XMTP Gateway URL (sets `XMTP_GATEWAY_HOST`)
-- `--env <environment>` - XMTP environment: `dev`, `production`, or `local` (sets `XMTP_ENV`, defaults to `dev` when using wallet options without gateway)
+- `--env <environment>` - XMTP environment: `dev`, `production`, or `local` (sets `XMTP_ENV`, defaults to `dev` unless `--gateway` is specified)
 
 **Generated `.env` file:**
 
