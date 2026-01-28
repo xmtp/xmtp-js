@@ -2,6 +2,7 @@ import { Group, NativeSelect, Text, Tooltip } from "@mantine/core";
 import { useMemo, useState } from "react";
 import { useSwitchChain } from "wagmi";
 import {
+  abstract,
   arbitrum,
   base,
   gnosis,
@@ -15,6 +16,7 @@ import {
 import { useSettings } from "@/hooks/useSettings";
 
 const ALLOWED_CHAINS: number[] = [
+  abstract.id,
   arbitrum.id,
   base.id,
   gnosis.id,
@@ -56,9 +58,10 @@ export const BlockchainSelect: React.FC = () => {
     () =>
       chains
         .filter((chain) => ALLOWED_CHAINS.includes(chain.id))
+        .sort((a, b) => a.id - b.id)
         .map((chain) => ({
           value: chain.id.toString(),
-          label: chain.name,
+          label: `${chain.name} (${chain.id})`,
         })),
     [chains],
   );

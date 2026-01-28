@@ -7,6 +7,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
 import {
+  abstract,
   arbitrum,
   arbitrumSepolia,
   base,
@@ -58,6 +59,7 @@ export const config = createConfig({
     walletConnect({ projectId: import.meta.env.VITE_PROJECT_ID }),
   ],
   chains: [
+    abstract,
     arbitrum,
     arbitrumSepolia,
     base,
@@ -79,6 +81,7 @@ export const config = createConfig({
     lensTestnet,
   ],
   transports: {
+    [abstract.id]: http(),
     [arbitrum.id]: http(),
     [arbitrumSepolia.id]: http(),
     [base.id]: http(),
