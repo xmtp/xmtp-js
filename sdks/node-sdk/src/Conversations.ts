@@ -8,6 +8,7 @@ import {
   type ListConversationsOptions,
   type Message,
   type Conversations as XmtpConversations,
+  type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
 import type { CodecRegistry } from "@/CodecRegistry";
@@ -502,17 +503,19 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
-   * Creates a stream for message deletions
+   * Creates a stream for message deletions that streams the message IDs of
+   * deleted messages
    *
    * This is a local stream, does not require network sync, and will not fail
    * like other streams.
    *
    * @param options - Optional stream options
    * @returns Stream instance for message deletions
+   * @deprecated Use streamDeletedMessages instead
    */
   async streamMessageDeletions(
     options?: Omit<
-      StreamOptions<string>,
+      StreamOptions<XmtpDecodedMessage, string>,
       | "disableSync"
       | "onFail"
       | "onRetry"
@@ -522,10 +525,41 @@ export class Conversations<ContentTypes = unknown> {
       | "retryOnFail"
     >,
   ) {
-    const stream = async (callback: StreamCallback<string>) => {
+    const stream = async (callback: StreamCallback<XmtpDecodedMessage>) => {
       return this.#conversations.streamMessageDeletions(callback);
     };
-    return createStream(stream, undefined, options);
+    const convertMessage = (value: XmtpDecodedMessage) => value.id;
+    return createStream(stream, convertMessage, options);
+  }
+
+  /**
+   * Creates a stream for message deletions that streams the deleted messages
+   *
+   * This is a local stream, does not require network sync, and will not fail
+   * like other streams.
+   *
+   * @param options - Optional stream options
+   * @returns Stream instance for message deletions
+   */
+  async streamDeletedMessages(
+    options?: Omit<
+      StreamOptions<XmtpDecodedMessage, DecodedMessage<ContentTypes>>,
+      | "disableSync"
+      | "onFail"
+      | "onRetry"
+      | "onRestart"
+      | "retryAttempts"
+      | "retryDelay"
+      | "retryOnFail"
+    >,
+  ) {
+    const stream = async (callback: StreamCallback<XmtpDecodedMessage>) => {
+      return this.#conversations.streamMessageDeletions(callback);
+    };
+    const convertMessage = (value: XmtpDecodedMessage) => {
+      return new DecodedMessage<ContentTypes>(this.#codecRegistry, value);
+    };
+    return createStream(stream, convertMessage, options);
   }
 
   /**

@@ -4888,6 +4888,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/node-bindings@npm:1.9.0-rc4":
+  version: 1.9.0-rc4
+  resolution: "@xmtp/node-bindings@npm:1.9.0-rc4"
+  checksum: 10/ab5a424f49c32814c1a89c73abb5f3a069a0f0af84011d2ed0c5ebe11b806649979f56fe9e0887849bdb55b69770d6c967eba21e78110ee5a6c4eb250b574032
+  languageName: node
+  linkType: hard
+
 "@xmtp/node-sdk@npm:4.3.1":
   version: 4.3.1
   resolution: "@xmtp/node-sdk@npm:4.3.1"
@@ -4933,7 +4940,7 @@ __metadata:
     "@types/node": "npm:^24.9.1"
     "@vitest/coverage-v8": "npm:^4.0.16"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/node-bindings": "npm:1.8.1"
+    "@xmtp/node-bindings": "npm:1.9.0-rc4"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.54.0"
