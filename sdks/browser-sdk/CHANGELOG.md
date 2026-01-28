@@ -1,5 +1,29 @@
 # @xmtp/browser-sdk
 
+## 6.2.0
+
+This release introduces a new feature, improvements, and critical bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements and fixes.
+
+### Stream deleted messages
+
+The `streamMessageDeletions` method has been deprecated and will be removed in a future release. Use the new `streamDeletedMessages` method. This new method streams the entire decoded message of deleted messages rather than just the message ID.
+
+```ts
+const deletedMessagesStream = await client.conversations.streamDeletedMessages();
+
+for await (const message of deletedMessagesStream) {
+  // message is a DecodedMessage
+}
+```
+
+### Improved conversation streaming behavior
+
+The `stream` method for conversations now handles unknown conversation types more gracefully. Previously, encountering an unknown conversation type would throw an error. Now, unknown types are filtered out with a warning logged to the console, allowing the stream to continue without interruption.
+
+### Actions and intent content type serialization
+
+The actions and intent content types were not being serialized properly. This release ensures that these content types are backwards-compatible with all clients using these content types.
+
 ## 6.1.2
 
 ### Patch Changes

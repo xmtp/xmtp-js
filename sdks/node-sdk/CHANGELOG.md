@@ -1,5 +1,31 @@
 # @xmtp/node-sdk
 
+## 5.2.0
+
+This release introduces a new feature, improvements, and critical bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements and fixes.
+
+### Stream deleted messages
+
+The `streamMessageDeletions` method has been deprecated and will be removed in a future release. Use the new `streamDeletedMessages` method. This new method streams the entire decoded message of deleted messages rather than just the message ID.
+
+```ts
+const deletedMessagesStream = await client.conversations.streamDeletedMessages();
+
+for await (const message of deletedMessagesStream) {
+  // message is a DecodedMessage
+}
+```
+
+### Improved streaming method types
+
+The return types of `streamAllMessages`, `streamAllGroupMessages`, `streamAllDmMessages`, and `stream` (for conversations) have been simplified. These methods now return only converted values (`DecodedMessage` or `Group`/`Dm`) instead of a union type that could include raw or undefined values.
+
+Previously, when a streamed value couldn't be converted, the raw value or `undefined` was returned. Now, unconvertible values are filtered out with a warning logged to the console. This makes the stream output more predictable and type-safe.
+
+### Actions and intent content type serialization
+
+The actions and intent content types were not being serialized properly. This release ensures that these content types are backwards-compatible with all clients using these content types.
+
 ## 5.1.1
 
 ### Patch Changes
