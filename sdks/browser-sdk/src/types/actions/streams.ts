@@ -27,9 +27,9 @@ export type StreamAction =
       result: UserPreferenceUpdate[] | undefined;
     }
   | {
-      action: "stream.messageDeleted";
+      action: "stream.deletedMessage";
       streamId: string;
-      result: string | undefined;
+      result: DecodedMessage | undefined;
     }
   | {
       action: "stream.fail";

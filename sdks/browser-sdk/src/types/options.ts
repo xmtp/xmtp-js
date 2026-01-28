@@ -2,6 +2,7 @@ import type { ContentCodec } from "@xmtp/content-type-primitives";
 import type {
   Actions,
   Attachment,
+  DeletedMessage,
   GroupUpdated,
   Intent,
   LeaveRequest,
@@ -127,7 +128,8 @@ export type BuiltInContentTypes =
   | Actions
   | Intent
   | MultiRemoteAttachment
-  | GroupUpdated;
+  | GroupUpdated
+  | DeletedMessage;
 
 export type ExtractCodecContentTypes<C extends ContentCodec[] = []> =
   C extends readonly []

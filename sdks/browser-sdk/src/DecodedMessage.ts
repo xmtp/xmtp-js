@@ -59,6 +59,9 @@ const getContentFromDecodedMessageContent = <T = unknown>(
     case "actions": {
       return content.content as T;
     }
+    case "deletedMessage": {
+      return content.content as T;
+    }
     case "custom": {
       return content.content as T;
     }

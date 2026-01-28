@@ -710,7 +710,7 @@ describe("Group", () => {
     const client1 = await createRegisteredClient(signer1);
     const client2 = await createRegisteredClient(signer2);
 
-    const stream = await client1.conversations.streamMessageDeletions();
+    const stream = await client1.conversations.streamDeletedMessages();
 
     // create message disappearing settings so that messages are deleted after 1 second
     const messageDisappearingSettings: MessageDisappearingSettings = {
@@ -764,10 +764,10 @@ describe("Group", () => {
 
     let count = 0;
     const messageIds: string[] = [];
-    for await (const messageId of stream) {
+    for await (const message of stream) {
       count++;
-      expect(messageId).toBeDefined();
-      messageIds.push(messageId);
+      expect(message).toBeDefined();
+      messageIds.push(message.id);
     }
     expect(count).toBe(2);
     expect(messageIds).toContain(messageId1);

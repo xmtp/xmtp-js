@@ -8,6 +8,7 @@ import {
   type ListConversationsOptions,
   type Message,
   type Conversations as XmtpConversations,
+  type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/node-bindings";
 import type { Client } from "@/Client";
 import type { CodecRegistry } from "@/CodecRegistry";
@@ -350,24 +351,19 @@ export class Conversations<ContentTypes = unknown> {
     const convertConversation = async (value: Conversation) => {
       const metadata = await value.groupMetadata();
       const conversationType = metadata.conversationType();
-      let conversation: Group<ContentTypes> | Dm<ContentTypes> | undefined;
       switch (conversationType) {
         case ConversationType.Dm:
-          conversation = new Dm<ContentTypes>(
-            this.#client,
-            this.#codecRegistry,
-            value,
-          );
-          break;
+          return new Dm<ContentTypes>(this.#client, this.#codecRegistry, value);
         case ConversationType.Group:
-          conversation = new Group<ContentTypes>(
+          return new Group<ContentTypes>(
             this.#client,
             this.#codecRegistry,
             value,
           );
-          break;
+        default:
+          console.warn(`Unknown conversation type: ${conversationType}`);
+          return undefined;
       }
-      return conversation;
     };
 
     return createStream(stream, convertConversation, options);
@@ -437,7 +433,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
       conversationType?: ConversationType;
       consentStates?: ConsentState[];
     },
@@ -458,9 +454,11 @@ export class Conversations<ContentTypes = unknown> {
     };
     const convertMessage = (value: Message) => {
       const enrichedMessage = this.getMessageById(value.id);
-      return enrichedMessage ?? value;
+      if (enrichedMessage === undefined) {
+        console.warn(`Streamed message with ID "${value.id}" not found`);
+      }
+      return enrichedMessage;
     };
-
     return createStream(streamAllMessages, convertMessage, options);
   }
 
@@ -473,7 +471,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllGroupMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
       consentStates?: ConsentState[];
     },
   ) {
@@ -493,7 +491,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/stream#stream-new-group-chat-and-dm-messages
    */
   async streamAllDmMessages(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message> & {
+    options?: StreamOptions<Message, DecodedMessage<ContentTypes>> & {
       consentStates?: ConsentState[];
     },
   ) {
@@ -505,17 +503,19 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
-   * Creates a stream for message deletions
+   * Creates a stream for message deletions that streams the message IDs of
+   * deleted messages
    *
    * This is a local stream, does not require network sync, and will not fail
    * like other streams.
    *
    * @param options - Optional stream options
    * @returns Stream instance for message deletions
+   * @deprecated Use streamDeletedMessages instead
    */
   async streamMessageDeletions(
     options?: Omit<
-      StreamOptions<string>,
+      StreamOptions<XmtpDecodedMessage, string>,
       | "disableSync"
       | "onFail"
       | "onRetry"
@@ -525,10 +525,41 @@ export class Conversations<ContentTypes = unknown> {
       | "retryOnFail"
     >,
   ) {
-    const stream = async (callback: StreamCallback<string>) => {
+    const stream = async (callback: StreamCallback<XmtpDecodedMessage>) => {
       return this.#conversations.streamMessageDeletions(callback);
     };
-    return createStream(stream, undefined, options);
+    const convertMessage = (value: XmtpDecodedMessage) => value.id;
+    return createStream(stream, convertMessage, options);
+  }
+
+  /**
+   * Creates a stream for message deletions that streams the deleted messages
+   *
+   * This is a local stream, does not require network sync, and will not fail
+   * like other streams.
+   *
+   * @param options - Optional stream options
+   * @returns Stream instance for message deletions
+   */
+  async streamDeletedMessages(
+    options?: Omit<
+      StreamOptions<XmtpDecodedMessage, DecodedMessage<ContentTypes>>,
+      | "disableSync"
+      | "onFail"
+      | "onRetry"
+      | "onRestart"
+      | "retryAttempts"
+      | "retryDelay"
+      | "retryOnFail"
+    >,
+  ) {
+    const stream = async (callback: StreamCallback<XmtpDecodedMessage>) => {
+      return this.#conversations.streamMessageDeletions(callback);
+    };
+    const convertMessage = (value: XmtpDecodedMessage) => {
+      return new DecodedMessage<ContentTypes>(this.#codecRegistry, value);
+    };
+    return createStream(stream, convertMessage, options);
   }
 
   /**
