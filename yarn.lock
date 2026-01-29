@@ -4630,7 +4630,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^4.0.16"
     "@web/rollup-plugin-copy": "npm:^0.5.1"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/wasm-bindings": "npm:1.9.0-rc4"
+    "@xmtp/wasm-bindings": "npm:1.9.1"
     playwright: "npm:^1.57.0"
     rollup: "npm:^4.54.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -4716,7 +4716,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.9.1"
-    "@xmtp/node-bindings": "npm:1.8.1"
+    "@xmtp/node-bindings": "npm:1.9.1"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.54.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -4888,10 +4888,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-bindings@npm:1.9.0-rc4":
-  version: 1.9.0-rc4
-  resolution: "@xmtp/node-bindings@npm:1.9.0-rc4"
-  checksum: 10/ab5a424f49c32814c1a89c73abb5f3a069a0f0af84011d2ed0c5ebe11b806649979f56fe9e0887849bdb55b69770d6c967eba21e78110ee5a6c4eb250b574032
+"@xmtp/node-bindings@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@xmtp/node-bindings@npm:1.9.1"
+  checksum: 10/2393a08c5a8d0bc6a3c18ff7d83010cc0d26fc4a9b3774541f209764e0f0e7201a33c9c5abbca495beaf63e2fd00852c0c05fa150025e524f072957daf06a9b0
   languageName: node
   linkType: hard
 
@@ -4950,7 +4950,7 @@ __metadata:
     "@types/node": "npm:^24.9.1"
     "@vitest/coverage-v8": "npm:^4.0.16"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/node-bindings": "npm:1.9.0-rc4"
+    "@xmtp/node-bindings": "npm:1.9.1"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.54.0"
@@ -4991,10 +4991,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.9.0-rc4":
-  version: 1.9.0-rc4
-  resolution: "@xmtp/wasm-bindings@npm:1.9.0-rc4"
-  checksum: 10/a767e5b51ca5db981109869187f876b140fbe4c20c1a5fedace64047698fa7116e3e0204af4718b4181af4bdec1c4cd3fd49fce7ad4af3fa2219832b49ec92cb
+"@xmtp/wasm-bindings@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@xmtp/wasm-bindings@npm:1.9.1"
+  checksum: 10/d2d81a1a7d841f11212e6c6dd02ca875de69c2c831c05484eeab91c9d1b26e12fc8d8817a70e98037f821a88bc9505dbd0550d7f2cab7ed0825ecdd67d8fff98
   languageName: node
   linkType: hard
 
