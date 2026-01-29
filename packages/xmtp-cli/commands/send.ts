@@ -127,7 +127,7 @@ async function sendGroupMessage(
             return await conversation.stream();
           },
           send: async (content: string) => {
-            return await conversation.send(content);
+            return await conversation.sendText(content);
           },
         },
         senderInboxId: agent.client.inboxId,
@@ -156,7 +156,7 @@ async function sendGroupMessage(
         );
       }
     } else {
-      await conversation.send(message);
+      await conversation.sendText(message);
 
       console.log(`[OK] Message sent successfully`);
       console.log(`[MSG] Message: "${message}"`);
@@ -197,7 +197,7 @@ async function sendDirectMessage(
             return await conversation.stream();
           },
           send: async (content: string) => {
-            return await conversation.send(content);
+            return await conversation.sendText(content);
           },
         },
         senderInboxId: agent.client.inboxId,
@@ -220,7 +220,7 @@ async function sendDirectMessage(
         console.log(`[TIMEOUT] No response received within timeout`);
       }
     } else {
-      await conversation.send(message);
+      await conversation.sendText(message);
 
       console.log(`[OK] Message sent successfully`);
       console.log(`[MSG] Message: "${message}"`);
