@@ -106,6 +106,7 @@ export const getInstallationInfo = async <ContentTypes>(
   const inboxStates = await Client.fetchInboxStates(
     [myInboxId],
     client.options?.env,
+    client.options?.gatewayHost,
   );
 
   const installations =
