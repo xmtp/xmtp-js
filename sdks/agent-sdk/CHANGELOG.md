@@ -24,7 +24,7 @@ await ctx.conversation.sendMarkdown("**Hello**");
 
 #### Content type filters moved to Node SDK
 
-The following filters are now exported directly from the SDK. The `filter.*` versions are deprecated but still available for backwards compatibility:
+The following filters have been removed from `filter.*` and are now exported directly from the SDK:
 
 - `isGroupUpdated` (renamed from `isGroupUpdate`)
 - `isMarkdown`
@@ -38,11 +38,11 @@ The following filters are now exported directly from the SDK. The `filter.*` ver
 - `isWalletSendCalls`
 
 ```ts
-// Before (still works, but deprecated)
+// Before
 import { filter } from "@xmtp/agent-sdk";
 if (filter.isText(message)) { ... }
 
-// After (recommended)
+// After
 import { isText } from "@xmtp/agent-sdk";
 if (isText(message)) { ... }
 ```
