@@ -105,16 +105,18 @@ export async function runInitCommand(options: InitOptions): Promise<void> {
   lines.push(`XMTP_WALLET_KEY=${walletKey}`);
   lines.push(`XMTP_DB_ENCRYPTION_KEY=${encryptionKeyHex}`);
 
-  // Handle gateway configuration
+  // Handle gateway and environment configuration
+  // When gateway is specified, env is ignored (gateway determines the network)
   if (options.gateway) {
     lines.push(`XMTP_GATEWAY_HOST=${options.gateway}`);
-  }
-
-  // Handle environment configuration
-  // Default to 'dev' if no env specified and no gateway
-  const env = options.env || (options.gateway ? undefined : "dev");
-
-  if (env) {
+    if (options.env) {
+      console.log(
+        `Note: --env "${options.env}" is being ignored. Network environment is determined by the gateway's configuration.`,
+      );
+    }
+  } else {
+    // No gateway - use env, defaulting to 'dev'
+    const env = options.env || "dev";
     lines.push(`XMTP_ENV=${env}`);
   }
 
@@ -132,12 +134,10 @@ export async function runInitCommand(options: InitOptions): Promise<void> {
   console.log("\nInitialization complete!");
   console.log(`  Wallet address: ${walletAddress}`);
 
-  if (env) {
-    console.log(`  Environment: ${env}`);
-  }
-
   if (options.gateway) {
     console.log(`  Gateway: ${options.gateway}`);
+  } else {
+    console.log(`  Environment: ${options.env || "dev"}`);
   }
 
   console.log(`  Config file: ${filePath}`);
