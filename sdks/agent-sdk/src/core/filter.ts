@@ -3,27 +3,11 @@ import {
   type ContentCodec,
 } from "@xmtp/content-type-primitives";
 import {
-  contentTypeGroupUpdated,
-  contentTypeMarkdown,
-  contentTypeReaction,
-  contentTypeReadReceipt,
-  contentTypeRemoteAttachment,
-  contentTypeReply,
-  contentTypeText,
-  contentTypeTransactionReference,
-  contentTypeWalletSendCalls,
   Dm,
   Group,
   type Client,
   type Conversation,
   type DecodedMessage,
-  type EnrichedReply,
-  type GroupUpdated,
-  type Reaction,
-  type ReadReceipt,
-  type RemoteAttachment,
-  type TransactionReference,
-  type WalletSendCalls,
 } from "@xmtp/node-sdk";
 
 export type DecodedMessageWithContent<ContentTypes = unknown> =
@@ -69,75 +53,6 @@ const isGroupSuperAdmin = (
   return false;
 };
 
-const isGroupUpdate = (
-  message: DecodedMessage,
-): message is DecodedMessageWithContent<GroupUpdated> => {
-  return contentTypesAreEqual(message.contentType, contentTypeGroupUpdated());
-};
-
-const isReaction = (
-  message: DecodedMessage,
-): message is DecodedMessageWithContent<Reaction> => {
-  return contentTypesAreEqual(message.contentType, contentTypeReaction());
-};
-
-const isReply = (
-  message: DecodedMessage,
-): message is DecodedMessageWithContent<EnrichedReply> => {
-  return contentTypesAreEqual(message.contentType, contentTypeReply());
-};
-
-const isRemoteAttachment = (
-  message: DecodedMessage,
-): message is DecodedMessageWithContent<RemoteAttachment> => {
-  return contentTypesAreEqual(
-    message.contentType,
-    contentTypeRemoteAttachment(),
-  );
-};
-
-const isMarkdown = (
-  message: DecodedMessage,
-): message is DecodedMessageWithContent<string> => {
-  return contentTypesAreEqual(message.contentType, contentTypeMarkdown());
-};
-
-const isReadReceipt = (
-  message: DecodedMessage,
-): message is DecodedMessageWithContent<ReadReceipt> => {
-  return contentTypesAreEqual(message.contentType, contentTypeReadReceipt());
-};
-
-const isText = (
-  message: DecodedMessage,
-): message is DecodedMessageWithContent<string> => {
-  return contentTypesAreEqual(message.contentType, contentTypeText());
-};
-
-const isTextReply = (
-  message: DecodedMessage,
-): message is DecodedMessageWithContent<EnrichedReply<string>> => {
-  return isReply(message) && typeof message.content.content === "string";
-};
-
-const isTransactionReference = (
-  message: DecodedMessage,
-): message is DecodedMessageWithContent<TransactionReference> => {
-  return contentTypesAreEqual(
-    message.contentType,
-    contentTypeTransactionReference(),
-  );
-};
-
-const isWalletSendCalls = (
-  message: DecodedMessage,
-): message is DecodedMessageWithContent<WalletSendCalls> => {
-  return contentTypesAreEqual(
-    message.contentType,
-    contentTypeWalletSendCalls(),
-  );
-};
-
 const usesCodec = <T extends ContentCodec>(
   message: DecodedMessage,
   codecClass: new () => T,
@@ -155,16 +70,6 @@ export const filter = {
   isGroup,
   isGroupAdmin,
   isGroupSuperAdmin,
-  isGroupUpdate,
-  isMarkdown,
-  isReaction,
-  isReadReceipt,
-  isRemoteAttachment,
-  isReply,
-  isText,
-  isTextReply,
-  isTransactionReference,
-  isWalletSendCalls,
   usesCodec,
 };
 

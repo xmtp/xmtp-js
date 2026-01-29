@@ -1,5 +1,6 @@
 import {
   encodeText,
+  isReply,
   ReactionAction,
   ReactionSchema,
   type BuiltInContentTypes,
@@ -21,7 +22,6 @@ import {
 } from "@/core/Agent";
 import type { ClientContext } from "@/core/ClientContext";
 import { ConversationContext } from "@/core/ConversationContext";
-import { filter } from "@/core/filter";
 import { MessageContext } from "@/core/MessageContext";
 import { createSigner, createUser } from "@/user/User";
 import { createClient } from "@/util/test";
@@ -505,7 +505,7 @@ describe("Agent", () => {
 
       const filterReply = vi.fn<AgentMiddleware>(async ({ message }, next) => {
         middlewareCalls.push("filterReply-" + message.id);
-        if (filter.isReply(message)) {
+        if (isReply(message)) {
           return;
         }
         await next();

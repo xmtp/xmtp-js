@@ -9,7 +9,16 @@ import {
   Dm,
   Group,
   IdentifierKind,
+  isGroupUpdated,
   isHexString,
+  isMarkdown,
+  isReaction,
+  isReadReceipt,
+  isRemoteAttachment,
+  isReply,
+  isText,
+  isTransactionReference,
+  isWalletSendCalls,
   LogLevel,
   type ClientOptions,
   type Conversation,
@@ -371,31 +380,31 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           }
           try {
             switch (true) {
-              case filter.isGroupUpdate(message):
+              case isGroupUpdated(message):
                 await this.#processMessage(message, "group-update");
                 break;
-              case filter.isRemoteAttachment(message):
+              case isRemoteAttachment(message):
                 await this.#processMessage(message, "attachment");
                 break;
-              case filter.isReaction(message):
+              case isReaction(message):
                 await this.#processMessage(message, "reaction");
                 break;
-              case filter.isReadReceipt(message):
+              case isReadReceipt(message):
                 await this.#processMessage(message, "read-receipt");
                 break;
-              case filter.isReply(message):
+              case isReply(message):
                 await this.#processMessage(message, "reply");
                 break;
-              case filter.isTransactionReference(message):
+              case isTransactionReference(message):
                 await this.#processMessage(message, "transaction-reference");
                 break;
-              case filter.isWalletSendCalls(message):
+              case isWalletSendCalls(message):
                 await this.#processMessage(message, "wallet-send-calls");
                 break;
-              case filter.isMarkdown(message):
+              case isMarkdown(message):
                 await this.#processMessage(message, "markdown");
                 break;
-              case filter.isText(message):
+              case isText(message):
                 await this.#processMessage(message, "text");
                 break;
               default:
