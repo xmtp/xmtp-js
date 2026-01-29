@@ -24,7 +24,7 @@ await ctx.conversation.sendMarkdown("**Hello**");
 
 #### Content type filters moved to Node SDK
 
-The following filters have been removed from `filter.*` and are now exported directly from the SDK:
+The following filters are now exported directly from the SDK. The `filter.*` versions are deprecated but still available for backwards compatibility:
 
 - `isGroupUpdated` (renamed from `isGroupUpdate`)
 - `isMarkdown`
@@ -33,20 +33,19 @@ The following filters have been removed from `filter.*` and are now exported dir
 - `isRemoteAttachment`
 - `isReply`
 - `isText`
+- `isTextReply`
 - `isTransactionReference`
 - `isWalletSendCalls`
 
 ```ts
-// Before
+// Before (still works, but deprecated)
 import { filter } from "@xmtp/agent-sdk";
 if (filter.isText(message)) { ... }
 
-// After
+// After (recommended)
 import { isText } from "@xmtp/agent-sdk";
 if (isText(message)) { ... }
 ```
-
-A deprecated `isGroupUpdate` alias is provided for backwards compatibility.
 
 #### `downloadRemoteAttachment` API simplified
 
