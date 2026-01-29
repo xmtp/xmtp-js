@@ -22,6 +22,23 @@ await ctx.conversation.sendText("Hello");
 await ctx.conversation.sendMarkdown("**Hello**");
 ```
 
+#### Built-in content types
+
+The Node SDK now includes built-in support for all standard content types. These content types can be sent using dedicated methods on `conversation`:
+
+```ts
+await ctx.conversation.sendText("Hello!");
+await ctx.conversation.sendMarkdown("**Bold** and _italic_");
+await ctx.conversation.sendReaction(reaction);
+await ctx.conversation.sendReply(reply);
+await ctx.conversation.sendReadReceipt();
+await ctx.conversation.sendAttachment(attachment);
+await ctx.conversation.sendRemoteAttachment(remoteAttachment);
+await ctx.conversation.sendMultiRemoteAttachment(attachments);
+await ctx.conversation.sendTransactionReference(txRef);
+await ctx.conversation.sendWalletSendCalls(walletCalls);
+```
+
 #### Content type filters moved to Node SDK
 
 The following filters have been removed from `filter.*` and are now exported directly from the SDK:
