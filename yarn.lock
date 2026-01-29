@@ -4709,7 +4709,25 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/content-type-primitives@npm:3.0.0, @xmtp/content-type-primitives@npm:^3.0.0, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:3.0.0":
+  version: 3.0.0
+  resolution: "@xmtp/content-type-primitives@npm:3.0.0"
+  dependencies:
+    "@xmtp/node-bindings": "npm:1.8.0"
+  checksum: 10/b70fccaad3e9192de10f7a0838feb28feb6c919aca42da9b0b7b5a003a69f1078cec4b3bb56a07ead824471f928144931494b3f88da24af4538165aa92b1ced2
+  languageName: node
+  linkType: hard
+
+"@xmtp/content-type-primitives@npm:^2.0.2":
+  version: 2.0.3
+  resolution: "@xmtp/content-type-primitives@npm:2.0.3"
+  dependencies:
+    "@xmtp/proto": "npm:3.78.0"
+  checksum: 10/effd1a6790acb01093a497ac55f34281e3f60b75f7289375da2abb0cd764f791fb58a040a00b40a125b857e4174e985bb92d83454d0de78c52a4e711cece9f1e
+  languageName: node
+  linkType: hard
+
+"@xmtp/content-type-primitives@npm:^3.0.0, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
@@ -4725,15 +4743,6 @@ __metadata:
     vitest: "npm:^4.0.16"
   languageName: unknown
   linkType: soft
-
-"@xmtp/content-type-primitives@npm:^2.0.2":
-  version: 2.0.3
-  resolution: "@xmtp/content-type-primitives@npm:2.0.3"
-  dependencies:
-    "@xmtp/proto": "npm:3.78.0"
-  checksum: 10/effd1a6790acb01093a497ac55f34281e3f60b75f7289375da2abb0cd764f791fb58a040a00b40a125b857e4174e985bb92d83454d0de78c52a4e711cece9f1e
-  languageName: node
-  linkType: hard
 
 "@xmtp/content-type-reaction@npm:^2.0.2, @xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
   version: 0.0.0-use.local
@@ -4878,6 +4887,13 @@ __metadata:
   version: 1.6.8
   resolution: "@xmtp/node-bindings@npm:1.6.8"
   checksum: 10/5391dc987e63cc0fac5b114f743c955689822fef0df44ed038f54aa19e673624cfb7a72dcf9abd2e7afaca9710bf37d5793698956912fe5cb678c50b211b6ca2
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-bindings@npm:1.8.0":
+  version: 1.8.0
+  resolution: "@xmtp/node-bindings@npm:1.8.0"
+  checksum: 10/bd9678d21f5e2ab12350ad12f500d2e7d9b4b7c479e38d4ddc45c5691d226460b2aa024c1eed21934d63ea600103dd0e267d04a4b25972b6c7cb68bc2045a892
   languageName: node
   linkType: hard
 

@@ -1,5 +1,11 @@
 # @xmtp/content-type-primitives
 
+## 3.0.1
+
+### Patch Changes
+
+- Upgraded `@xmtp/node-bindings` dependency to `1.9.1`
+
 ## 3.0.0
 
 This release introduces breaking changes and new features to replace previous functionality. If you've been building on a previous release, this one will require an update to your existing code.
