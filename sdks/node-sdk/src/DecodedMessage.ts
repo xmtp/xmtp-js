@@ -59,6 +59,9 @@ const getContentFromDecodedMessageContent = <T = unknown>(
     case DecodedMessageContentType.Intent: {
       return content.intent as T;
     }
+    case DecodedMessageContentType.DeletedMessage: {
+      return content.deletedMessage as T;
+    }
     case DecodedMessageContentType.Custom: {
       return content.custom as T;
     }

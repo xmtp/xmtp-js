@@ -176,9 +176,9 @@ export class WorkerConversations {
     );
   }
 
-  streamMessageDeletions(callback: StreamCallback<string>) {
-    const on_message_deleted = (messageId: string) => {
-      callback(null, messageId);
+  streamDeletedMessages(callback: StreamCallback<DecodedMessage>) {
+    const on_message_deleted = (message: DecodedMessage) => {
+      callback(null, message);
     };
     const on_error = (error: Error | null) => {
       callback(error, undefined);

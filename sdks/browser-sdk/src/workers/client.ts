@@ -2,6 +2,7 @@ import init, {
   LogLevel,
   type Consent,
   type Conversation,
+  type DecodedMessage,
   type Message,
   type SignatureRequestHandle,
   type StreamCloser,
@@ -575,28 +576,27 @@ self.onmessage = async (
         postMessage({ id, action, result: undefined });
         break;
       }
-      case "conversations.streamMessageDeletions": {
+      case "conversations.streamDeletedMessages": {
         const streamCallback = (
           error: Error | null,
-          value: string | undefined,
+          value: DecodedMessage | undefined,
         ) => {
           if (error) {
-            streamClosers.delete(data.streamId);
             postStreamMessageError({
-              action: "stream.messageDeleted",
+              action: "stream.deletedMessage",
               streamId: data.streamId,
               error,
             });
           } else {
             postStreamMessage({
-              action: "stream.messageDeleted",
+              action: "stream.deletedMessage",
               streamId: data.streamId,
               result: value,
             });
           }
         };
         const streamCloser =
-          client.conversations.streamMessageDeletions(streamCallback);
+          client.conversations.streamDeletedMessages(streamCallback);
         streamClosers.set(data.streamId, streamCloser);
         postMessage({ id, action, result: undefined });
         break;

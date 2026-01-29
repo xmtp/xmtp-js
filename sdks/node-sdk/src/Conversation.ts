@@ -139,9 +139,7 @@ export class Conversation<ContentTypes = unknown> {
    * @param options - Optional stream options
    * @returns Stream instance for new messages
    */
-  async stream(
-    options?: StreamOptions<Message, DecodedMessage<ContentTypes> | Message>,
-  ) {
+  async stream(options?: StreamOptions<Message, DecodedMessage<ContentTypes>>) {
     const stream = async (
       callback: StreamCallback<Message>,
       onFail: () => void,
@@ -155,7 +153,10 @@ export class Conversation<ContentTypes = unknown> {
       const enrichedMessage = this.#client.conversations.getMessageById(
         value.id,
       );
-      return enrichedMessage ?? value;
+      if (enrichedMessage === undefined) {
+        console.warn(`Streamed message with ID "${value.id}" not found`);
+      }
+      return enrichedMessage;
     };
 
     return createStream(stream, convertMessage, options);

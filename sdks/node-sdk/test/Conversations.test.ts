@@ -168,9 +168,6 @@ describe("Conversations", () => {
     }, 2000);
 
     for await (const convo of stream) {
-      if (convo === undefined) {
-        break;
-      }
       expect(convo).toBeDefined();
       receivedIds.push(convo.id);
     }

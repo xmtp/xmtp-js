@@ -420,9 +420,10 @@ export class Conversations<ContentTypes = unknown> {
             value,
           ) as T;
         default:
-          throw new Error(
+          console.warn(
             `Unknown conversation type: ${value.metadata.conversationType}`,
           );
+          return undefined;
       }
     };
 
@@ -548,14 +549,16 @@ export class Conversations<ContentTypes = unknown> {
   }
 
   /**
-   * Creates a stream for message deletions
+   * Creates a stream for message deletions that streams the message IDs of
+   * deleted messages
    *
    * @param options - Optional stream options
    * @returns Stream instance for message deletions
+   * @deprecated Use streamDeletedMessages instead
    */
   async streamMessageDeletions(
     options?: Omit<
-      StreamOptions<string>,
+      StreamOptions<XmtpDecodedMessage, string>,
       | "disableSync"
       | "onFail"
       | "onRetry"
@@ -565,19 +568,56 @@ export class Conversations<ContentTypes = unknown> {
       | "retryOnFail"
     >,
   ) {
-    const stream = async (callback: StreamCallback<string>) => {
+    const stream = async (callback: StreamCallback<XmtpDecodedMessage>) => {
       const streamId = uuid();
       // start the stream
-      await this.#worker.action("conversations.streamMessageDeletions", {
+      await this.#worker.action("conversations.streamDeletedMessages", {
         streamId,
       });
       // handle stream messages
-      return this.#worker.handleStreamMessage<string>(
+      return this.#worker.handleStreamMessage<XmtpDecodedMessage, string>(
         streamId,
         callback,
         options,
       );
     };
-    return createStream(stream, undefined, options);
+    const convertMessage = (value: XmtpDecodedMessage) => value.id;
+    return createStream(stream, convertMessage, options);
+  }
+
+  /**
+   * Creates a stream for deleted messages that streams the deleted messages
+   *
+   * @param options - Optional stream options
+   * @returns Stream instance for deleted messages
+   */
+  async streamDeletedMessages(
+    options?: Omit<
+      StreamOptions<XmtpDecodedMessage, DecodedMessage<ContentTypes>>,
+      | "disableSync"
+      | "onFail"
+      | "onRetry"
+      | "onRestart"
+      | "retryAttempts"
+      | "retryDelay"
+      | "retryOnFail"
+    >,
+  ) {
+    const stream = async (callback: StreamCallback<XmtpDecodedMessage>) => {
+      const streamId = uuid();
+      // start the stream
+      await this.#worker.action("conversations.streamDeletedMessages", {
+        streamId,
+      });
+      // handle stream messages
+      return this.#worker.handleStreamMessage<
+        XmtpDecodedMessage,
+        DecodedMessage<ContentTypes>
+      >(streamId, callback, options);
+    };
+    const convertMessage = (value: XmtpDecodedMessage) => {
+      return new DecodedMessage<ContentTypes>(this.#codecRegistry, value);
+    };
+    return createStream(stream, convertMessage, options);
   }
 }
