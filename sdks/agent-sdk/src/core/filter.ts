@@ -5,6 +5,16 @@ import {
 import {
   Dm,
   Group,
+  isGroupUpdated,
+  isMarkdown,
+  isReaction,
+  isReadReceipt,
+  isRemoteAttachment,
+  isReply,
+  isText,
+  isTextReply,
+  isTransactionReference,
+  isWalletSendCalls,
   type Client,
   type Conversation,
   type DecodedMessage,
@@ -71,6 +81,26 @@ export const filter = {
   isGroupAdmin,
   isGroupSuperAdmin,
   usesCodec,
+  /** @deprecated use direct import of isGroupUpdated instead */
+  isGroupUpdate: isGroupUpdated,
+  /** @deprecated use direct import of isMarkdown instead */
+  isMarkdown,
+  /** @deprecated use direct import of isReaction instead */
+  isReaction,
+  /** @deprecated use direct import of isReadReceipt instead */
+  isReadReceipt,
+  /** @deprecated use direct import of isRemoteAttachment instead */
+  isRemoteAttachment,
+  /** @deprecated use direct import of isReply instead */
+  isReply,
+  /** @deprecated use direct import of isText instead */
+  isText,
+  /** @deprecated use direct import of isTextReply instead */
+  isTextReply,
+  /** @deprecated use direct import of isTransactionReference instead */
+  isTransactionReference,
+  /** @deprecated use direct import of isWalletSendCalls instead */
+  isWalletSendCalls,
 };
 
 export const f = filter;
