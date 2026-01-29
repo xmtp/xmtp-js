@@ -1,5 +1,135 @@
 # @xmtp/agent-sdk
 
+## 2.0.0
+
+This release includes major improvements and breaking changes to align with Node SDK 5.x. The SDK is now simpler to use with unified exports and cleaner APIs.
+
+### Breaking Changes
+
+The Agent SDK now depends on `@xmtp/node-sdk` v5.2.0, which includes significant API changes.
+
+#### Removed `sendText` and `sendMarkdown` from `ConversationContext`
+
+Use `conversation.sendText()` and `conversation.sendMarkdown()` directly instead:
+
+```ts
+// Before
+await ctx.sendText("Hello");
+await ctx.sendMarkdown("**Hello**");
+
+// After
+await ctx.conversation.sendText("Hello");
+await ctx.conversation.sendMarkdown("**Hello**");
+```
+
+#### Built-in content types
+
+The Node SDK now includes built-in support for all standard content types. These content types can be sent using dedicated methods on `conversation`:
+
+```ts
+await ctx.conversation.sendText("Hello!");
+await ctx.conversation.sendMarkdown("**Bold** and _italic_");
+await ctx.conversation.sendReaction(reaction);
+await ctx.conversation.sendReply(reply);
+await ctx.conversation.sendReadReceipt();
+await ctx.conversation.sendAttachment(attachment);
+await ctx.conversation.sendRemoteAttachment(remoteAttachment);
+await ctx.conversation.sendMultiRemoteAttachment(attachments);
+await ctx.conversation.sendTransactionReference(txRef);
+await ctx.conversation.sendWalletSendCalls(walletCalls);
+```
+
+#### Content type filters moved to Node SDK
+
+The following filters have been removed from `filter.*` and are now exported directly from the SDK:
+
+- `isGroupUpdated` (renamed from `isGroupUpdate`)
+- `isMarkdown`
+- `isReaction`
+- `isReadReceipt`
+- `isRemoteAttachment`
+- `isReply`
+- `isText`
+- `isTextReply`
+- `isTransactionReference`
+- `isWalletSendCalls`
+
+```ts
+// Before
+import { filter } from "@xmtp/agent-sdk";
+if (filter.isText(message)) { ... }
+
+// After
+import { isText } from "@xmtp/agent-sdk";
+if (isText(message)) { ... }
+```
+
+#### `downloadRemoteAttachment` API simplified
+
+The function no longer requires an agent parameter:
+
+```ts
+// Before
+const attachment = await downloadRemoteAttachment(remoteAttachment, agent);
+
+// After
+const attachment = await downloadRemoteAttachment(remoteAttachment);
+```
+
+#### Attachment `data` property renamed to `content`
+
+The `Attachment` type now uses `content` instead of `data` for the payload.
+
+#### `consentState` is now a method
+
+```ts
+// Before
+const state = conversation.consentState;
+
+// After
+const state = conversation.consentState();
+```
+
+#### Debug environment variable changes
+
+`XMTP_FORCE_DEBUG` has been removed. Use `XMTP_FORCE_DEBUG_LEVEL` to enable debug logging:
+
+```bash
+XMTP_FORCE_DEBUG_LEVEL=Debug
+```
+
+### New Features
+
+#### Gateway host configuration
+
+Added support for `XMTP_GATEWAY_HOST` environment variable to configure the gateway host.
+
+#### Unified exports
+
+All utilities are now exported from the main entry point. Subpackage imports are no longer needed:
+
+```ts
+// Before
+import { Agent } from "@xmtp/agent-sdk";
+import { CommandRouter } from "@xmtp/agent-sdk/middleware";
+import { createUser, createSigner } from "@xmtp/agent-sdk/user";
+import { getTestUrl, logDetails } from "@xmtp/agent-sdk/debug";
+
+// After
+import {
+  Agent,
+  CommandRouter,
+  createUser,
+  createSigner,
+  getTestUrl,
+  logDetails,
+} from "@xmtp/agent-sdk";
+```
+
+#### Improved default app version
+
+The SDK now uses the agent SDK version as the default `appVersion` instead of `"agent-sdk/alpha"`.
+
 ## 1.2.4
 
 ### Patch Changes

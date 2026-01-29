@@ -5,6 +5,14 @@ import type {
 import {
   encodeMarkdown,
   encodeText,
+  isMarkdown,
+  isReaction,
+  isReadReceipt,
+  isRemoteAttachment,
+  isReply,
+  isText,
+  isTransactionReference,
+  isWalletSendCalls,
   ReactionAction,
   ReactionSchema,
   type Reaction,
@@ -47,35 +55,35 @@ export class MessageContext<
   }
 
   isMarkdown(): this is MessageContext<string> {
-    return filter.isMarkdown(this.#message);
+    return isMarkdown(this.#message);
   }
 
   isText(): this is MessageContext<string> {
-    return filter.isText(this.#message);
+    return isText(this.#message);
   }
 
   isReply(): this is MessageContext<Reply> {
-    return filter.isReply(this.#message);
+    return isReply(this.#message);
   }
 
   isReaction(): this is MessageContext<Reaction> {
-    return filter.isReaction(this.#message);
+    return isReaction(this.#message);
   }
 
   isReadReceipt(): this is MessageContext<ReadReceipt> {
-    return filter.isReadReceipt(this.#message);
+    return isReadReceipt(this.#message);
   }
 
   isRemoteAttachment(): this is MessageContext<RemoteAttachment> {
-    return filter.isRemoteAttachment(this.#message);
+    return isRemoteAttachment(this.#message);
   }
 
   isTransactionReference(): this is MessageContext<TransactionReference> {
-    return filter.isTransactionReference(this.#message);
+    return isTransactionReference(this.#message);
   }
 
   isWalletSendCalls(): this is MessageContext<WalletSendCalls> {
-    return filter.isWalletSendCalls(this.#message);
+    return isWalletSendCalls(this.#message);
   }
 
   async sendReaction(
