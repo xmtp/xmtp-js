@@ -29,7 +29,8 @@ export function registerInitCommand(yargs: Argv) {
         })
         .option("private-key", {
           type: "string",
-          description: "Use an existing private key (hex format with 0x prefix)",
+          description:
+            "Use an existing private key (hex format with 0x prefix)",
           conflicts: "ephemeral",
         })
         .option("gateway", {
