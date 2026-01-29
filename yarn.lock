@@ -5572,6 +5572,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/node-bindings@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@xmtp/node-bindings@npm:1.9.1"
+  checksum: 10/2393a08c5a8d0bc6a3c18ff7d83010cc0d26fc4a9b3774541f209764e0f0e7201a33c9c5abbca495beaf63e2fd00852c0c05fa150025e524f072957daf06a9b0
+  languageName: node
+  linkType: hard
+
 "@xmtp/node-sdk@npm:4.6.0":
   version: 4.6.0
   resolution: "@xmtp/node-sdk@npm:4.6.0"
