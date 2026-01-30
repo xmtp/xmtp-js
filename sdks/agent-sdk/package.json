@@ -13,7 +13,7 @@
     "web3",
     "xmtp"
   ],
-  "homepage": "https://github.com/xmtp/xmtp-js",
+  "homepage": "https://docs.xmtp.org/agents/get-started/build-an-agent",
   "bugs": {
     "url": "https://github.com/xmtp/xmtp-js/issues"
   },
