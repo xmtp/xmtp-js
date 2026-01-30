@@ -104,6 +104,7 @@ export async function runInitCommand(options: InitOptions): Promise<void> {
       process.stdin.once("data", onData);
       process.stdin.once("end", onEnd);
     });
+    process.stdin.pause();
 
     if (confirmation !== "y" && confirmation !== "yes") {
       console.log("Operation cancelled.");
