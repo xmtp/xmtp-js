@@ -190,9 +190,16 @@ export async function runRevokeCommand(
       process.stdout.write("\nDo you want to proceed? (y/N): ");
 
       const confirmation = await new Promise<string>((resolve) => {
-        process.stdin.once("data", (data) => {
+        const onData = (data: Buffer) => {
+          process.stdin.off("end", onEnd);
           resolve(data.toString().trim().toLowerCase());
-        });
+        };
+        const onEnd = () => {
+          process.stdin.off("data", onData);
+          resolve("");
+        };
+        process.stdin.once("data", onData);
+        process.stdin.once("end", onEnd);
       });
 
       if (confirmation !== "y" && confirmation !== "yes") {
