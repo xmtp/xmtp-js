@@ -73,7 +73,7 @@
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/node": "^24.10.9",
     "@vitest/coverage-v8": "^4.0.18",
-    "rollup": "^4.55.1",
+    "rollup": "^4.56.0",
     "rollup-plugin-dts": "^6.3.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "tsx": "^4.21.0",

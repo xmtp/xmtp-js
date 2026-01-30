@@ -55,7 +55,7 @@
     "@types/node": "^24.10.9",
     "@types/yargs": "^17.0.33",
     "rimraf": "^6.1.2",
-    "rollup": "^4.54.0",
+    "rollup": "^4.56.0",
     "rollup-plugin-dts": "^6.3.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "tsx": "^4.21.0",
