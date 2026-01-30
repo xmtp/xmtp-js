@@ -106,11 +106,14 @@ export async function runRevokeCommand(
   });
 
   const env = options.env || process.env.XMTP_ENV || envVars.XMTP_ENV;
-  if (!env) {
+  const gatewayHost =
+    process.env.XMTP_GATEWAY_HOST || envVars.XMTP_GATEWAY_HOST;
+
+  if (!env && !gatewayHost) {
     console.error(
-      "[ERROR] XMTP_ENV not found in environment variables or .env file and --env not provided.",
+      "[ERROR] XMTP_ENV or XMTP_GATEWAY_HOST not found in environment variables or .env file and --env not provided.",
     );
-    console.error("Please run 'xmtp keys' first or provide --env flag.");
+    console.error("Please run 'xmtp init' first or provide --env flag.");
     process.exit(1);
   }
 
@@ -131,7 +134,11 @@ export async function runRevokeCommand(
 
   console.log(`Revoking installations for ${exampleName}...`);
   console.log(`Inbox ID: ${inboxId}`);
-  console.log(`Environment: ${env}`);
+  if (gatewayHost) {
+    console.log(`Gateway: ${gatewayHost}`);
+  } else {
+    console.log(`Environment: ${env}`);
+  }
   if (installationsToKeep.length > 0) {
     console.log(`Installations to keep: ${installationsToKeep.join(", ")}`);
   } else {
@@ -143,9 +150,10 @@ export async function runRevokeCommand(
       createUser((walletKey || envVars.XMTP_WALLET_KEY) as `0x${string}`),
     );
 
-    const inboxState = await Client.inboxStateFromInboxIds(
+    const inboxState = await Client.fetchInboxStates(
       [inboxId],
-      env as unknown as XmtpEnv,
+      env as XmtpEnv,
+      gatewayHost,
     );
 
     const currentInstallations = inboxState[0].installations;
@@ -193,10 +201,19 @@ export async function runRevokeCommand(
       process.stdout.write("\nDo you want to proceed? (y/N): ");
 
       const confirmation = await new Promise<string>((resolve) => {
-        process.stdin.once("data", (data) => {
+        const onData = (data: Buffer) => {
+          process.stdin.off("end", onEnd);
           resolve(data.toString().trim().toLowerCase());
-        });
+        };
+        const onEnd = () => {
+          process.stdin.off("data", onData);
+          resolve("");
+        };
+        process.stdin.once("data", onData);
+        process.stdin.once("end", onEnd);
       });
+      process.stdin.pause();
+      process.stdin.unref();
 
       if (confirmation !== "y" && confirmation !== "yes") {
         console.log("Operation cancelled.");
@@ -244,14 +261,16 @@ export async function runRevokeCommand(
       signer,
       inboxId,
       installationsToRevokeBytes,
-      env as unknown as XmtpEnv,
+      env as XmtpEnv,
+      gatewayHost,
     );
 
     console.log(`✓ Revoked ${installationsToRevoke.length} installations`);
 
-    const finalInboxState = await Client.inboxStateFromInboxIds(
+    const finalInboxState = await Client.fetchInboxStates(
       [inboxId],
-      env as unknown as XmtpEnv,
+      env as XmtpEnv,
+      gatewayHost,
     );
     console.log(
       `✓ Final installations: ${finalInboxState[0].installations.length}`,

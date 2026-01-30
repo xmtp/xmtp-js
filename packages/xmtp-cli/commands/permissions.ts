@@ -104,8 +104,8 @@ async function runListOperation(groupId: string): Promise<void> {
     const group = await getGroup(groupId);
     await group.sync();
     const members = await group.members();
-    const admins = group.admins;
-    const superAdmins = group.superAdmins;
+    const admins = group.listAdmins();
+    const superAdmins = group.listSuperAdmins();
 
     console.log(`\n[INFO] Group Information:`);
     console.log(`   ID: ${group.id}`);

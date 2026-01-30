@@ -62,6 +62,49 @@ XMTP_ENV=dev                    # or production
 XMTP_WALLET_KEY=0x1234...      # Private key for Ethereum wallet
 XMTP_DB_ENCRYPTION_KEY=0xabcd... # Database encryption key
 XMTP_DB_DIRECTORY=my/database/dir # Database directory (optional)
+XMTP_GATEWAY_HOST=https://...  # XMTP Gateway URL (optional)
+```
+
+## Init
+
+Initialize your XMTP environment configuration. Creates a `.env` file with the necessary configuration.
+
+```bash
+# Quick start - generates ephemeral wallet with dev environment (default)
+xmtp init
+
+# Explicitly generate ephemeral wallet
+xmtp init --ephemeral
+
+# Use an existing private key
+xmtp init --private-key 0x1234...
+
+# Configure with a custom gateway
+xmtp init --gateway https://my-gateway.example.com
+
+# Configure for production environment
+xmtp init --env production
+
+# Combine options
+xmtp init --private-key 0x1234... --gateway https://my-gateway.example.com --env production
+```
+
+**Options:**
+
+- `--ephemeral` - Generate a new random wallet key (default behavior, conflicts with `--private-key`)
+- `--private-key <key>` - Use an existing private key in hex format with 0x prefix (conflicts with `--ephemeral`)
+- `--gateway <url>` - XMTP Gateway URL (sets `XMTP_GATEWAY_HOST`)
+- `--env <environment>` - XMTP environment: `dev`, `production`, or `local` (sets `XMTP_ENV`, defaults to `dev` unless `--gateway` is specified)
+
+**Generated `.env` file:**
+
+```bash
+# XMTP Configuration
+XMTP_WALLET_KEY=0x...
+XMTP_DB_ENCRYPTION_KEY=...
+XMTP_GATEWAY_HOST=https://...  # if --gateway specified
+XMTP_ENV=dev                    # or production/local
+# Wallet address: 0x...
 ```
 
 ## Examples
