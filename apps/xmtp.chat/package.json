@@ -26,7 +26,7 @@
     "@xmtp/browser-sdk": "workspace:^",
     "@xmtp/content-type-primitives": "workspace:^",
     "date-fns": "^4.1.0",
-    "pinata": "^2.5.1",
+    "pinata": "^2.5.3",
     "plausible-tracker": "^0.3.9",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
@@ -37,7 +37,7 @@
     "uint8array-extras": "^1.5.0",
     "viem": "^2.38.4",
     "wagmi": "^2.18.2",
-    "zod": "^4.1.12",
+    "zod": "^4.3.6",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
