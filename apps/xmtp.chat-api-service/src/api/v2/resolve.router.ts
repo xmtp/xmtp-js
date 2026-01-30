@@ -4,7 +4,10 @@ import { fetchProfilesFromName } from "../../helpers/web3.bio.js";
 
 export const resolveNameSchema = z.string().endsWith(".eth");
 
-export async function resolveName(req: Request, res: Response) {
+export async function resolveName(
+  req: Request<{ name: string }>,
+  res: Response,
+) {
   try {
     const { name } = req.params;
     const normalizedName = name.toLowerCase();
