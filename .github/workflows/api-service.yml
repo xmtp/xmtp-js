@@ -11,6 +11,7 @@ on:
       - ".github/workflows/api-service.yml"
       - "dev/**"
       - ".node-version"
+      - ".yarnrc.yml"
       - "turbo.json"
 
 jobs:
