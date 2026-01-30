@@ -36,7 +36,7 @@
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.4",
-    "@types/node": "^24.9.1",
+    "@types/node": "^24.10.9",
     "rimraf": "^6.1.2",
     "rollup": "^4.54.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
