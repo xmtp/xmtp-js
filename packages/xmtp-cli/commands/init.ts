@@ -1,4 +1,5 @@
 import { getRandomValues } from "node:crypto";
+import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -83,6 +84,25 @@ function validatePrivateKey(key: string): `0x${string}` {
 export async function runInitCommand(options: InitOptions): Promise<void> {
   const currentDir = process.cwd();
   const filePath = join(currentDir, ".env");
+
+  // Check if .env already exists
+  if (existsSync(filePath)) {
+    console.log(`\n[WARN] A .env file already exists at: ${filePath}`);
+    console.log("Continuing will overwrite this file.\n");
+
+    process.stdout.write("Do you want to continue? (y/N): ");
+
+    const confirmation = await new Promise<string>((resolve) => {
+      process.stdin.once("data", (data) => {
+        resolve(data.toString().trim().toLowerCase());
+      });
+    });
+
+    if (confirmation !== "y" && confirmation !== "yes") {
+      console.log("Operation cancelled.");
+      process.exit(0);
+    }
+  }
 
   const lines: string[] = ["# XMTP Configuration"];
 
