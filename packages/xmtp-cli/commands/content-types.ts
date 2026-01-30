@@ -1,14 +1,10 @@
-import { Agent, type Agent as AgentType } from "@xmtp/agent-sdk";
-import { ContentTypeMarkdown } from "@xmtp/content-type-markdown";
-import { ContentTypeReaction } from "@xmtp/content-type-reaction";
+import { Agent, encodeText, type Agent as AgentType } from "@xmtp/agent-sdk";
 import {
-  ContentTypeRemoteAttachment,
+  ReactionAction,
+  ReactionSchema,
   type RemoteAttachment,
-} from "@xmtp/content-type-remote-attachment";
-import { ContentTypeReply } from "@xmtp/content-type-reply";
-import { ContentTypeText } from "@xmtp/content-type-text";
-import { ContentTypeTransactionReference } from "@xmtp/content-type-transaction-reference";
-import { ContentTypeWalletSendCalls } from "@xmtp/content-type-wallet-send-calls";
+  type WalletSendCalls,
+} from "@xmtp/node-sdk";
 import { toHex } from "viem";
 import type { Argv } from "yargs";
 
@@ -117,7 +113,7 @@ async function sendTextContent(options: {
     console.error(`[ERROR] Conversation not found`);
     process.exit(1);
   }
-  await conversation.send(
+  await conversation.sendText(
     "This is a text message that demonstrates basic XMTP messaging!",
   );
   console.log(`[OK] Sent text message`);
@@ -126,26 +122,21 @@ async function sendTextContent(options: {
   const messages = await conversation.messages();
   const lastMessage = messages[messages.length - 1];
 
-  await conversation.send(
-    {
-      content: "This is a reply to the text message!",
-      reference: lastMessage.id,
-      contentType: ContentTypeText,
-    },
-    ContentTypeReply,
-  );
+  await conversation.sendReply({
+    content: encodeText("This is a reply to the text message!"),
+    reference: lastMessage.id,
+    referenceInboxId: lastMessage.senderInboxId,
+  });
   console.log(`[OK] Sent reply`);
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-  await conversation.send(
-    {
-      reference: lastMessage.id,
-      action: "added",
-      content: "❤️",
-      schema: "unicode",
-    },
-    ContentTypeReaction,
-  );
+  await conversation.sendReaction({
+    reference: lastMessage.id,
+    referenceInboxId: lastMessage.senderInboxId,
+    action: ReactionAction.Added,
+    content: "❤️",
+    schema: ReactionSchema.Unicode,
+  });
   console.log(`[OK] Sent reaction`);
 
   console.log(`\n[COMPLETE] Text content demo complete!`);
@@ -221,7 +212,7 @@ function greet(name) {
 
 **This demonstrates the full power of markdown formatting in XMTP messages!**`;
 
-  await conversation.send(markdownContent, ContentTypeMarkdown);
+  await conversation.sendMarkdown(markdownContent);
   console.log(`[OK] Markdown message sent successfully`);
   console.log(`\n[COMPLETE] Markdown content demo complete!`);
   console.log(`   Check how it renders in your XMTP client`);
@@ -240,11 +231,11 @@ async function sendAttachmentContent(options: {
     process.exit(1);
   }
 
-  await conversation.send("I'll send you an attachment now...");
+  await conversation.sendText("I'll send you an attachment now...");
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   const attachment = parseSavedAttachment();
-  await conversation.send(attachment, ContentTypeRemoteAttachment);
+  await conversation.sendRemoteAttachment(attachment);
 
   console.log(`[OK] Remote attachment sent successfully`);
   console.log(`\n[COMPLETE] Attachment content demo complete!`);
@@ -294,14 +285,14 @@ async function sendTransactionContent(options: {
   const amountHex = amountInDecimals.toString(16).padStart(64, "0");
   const transactionData = `${methodSignature}${recipient}${amountHex}`;
 
-  const transactionObject = {
+  const transactionObject: WalletSendCalls = {
     version: "1.0",
-    from: senderAddress,
+    from: senderAddress || "",
     chainId: config.chainId,
     calls: [
       {
         to: config.tokenAddress as `0x${string}`,
-        data: transactionData,
+        data: transactionData as `0x${string}`,
         metadata: {
           description: `Transfer ${parsedAmount} USDC`,
           transactionType: "transfer",
@@ -313,13 +304,9 @@ async function sendTransactionContent(options: {
       },
     ],
   };
-  await conversation.send(transactionObject, ContentTypeWalletSendCalls);
-  await conversation.send(
-    {
-      content: `After completing the transaction, you can send a transaction reference message to confirm completion.`,
-      contentType: ContentTypeText,
-    },
-    ContentTypeTransactionReference,
+  await conversation.sendWalletSendCalls(transactionObject);
+  await conversation.sendText(
+    `After completing the transaction, you can send a transaction reference message to confirm completion.`,
   );
   console.log(`[OK] Transaction frame sent successfully`);
   console.log(`\n[COMPLETE] Transaction content demo complete!`);
@@ -339,7 +326,7 @@ async function sendDeeplinkContent(options: {
   const agentAddress = agent.client.accountIdentifier?.identifier || "";
   const deeplink = `cbwallet://messaging/${agentAddress}`;
 
-  await conversation.send(
+  await conversation.sendText(
     `Want to chat privately? Tap here to start a direct conversation:\n\n${deeplink}`,
   );
   console.log(`[OK] Deeplink message sent successfully`);
@@ -359,7 +346,7 @@ async function sendMiniAppContent(options: {
     process.exit(1);
   }
   const miniAppUrl = `https://squabble.lol/`;
-  await conversation.send(miniAppUrl);
+  await conversation.sendText(miniAppUrl);
 
   console.log(`[OK] Mini app URL sent successfully`);
   console.log(`\n[COMPLETE] Mini app content demo complete!`);

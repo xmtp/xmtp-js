@@ -5,7 +5,7 @@ import {
   type Agent as AgentType,
   type KeyPackageStatus,
 } from "@xmtp/agent-sdk";
-import { IdentifierKind } from "@xmtp/node-sdk";
+import { Client, IdentifierKind } from "@xmtp/node-sdk";
 import type { Argv } from "yargs";
 
 export interface DebugOptions {
@@ -103,7 +103,7 @@ async function resolveInboxId(
     console.error(`[ERROR] Either --address or --inbox-id is required`);
     process.exit(1);
   }
-  const resolved = await agent.client.getInboxIdByIdentifier({
+  const resolved = await agent.client.fetchInboxIdByIdentifier({
     identifier: address,
     identifierKind: 0,
   });
@@ -137,9 +137,10 @@ async function runAddressOperation(options: {
       );
     }
 
-    const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
+    const inboxState = await Client.fetchInboxStates(
       [targetInboxId],
-      true,
+      agent.client.options?.env,
+      agent.client.options?.gatewayHost,
     );
 
     if (inboxState.length === 0) {
@@ -196,9 +197,10 @@ async function runInboxOperation(options: {
       options.inboxId,
     );
 
-    const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
+    const inboxState = await Client.fetchInboxStates(
       [targetInboxId],
-      true,
+      agent.client.options?.env,
+      agent.client.options?.gatewayHost,
     );
 
     if (inboxState.length === 0) {
@@ -214,11 +216,13 @@ async function runInboxOperation(options: {
 
     if (state.identifiers.length > 0) {
       console.log(`\n[IDENTIFIERS]`);
-      state.identifiers.forEach((id, i) => {
-        console.log(
-          `   ${i + 1}. ${id.identifier} (kind: ${id.identifierKind})`,
-        );
-      });
+      state.identifiers.forEach(
+        (id: { identifier: string; identifierKind: number }, i: number) => {
+          console.log(
+            `   ${i + 1}. ${id.identifier} (kind: ${id.identifierKind})`,
+          );
+        },
+      );
     }
   } catch (error) {
     console.error(
@@ -250,9 +254,10 @@ async function runResolveOperation(options: {
         console.error(`[ERROR] Inbox ID is required`);
         process.exit(1);
       }
-      const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
+      const inboxState = await Client.fetchInboxStates(
         [options.inboxId],
-        true,
+        agent.client.options?.env,
+        agent.client.options?.gatewayHost,
       );
 
       if (inboxState.length === 0) {
@@ -348,9 +353,10 @@ async function runInstallationsOperation(options: {
       );
     }
 
-    const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
+    const inboxState = await Client.fetchInboxStates(
       [targetInboxId],
-      true,
+      agent.client.options?.env,
+      agent.client.options?.gatewayHost,
     );
 
     if (inboxState.length === 0) {
@@ -361,7 +367,7 @@ async function runInstallationsOperation(options: {
     const installations = inboxState[0].installations;
     console.log(`\n[INSTALLATIONS]`);
     console.log(`   Total: ${installations.length}`);
-    installations.forEach((inst, i) => {
+    installations.forEach((inst: { id: string }, i: number) => {
       console.log(`   ${i + 1}. ${inst.id}`);
     });
   } catch (error) {
@@ -390,9 +396,10 @@ async function runKeyPackageOperation(options: {
       options.inboxId,
     );
 
-    const inboxState = await agent.client.preferences.inboxStateFromInboxIds(
+    const inboxState = await Client.fetchInboxStates(
       [targetInboxId],
-      true,
+      agent.client.options?.env,
+      agent.client.options?.gatewayHost,
     );
 
     if (inboxState.length === 0) {
@@ -404,10 +411,7 @@ async function runKeyPackageOperation(options: {
     const installationIds = installations.map(
       (inst: { id: string }) => inst.id,
     );
-    const status =
-      await agent.client.getKeyPackageStatusesForInstallationIds(
-        installationIds,
-      );
+    const status = await agent.client.fetchKeyPackageStatuses(installationIds);
 
     console.log(`\n[KEY-PACKAGE] Key Package Status:`);
     console.log(`   Total Installations: ${Object.keys(status).length}`);
@@ -437,7 +441,7 @@ async function getDmByAddress(
     throw new Error("Invalid Ethereum address format");
   }
 
-  const dm = await agent.client.conversations.newDmWithIdentifier({
+  const dm = await agent.client.conversations.createDmWithIdentifier({
     identifier: address.toLowerCase() as `0x${string}`,
     identifierKind: IdentifierKind.Ethereum,
   });
@@ -453,7 +457,7 @@ async function getDmByInboxId(
     throw new Error("Invalid inbox ID format");
   }
 
-  const dm = await agent.client.conversations.newDm(inboxId);
+  const dm = await agent.client.conversations.createDm(inboxId);
 
   return dm.id;
 }

@@ -143,10 +143,7 @@ export async function runRevokeCommand(
       createUser((walletKey || envVars.XMTP_WALLET_KEY) as `0x${string}`),
     );
 
-    const inboxState = await Client.inboxStateFromInboxIds(
-      [inboxId],
-      env as unknown as XmtpEnv,
-    );
+    const inboxState = await Client.fetchInboxStates([inboxId], env as XmtpEnv);
 
     const currentInstallations = inboxState[0].installations;
     console.log(`✓ Current installations: ${currentInstallations.length}`);
@@ -249,9 +246,9 @@ export async function runRevokeCommand(
 
     console.log(`✓ Revoked ${installationsToRevoke.length} installations`);
 
-    const finalInboxState = await Client.inboxStateFromInboxIds(
+    const finalInboxState = await Client.fetchInboxStates(
       [inboxId],
-      env as unknown as XmtpEnv,
+      env as XmtpEnv,
     );
     console.log(
       `✓ Final installations: ${finalInboxState[0].installations.length}`,

@@ -251,7 +251,7 @@ async function runFindOperation(config: {
         console.error(`[ERROR] Address is required`);
         process.exit(1);
       }
-      const resolved = await agent.client.getInboxIdByIdentifier({
+      const resolved = await agent.client.fetchInboxIdByIdentifier({
         identifier: config.address,
         identifierKind: 0,
       });

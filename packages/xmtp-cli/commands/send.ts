@@ -1,4 +1,4 @@
-import { Agent, type DecodedMessage } from "@xmtp/agent-sdk";
+import { Agent } from "@xmtp/agent-sdk";
 import type { Argv } from "yargs";
 
 export interface SendOptions {
@@ -236,7 +236,7 @@ async function sendDirectMessage(
 
 export interface WaitForResponseOptions {
   conversation: {
-    stream: () => Promise<AsyncIterable<DecodedMessage>>;
+    stream: () => Promise<AsyncIterable<unknown>>;
     send: (content: string) => Promise<string>;
   };
   senderInboxId: string;
@@ -246,11 +246,16 @@ export interface WaitForResponseOptions {
   attempt?: number;
 }
 
+interface StreamMessage {
+  senderInboxId: string;
+  content: unknown;
+}
+
 export interface WaitForResponseResult {
   success: boolean;
   sendTime: number;
   responseTime: number;
-  responseMessage: DecodedMessage | null;
+  responseMessage: StreamMessage | null;
 }
 
 export async function waitForResponse(
@@ -281,11 +286,12 @@ export async function waitForResponse(
   // Start timing response after message is sent
   const responseStartTime = Date.now();
   let responseTime = 0;
-  let responseMessage: DecodedMessage | null = null;
+  let responseMessage: StreamMessage | null = null;
 
   try {
     const responsePromise = (async () => {
-      for await (const message of stream) {
+      for await (const msg of stream) {
+        const message = msg as StreamMessage;
         if (
           message.senderInboxId.toLowerCase() === senderInboxId.toLowerCase()
         ) {
@@ -301,7 +307,7 @@ export async function waitForResponse(
 
     const receivedMessage = await Promise.race([
       responsePromise,
-      new Promise<null>((_, reject) => {
+      new Promise<StreamMessage | null>((_, reject) => {
         setTimeout(() => {
           reject(new Error("Response timeout"));
         }, timeout);
