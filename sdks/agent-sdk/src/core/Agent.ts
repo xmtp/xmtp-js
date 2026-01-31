@@ -9,9 +9,14 @@ import {
   Dm,
   Group,
   IdentifierKind,
+  isActions,
+  isAttachment,
   isGroupUpdated,
   isHexString,
+  isIntent,
+  isLeaveRequest,
   isMarkdown,
+  isMultiRemoteAttachment,
   isReaction,
   isReadReceipt,
   isRemoteAttachment,
@@ -20,6 +25,8 @@ import {
   isTransactionReference,
   isWalletSendCalls,
   LogLevel,
+  type Actions,
+  type Attachment,
   type ClientOptions,
   type Conversation,
   type CreateDmOptions,
@@ -27,6 +34,9 @@ import {
   type EnrichedReply,
   type GroupUpdated,
   type HexString,
+  type Intent,
+  type LeaveRequest,
+  type MultiRemoteAttachment,
   type Reaction,
   type ReadReceipt,
   type RemoteAttachment,
@@ -54,13 +64,20 @@ type MessageStream<ContentTypes> = Awaited<
 >;
 
 type EventHandlerMap<ContentTypes> = {
+  actions: [ctx: MessageContext<Actions, ContentTypes>];
   attachment: [ctx: MessageContext<RemoteAttachment, ContentTypes>];
   conversation: [ctx: ConversationContext<ContentTypes>];
   "group-update": [ctx: MessageContext<GroupUpdated, ContentTypes>];
   dm: [ctx: ConversationContext<ContentTypes, Dm<ContentTypes>>];
   group: [ctx: ConversationContext<ContentTypes, Group<ContentTypes>>];
+  "inline-attachment": [ctx: MessageContext<Attachment, ContentTypes>];
+  intent: [ctx: MessageContext<Intent, ContentTypes>];
+  "leave-request": [ctx: MessageContext<LeaveRequest, ContentTypes>];
   markdown: [ctx: MessageContext<string, ContentTypes>];
   message: [ctx: MessageContext<unknown, ContentTypes>];
+  "multi-remote-attachment": [
+    ctx: MessageContext<MultiRemoteAttachment, ContentTypes>,
+  ];
   reaction: [ctx: MessageContext<Reaction, ContentTypes>];
   "read-receipt": [ctx: MessageContext<ReadReceipt, ContentTypes>];
   reply: [ctx: MessageContext<EnrichedReply, ContentTypes>];
@@ -380,8 +397,23 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           }
           try {
             switch (true) {
+              case isActions(message):
+                await this.#processMessage(message, "actions");
+                break;
+              case isAttachment(message):
+                await this.#processMessage(message, "inline-attachment");
+                break;
+              case isIntent(message):
+                await this.#processMessage(message, "intent");
+                break;
               case isGroupUpdated(message):
                 await this.#processMessage(message, "group-update");
+                break;
+              case isLeaveRequest(message):
+                await this.#processMessage(message, "leave-request");
+                break;
+              case isMultiRemoteAttachment(message):
+                await this.#processMessage(message, "multi-remote-attachment");
                 break;
               case isRemoteAttachment(message):
                 await this.#processMessage(message, "attachment");
