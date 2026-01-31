@@ -75,7 +75,7 @@ type EventHandlerMap<ContentTypes> = {
   "leave-request": [ctx: MessageContext<LeaveRequest, ContentTypes>];
   markdown: [ctx: MessageContext<string, ContentTypes>];
   message: [ctx: MessageContext<unknown, ContentTypes>];
-  "multi-remote-attachment": [
+  "multi-attachment": [
     ctx: MessageContext<MultiRemoteAttachment, ContentTypes>,
   ];
   reaction: [ctx: MessageContext<Reaction, ContentTypes>];
@@ -413,7 +413,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
                 await this.#processMessage(message, "leave-request");
                 break;
               case isMultiRemoteAttachment(message):
-                await this.#processMessage(message, "multi-remote-attachment");
+                await this.#processMessage(message, "multi-attachment");
                 break;
               case isRemoteAttachment(message):
                 await this.#processMessage(message, "attachment");
