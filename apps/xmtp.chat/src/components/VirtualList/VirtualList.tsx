@@ -1,50 +1,34 @@
-import { useEffect, type ReactNode, type RefObject } from "react";
-import {
-  useChatVirtualList,
-  type UseChatVirtualListOptions,
-} from "@/hooks/useChatVirtualList";
+import type { ReactNode } from "react";
+import { useVirtualList } from "@/hooks/useVirtualList";
 
-export type ChatVirtualListProps<T> = UseChatVirtualListOptions<T> & {
-  innerClassName?: string;
-  outerClassName?: string;
+export type VirtualListProps<T> = {
+  items: T[];
+  getItemKey: (item: T, index: number) => string | number;
   renderItem: (item: T, index: number) => ReactNode;
-  scrollToIndexRef?: RefObject<((index: number) => void) | null>;
+  estimateSize?: number;
+  overscan?: number;
+  initialScrollIndex?: number;
+  outerClassName?: string;
+  innerClassName?: string;
 };
 
-export const ChatVirtualList = <T,>({
-  estimateSize,
-  followOutput,
-  getItemKey,
-  initialScrollIndex,
-  innerClassName,
+export const VirtualList = <T,>({
   items,
-  outerClassName,
-  overscan,
+  getItemKey,
   renderItem,
-  scrollToIndexRef,
-}: ChatVirtualListProps<T>) => {
-  const { virtualizer, scrollContainerRef, scrollToIndex } = useChatVirtualList(
-    {
-      estimateSize,
-      followOutput,
-      getItemKey,
-      initialScrollIndex,
-      items,
-      overscan,
-    },
-  );
-
-  // Expose scrollToIndex via ref
-  useEffect(() => {
-    if (scrollToIndexRef) {
-      scrollToIndexRef.current = scrollToIndex;
-    }
-    return () => {
-      if (scrollToIndexRef) {
-        scrollToIndexRef.current = null;
-      }
-    };
-  }, [scrollToIndex, scrollToIndexRef]);
+  estimateSize,
+  overscan,
+  initialScrollIndex,
+  outerClassName,
+  innerClassName,
+}: VirtualListProps<T>) => {
+  const { virtualizer, scrollContainerRef } = useVirtualList({
+    items,
+    getItemKey,
+    estimateSize,
+    overscan,
+    initialScrollIndex,
+  });
 
   return (
     <div
