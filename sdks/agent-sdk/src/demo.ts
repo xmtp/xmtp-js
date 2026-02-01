@@ -24,6 +24,17 @@ router.command("/version", async (ctx) => {
   await ctx.conversation.sendText(`v${process.env.npm_package_version}`);
 });
 
+router.command("/test-actions", async (ctx) => {
+  await ctx.conversation.sendActions({
+    id: `actions-${Date.now()}`,
+    description: "Would you like to proceed?",
+    actions: [
+      { id: "action-yes", label: "Yes" },
+      { id: "action-no", label: "No" },
+    ],
+  });
+});
+
 agent.use(router.middleware());
 
 agent.on("attachment", async (ctx) => {
@@ -43,6 +54,12 @@ agent.on("reaction", (ctx) => {
 
 agent.on("reply", (ctx) => {
   console.log("Got reply:", ctx.message.content);
+});
+
+agent.on("intent", async (ctx) => {
+  const { actionId } = ctx.message.content;
+  console.log("Got intent:", ctx.message.content);
+  await ctx.conversation.sendText(`You selected action ID "${actionId}".`);
 });
 
 agent.on("text", async (ctx) => {
