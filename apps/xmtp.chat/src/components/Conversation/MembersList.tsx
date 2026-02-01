@@ -1,8 +1,8 @@
 import { ActionIcon, Badge, Group, Stack, Text, Tooltip } from "@mantine/core";
 import { Dm, PermissionLevel } from "@xmtp/browser-sdk";
-import { useMemo, type ComponentProps } from "react";
-import { Virtuoso } from "react-virtuoso";
+import { useMemo } from "react";
 import { MemberListItem } from "@/components/Conversation/MemberListItem";
+import VirtualList from "@/components/VirtualList";
 import { useConversation } from "@/hooks/useConversation";
 import {
   useMemberProfiles,
@@ -14,10 +14,6 @@ import {
   ContentLayoutHeader,
 } from "@/layouts/ContentLayout";
 import classes from "./MembersList.module.css";
-
-const List = (props: ComponentProps<"div">) => {
-  return <div className={classes.root} {...props} />;
-};
 
 export type MembersListProps = {
   conversationId: string;
@@ -131,13 +127,14 @@ export const MembersList: React.FC<MembersListProps> = ({
         withScrollArea={false}
         withScrollFade
         className={classes.content}>
-        <Virtuoso
-          components={{
-            List,
-          }}
-          style={{ flexGrow: 1 }}
-          data={membersListItems}
-          itemContent={(_, item) => {
+        <VirtualList
+          items={membersListItems}
+          getItemKey={(item, index) =>
+            isMembersListTitle(item) ? `title-${index}` : item.inboxId
+          }
+          outerClassName={classes.outer}
+          innerClassName={classes.inner}
+          renderItem={(item) => {
             if (isMembersListTitle(item)) {
               return <TitleCard title={item.title} count={item.count} />;
             }
