@@ -42,6 +42,9 @@ export const useAppLock = (onLockLost?: () => void) => {
     defaultValue: null,
     getInitialValueInEffect: false,
   });
+  // lastActive ref to avoid re-renders
+  const lastActiveRef = useRef(lastActive);
+  lastActiveRef.current = lastActive;
 
   const lockState: AppLockState = useMemo(() => {
     if (lockId === null) {
@@ -66,7 +69,7 @@ export const useAppLock = (onLockLost?: () => void) => {
       // if the lock is not stale and acquired by another session, don't acquire it
       // unless force is true
       if (
-        !isLockStale(lastActive) &&
+        !isLockStale(lastActiveRef.current) &&
         lockId !== null &&
         lockId !== lockIdRef.current &&
         !force
@@ -80,7 +83,7 @@ export const useAppLock = (onLockLost?: () => void) => {
       hadLockRef.current = true;
       return true;
     },
-    [lastActive, lockId, setLockId, setLastActive],
+    [lockId, setLockId, setLastActive],
   );
 
   const releaseLock = useCallback((): void => {
