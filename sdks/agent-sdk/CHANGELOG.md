@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 2.0.1
+
+### Patch Changes
+
+- e100655: Added native events from Node SDK
+
 ## 2.0.0
 
 This release includes major improvements and breaking changes to align with Node SDK 5.x. The SDK is now simpler to use with unified exports and cleaner APIs.
