@@ -1,15 +1,11 @@
 import type { Conversation } from "@xmtp/browser-sdk";
-import { useMemo, type ComponentProps } from "react";
+import { useMemo } from "react";
 import { useParams } from "react-router";
-import { Virtuoso } from "react-virtuoso";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import VirtualList from "@/components/VirtualList";
 import type { ContentTypes } from "@/contexts/XMTPContext";
 import { ConversationCard } from "./ConversationCard";
 import classes from "./ConversationList.module.css";
-
-const List = (props: ComponentProps<"div">) => {
-  return <div className={classes.root} {...props} />;
-};
 
 export type ConversationsListProps = {
   conversations: Conversation<ContentTypes>[];
@@ -27,14 +23,13 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
     [conversations, conversationId],
   );
   return (
-    <Virtuoso
-      components={{
-        List,
-      }}
-      initialTopMostItemIndex={Math.max(selectedConversationIndex, 0)}
-      style={{ flexGrow: 1 }}
-      data={conversations}
-      itemContent={(_, conversation) => (
+    <VirtualList
+      items={conversations}
+      getItemKey={(conversation) => conversation.id}
+      initialScrollIndex={Math.max(selectedConversationIndex, 0)}
+      outerClassName={classes.outer}
+      innerClassName={classes.inner}
+      renderItem={(conversation) => (
         <ErrorBoundary>
           <ConversationCard conversationId={conversation.id} />
         </ErrorBoundary>

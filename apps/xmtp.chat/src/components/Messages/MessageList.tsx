@@ -1,19 +1,16 @@
 import type { DecodedMessage } from "@xmtp/browser-sdk";
-import { useCallback, useMemo, useRef, type ComponentProps } from "react";
-import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
+import { useCallback, useMemo, useRef } from "react";
+import VirtualList, { type VirtualListHandle } from "@/components/VirtualList";
 import { Message } from "./Message";
 import classes from "./MessageList.module.css";
-
-const List = (props: ComponentProps<"div">) => {
-  return <div className={classes.root} {...props} />;
-};
 
 export type MessageListProps = {
   messages: DecodedMessage[];
 };
 
 export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
-  const virtuoso = useRef<VirtuosoHandle>(null);
+  const virtualListRef = useRef<VirtualListHandle | null>(null);
+
   const messageMap = useMemo(() => {
     const map = new Map<string, number>();
     messages.forEach((message, index) => {
@@ -21,27 +18,26 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
     });
     return map;
   }, [messages]);
+
   const scrollToMessage = useCallback(
     (id: string) => {
       const index = messageMap.get(id);
       if (index !== undefined) {
-        virtuoso.current?.scrollToIndex(index);
+        virtualListRef.current?.scrollToIndex(index);
       }
     },
     [messageMap],
   );
+
   return (
-    <Virtuoso
-      ref={virtuoso}
-      alignToBottom
+    <VirtualList
+      items={messages}
+      getItemKey={(message) => message.id}
+      ref={virtualListRef}
+      innerClassName={classes.inner}
+      outerClassName={classes.outer}
       followOutput="auto"
-      style={{ flexGrow: 1 }}
-      components={{
-        List,
-      }}
-      initialTopMostItemIndex={messages.length - 1}
-      data={messages}
-      itemContent={(_, message) => (
+      renderItem={(message) => (
         <Message
           key={message.id}
           message={message}
