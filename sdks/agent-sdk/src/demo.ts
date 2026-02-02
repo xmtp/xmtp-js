@@ -18,9 +18,9 @@ const agent = process.env.XMTP_WALLET_KEY
       dbPath: null,
     });
 
-const router = new CommandRouter();
+const router = new CommandRouter({ helpCommand: "/help" });
 
-router.command("/version", async (ctx) => {
+router.command("/version", "Show Agent SDK version", async (ctx) => {
   await ctx.conversation.sendText(`v${process.env.npm_package_version}`);
 });
 

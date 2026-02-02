@@ -129,4 +129,40 @@ describe("CommandRouter", () => {
       expect(router.commandList).toEqual(["/help"]);
     });
   });
+
+  describe("command descriptions", () => {
+    it("should accept a description as the second parameter", () => {
+      const router = new CommandRouter();
+      const handler = vi.fn();
+      router.command("/ping", "Check if the bot is alive", handler);
+      expect(router.commandList).toEqual(["/ping"]);
+    });
+
+    it("should work without a description (backwards compatible)", () => {
+      const router = new CommandRouter();
+      const handler = vi.fn();
+      router.command("/ping", handler);
+      expect(router.commandList).toEqual(["/ping"]);
+    });
+
+    it("should throw an error when description is provided but handler is missing", () => {
+      const router = new CommandRouter();
+      expect(() => {
+        // @ts-expect-error - Testing runtime error when handler is missing
+        router.command("/ping", "Description without handler");
+      }).toThrow("Handler is required when description is provided");
+    });
+  });
+
+  describe("helpCommand config", () => {
+    it("should auto-register a help command when helpCommand is provided", () => {
+      const router = new CommandRouter({ helpCommand: "/help" });
+      expect(router.commandList).toContain("/help");
+    });
+
+    it("should not register help command when helpCommand is not provided", () => {
+      const router = new CommandRouter();
+      expect(router.commandList).not.toContain("/help");
+    });
+  });
 });
