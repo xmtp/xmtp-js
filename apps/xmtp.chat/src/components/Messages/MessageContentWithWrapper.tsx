@@ -44,6 +44,7 @@ export const MessageContentWithWrapper: React.FC<
       <MessageContent
         content={message.content}
         contentType={message.contentType}
+        fallback={message.fallback}
         align={align}
         scrollToMessage={scrollToMessage}
       />
