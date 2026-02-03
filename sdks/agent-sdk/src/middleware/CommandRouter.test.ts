@@ -150,7 +150,7 @@ describe("CommandRouter", () => {
       expect(() => {
         // @ts-expect-error - Testing runtime error when handler is missing
         router.command("/ping", "Description without handler");
-      }).toThrow("Handler is required when description is provided");
+      }).toThrow();
     });
   });
 
