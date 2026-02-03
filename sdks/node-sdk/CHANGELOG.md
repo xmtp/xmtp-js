@@ -1,5 +1,35 @@
 # @xmtp/node-sdk
 
+## 5.3.0
+
+Added `contentType` field to enriched replies.
+
+```ts
+type EnrichedReply<T = unknown, U = unknown> = {
+  referenceId: string;
+  content: T;
+  contentType: ContentTypeId | undefined;
+  inReplyTo: DecodedMessage<U> | null;
+};
+```
+
+Use this new field to get the content type of a reply's content.
+
+```ts
+import { encodeText, contentTypeText } from "@xmtp/node-sdk";
+
+const textMessageId = await group.sendText("hi");
+const replyMessageId = await group.sendReply({
+  content: encodeText("hello"),
+  reference: textMessageId,
+});
+const reply: DecodedMessage<EnrichedReply> =
+  client.conversations.getMessageById(replyMessageId);
+
+// access reply's content type
+expect(reply.content.contentType).toEqual(contentTypeText());
+```
+
 ## 5.2.0
 
 This release introduces new features and critical bug fixes. If you've been building on a previous release, this one should be a **drop-in replacement**. Update as soon as possible to take advantage of these enhancements and fixes.
