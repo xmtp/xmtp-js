@@ -12,7 +12,7 @@ interface CommandEntry {
 
 export interface CommandRouterConfig {
   /** Command string to trigger help output (e.g., "/help") */
-  helpCommand?: string;
+  helpCommand?: `/${string}`;
 }
 
 export class CommandRouter<ContentTypes = BuiltInContentTypes> {
