@@ -249,6 +249,7 @@ describe("Content types", () => {
       const replyContent = replyMessage.content as EnrichedReply<string>;
       expect(replyContent.referenceId).toBe(textMessageId);
       expect(replyContent.content).toBe("This is a text reply");
+      expect(replyContent.contentType).toEqual(contentTypeText());
       expect(replyContent.inReplyTo).toBeDefined();
       expect(replyContent.inReplyTo?.id).toBe(textMessageId);
       expect(replyContent.inReplyTo?.content).toBe("Original message");
@@ -305,6 +306,7 @@ describe("Content types", () => {
       const replyContent = replyMessage.content as EnrichedReply<Attachment>;
       expect(replyContent.referenceId).toBe(textMessageId);
       expect(replyContent.content).toEqual(attachment);
+      expect(replyContent.contentType).toEqual(contentTypeAttachment());
       expect(replyContent.inReplyTo).toBeDefined();
       expect(replyContent.inReplyTo?.id).toBe(textMessageId);
       expect(replyContent.inReplyTo?.content).toBe("Original message");
@@ -339,6 +341,7 @@ describe("Content types", () => {
       }>;
       expect(replyContent.referenceId).toBe(textMessageId);
       expect(replyContent.content).toEqual({ test: "test" });
+      expect(replyContent.contentType).toEqual(testCodec.contentType);
       expect(replyContent.inReplyTo).toBeDefined();
       expect(replyContent.inReplyTo?.id).toBe(textMessageId);
       expect(replyContent.inReplyTo?.content).toBe("Original message");
