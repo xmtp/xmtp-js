@@ -41,7 +41,7 @@ export class CommandRouter<ContentTypes = BuiltInContentTypes> {
         }
       });
 
-      await ctx.conversation.sendMarkdown(lines.join("\n"));
+      await ctx.sendMarkdownReply(lines.join("\n"));
     };
 
     this.command(command, "Show available commands", helpHandler);
