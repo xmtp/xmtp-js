@@ -2,6 +2,7 @@ import type { ContentCodec } from "@xmtp/content-type-primitives";
 import {
   type Actions,
   type Attachment,
+  type ContentTypeId,
   type DeletedMessage,
   type GroupUpdated,
   type Intent,
@@ -132,6 +133,7 @@ export type ClientOptions = NetworkOptions &
 export type EnrichedReply<T = unknown, U = unknown> = {
   referenceId: string;
   content: T;
+  contentType: ContentTypeId | undefined;
   inReplyTo: DecodedMessage<U> | null;
 };
 

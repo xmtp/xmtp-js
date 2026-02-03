@@ -1,5 +1,19 @@
 import { contentTypeToString } from "@xmtp/content-type-primitives";
 import {
+  contentTypeActions,
+  contentTypeAttachment,
+  contentTypeGroupUpdated,
+  contentTypeIntent,
+  contentTypeLeaveRequest,
+  contentTypeMarkdown,
+  contentTypeMultiRemoteAttachment,
+  contentTypeReaction,
+  contentTypeReadReceipt,
+  contentTypeRemoteAttachment,
+  contentTypeReply,
+  contentTypeText,
+  contentTypeTransactionReference,
+  contentTypeWalletSendCalls,
   DecodedMessageContentType,
   type ContentTypeId,
   type DecodedMessageContent,
@@ -68,6 +82,64 @@ const getContentFromDecodedMessageContent = <T = unknown>(
     default:
       content.type satisfies never;
       return null as T;
+  }
+};
+
+const getContentTypeFromDecodedMessageContent = (
+  content: DecodedMessageContent,
+): ContentTypeId | undefined => {
+  switch (content.type) {
+    case DecodedMessageContentType.Text: {
+      return contentTypeText();
+    }
+    case DecodedMessageContentType.Markdown: {
+      return contentTypeMarkdown();
+    }
+    case DecodedMessageContentType.Reply: {
+      return contentTypeReply();
+    }
+    case DecodedMessageContentType.Reaction: {
+      return contentTypeReaction();
+    }
+    case DecodedMessageContentType.Attachment: {
+      return contentTypeAttachment();
+    }
+    case DecodedMessageContentType.RemoteAttachment: {
+      return contentTypeRemoteAttachment();
+    }
+    case DecodedMessageContentType.MultiRemoteAttachment: {
+      return contentTypeMultiRemoteAttachment();
+    }
+    case DecodedMessageContentType.TransactionReference: {
+      return contentTypeTransactionReference();
+    }
+    case DecodedMessageContentType.GroupUpdated: {
+      return contentTypeGroupUpdated();
+    }
+    case DecodedMessageContentType.ReadReceipt: {
+      return contentTypeReadReceipt();
+    }
+    case DecodedMessageContentType.LeaveRequest: {
+      return contentTypeLeaveRequest();
+    }
+    case DecodedMessageContentType.WalletSendCalls: {
+      return contentTypeWalletSendCalls();
+    }
+    case DecodedMessageContentType.Actions: {
+      return contentTypeActions();
+    }
+    case DecodedMessageContentType.Intent: {
+      return contentTypeIntent();
+    }
+    case DecodedMessageContentType.DeletedMessage: {
+      return undefined;
+    }
+    case DecodedMessageContentType.Custom: {
+      return content.custom?.type;
+    }
+    default:
+      content.type satisfies never;
+      return undefined;
   }
 };
 
@@ -155,6 +227,7 @@ export class DecodedMessage<ContentTypes = unknown> {
         this.content = {
           referenceId: reply.referenceId,
           content: replyContent,
+          contentType: getContentTypeFromDecodedMessageContent(reply.content),
           inReplyTo: reply.inReplyTo
             ? new DecodedMessage<ContentTypes>(codecRegistry, reply.inReplyTo)
             : null,
