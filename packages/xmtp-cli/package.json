@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/cli",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A command-line interface for XMTP.",
   "repository": {
     "type": "git",
@@ -37,7 +37,7 @@
     "unlink": "yarn unlink"
   },
   "dependencies": {
-    "@xmtp/agent-sdk": "2.0.1",
+    "@xmtp/agent-sdk": "2.0.2",
     "@xmtp/content-type-markdown": "^1.0.0",
     "@xmtp/content-type-reaction": "^2.0.2",
     "@xmtp/content-type-read-receipt": "^2.0.2",
