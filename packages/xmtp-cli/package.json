@@ -37,7 +37,7 @@
     "unlink": "yarn unlink"
   },
   "dependencies": {
-    "@xmtp/agent-sdk": "2.0.2",
+    "@xmtp/agent-sdk": "^2.0.2",
     "@xmtp/content-type-markdown": "^1.0.0",
     "@xmtp/content-type-reaction": "^2.0.2",
     "@xmtp/content-type-read-receipt": "^2.0.2",

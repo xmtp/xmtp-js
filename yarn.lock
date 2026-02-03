@@ -4347,7 +4347,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/agent-sdk@npm:2.0.1, @xmtp/agent-sdk@workspace:sdks/agent-sdk":
+"@xmtp/agent-sdk@npm:^2.0.2, @xmtp/agent-sdk@workspace:sdks/agent-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/agent-sdk@workspace:sdks/agent-sdk"
   dependencies:
@@ -4403,7 +4403,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
     "@types/yargs": "npm:^17.0.33"
-    "@xmtp/agent-sdk": "npm:2.0.1"
+    "@xmtp/agent-sdk": "npm:^2.0.2"
     "@xmtp/content-type-markdown": "npm:^1.0.0"
     "@xmtp/content-type-reaction": "npm:^2.0.2"
     "@xmtp/content-type-read-receipt": "npm:^2.0.2"
