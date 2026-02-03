@@ -29,15 +29,19 @@ export class CommandRouter<ContentTypes = BuiltInContentTypes> {
     const helpHandler: AgentMessageHandler<SupportedType> = async (ctx) => {
       const lines: string[] = [];
 
-      for (const [cmd, entry] of this.#commandMap) {
-        if (entry.description) {
-          lines.push(`${cmd} - ${entry.description}`);
-        } else {
-          lines.push(cmd);
-        }
-      }
+      const sortedCommands = [...this.#commandMap.entries()].sort((a, b) =>
+        a[0].localeCompare(b[0]),
+      );
 
-      await ctx.sendTextReply(lines.join("\n"));
+      sortedCommands.forEach(([cmd, entry], index) => {
+        if (entry.description) {
+          lines.push(`${index + 1}. \`${cmd}\` - ${entry.description}`);
+        } else {
+          lines.push(`${index + 1}. \`${cmd}\``);
+        }
+      });
+
+      await ctx.conversation.sendMarkdown(lines.join("\n"));
     };
 
     this.command(command, "Show available commands", helpHandler);
