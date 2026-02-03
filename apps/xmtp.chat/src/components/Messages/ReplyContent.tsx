@@ -1,40 +1,34 @@
 import { Group, Stack, Text, Tooltip } from "@mantine/core";
-import type { DecodedMessage, EnrichedReply } from "@xmtp/browser-sdk";
+import type { EnrichedReply } from "@xmtp/browser-sdk";
+import type { ContentTypeId } from "@xmtp/content-type-primitives";
 import { useCallback, useEffect, useState } from "react";
 import { MessageContent } from "@/components/Messages/MessageContent";
 import type { MessageContentAlign } from "@/components/Messages/MessageContentWrapper";
-import { useConversations } from "@/hooks/useConversations";
 import classes from "./ReplyContent.module.css";
 
 export type ReplyContentProps = {
   align: MessageContentAlign;
-  message: DecodedMessage<EnrichedReply>;
+  reply: EnrichedReply;
   scrollToMessage: (id: string) => void;
 };
 
 export const ReplyContent: React.FC<ReplyContentProps> = ({
   align,
-  message,
+  reply,
   scrollToMessage,
 }) => {
-  const { getMessageById } = useConversations();
-  const [originalMessage, setOriginalMessage] = useState<
-    DecodedMessage | undefined
-  >(undefined);
-
-  const reply = message.content as EnrichedReply;
-
+  const [contentType, setContentType] = useState<ContentTypeId | undefined>(
+    undefined,
+  );
   useEffect(() => {
-    void getMessageById(reply.referenceId).then((originalMessage) => {
-      setOriginalMessage(originalMessage as DecodedMessage);
+    void reply.contentType().then((contentType) => {
+      setContentType(contentType);
     });
-  }, [reply.referenceId]);
+  }, [reply.contentType]);
 
   const handleClick = useCallback(() => {
-    if (originalMessage) {
-      scrollToMessage(originalMessage.id);
-    }
-  }, [originalMessage, scrollToMessage]);
+    scrollToMessage(reply.referenceId);
+  }, [scrollToMessage]);
 
   return (
     <Stack gap="xs" align={align === "left" ? "flex-start" : "flex-end"}>
@@ -46,11 +40,14 @@ export const ReplyContent: React.FC<ReplyContentProps> = ({
           </Text>
         </Tooltip>
       </Group>
-      <MessageContent
-        message={reply.inReplyTo as DecodedMessage}
-        align={align}
-        scrollToMessage={scrollToMessage}
-      />
+      {contentType && (
+        <MessageContent
+          content={reply.content}
+          contentType={contentType}
+          align={align}
+          scrollToMessage={scrollToMessage}
+        />
+      )}
     </Stack>
   );
 };

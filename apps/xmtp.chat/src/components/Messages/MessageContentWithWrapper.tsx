@@ -42,7 +42,8 @@ export const MessageContentWithWrapper: React.FC<
       senderInboxId={senderInboxId}
       sentAtNs={message.sentAtNs}>
       <MessageContent
-        message={message}
+        content={message.content}
+        contentType={message.contentType}
         align={align}
         scrollToMessage={scrollToMessage}
       />

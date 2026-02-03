@@ -2,15 +2,31 @@ import {
   contentTypeToString,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
-import type {
-  ContentTypeId,
-  DecodedMessageContent,
-  DeliveryStatus,
-  GroupMessageKind,
-  Reaction,
-  DecodedMessage as XmtpDecodedMessage,
+import {
+  type ContentTypeId,
+  type DecodedMessageContent,
+  type DeliveryStatus,
+  type GroupMessageKind,
+  type Reaction,
+  type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
 import type { CodecRegistry } from "@/CodecRegistry";
+import {
+  contentTypeActions,
+  contentTypeAttachment,
+  contentTypeGroupUpdated,
+  contentTypeIntent,
+  contentTypeLeaveRequest,
+  contentTypeMarkdown,
+  contentTypeMultiRemoteAttachment,
+  contentTypeReaction,
+  contentTypeReadReceipt,
+  contentTypeRemoteAttachment,
+  contentTypeReply,
+  contentTypeText,
+  contentTypeTransactionReference,
+  contentTypeWalletSendCalls,
+} from "@/utils/contentTypes";
 import { nsToDate } from "@/utils/date";
 
 const getContentFromDecodedMessageContent = <T = unknown>(
@@ -68,6 +84,64 @@ const getContentFromDecodedMessageContent = <T = unknown>(
     default:
       content satisfies never;
       return null as T;
+  }
+};
+
+const getContentTypeFromDecodedMessageContent = async (
+  content: DecodedMessageContent,
+): Promise<ContentTypeId | undefined> => {
+  switch (content.type) {
+    case "text": {
+      return contentTypeText();
+    }
+    case "markdown": {
+      return contentTypeMarkdown();
+    }
+    case "reply": {
+      return contentTypeReply();
+    }
+    case "reaction": {
+      return contentTypeReaction();
+    }
+    case "attachment": {
+      return contentTypeAttachment();
+    }
+    case "remoteAttachment": {
+      return contentTypeRemoteAttachment();
+    }
+    case "multiRemoteAttachment": {
+      return contentTypeMultiRemoteAttachment();
+    }
+    case "transactionReference": {
+      return contentTypeTransactionReference();
+    }
+    case "groupUpdated": {
+      return contentTypeGroupUpdated();
+    }
+    case "readReceipt": {
+      return contentTypeReadReceipt();
+    }
+    case "leaveRequest": {
+      return contentTypeLeaveRequest();
+    }
+    case "walletSendCalls": {
+      return contentTypeWalletSendCalls();
+    }
+    case "intent": {
+      return contentTypeIntent();
+    }
+    case "actions": {
+      return contentTypeActions();
+    }
+    case "deletedMessage": {
+      return undefined;
+    }
+    case "custom": {
+      return content.content.type;
+    }
+    default:
+      content satisfies never;
+      return undefined;
   }
 };
 
@@ -156,6 +230,8 @@ export class DecodedMessage<ContentTypes = unknown> {
         this.content = {
           referenceId: reply.referenceId,
           content: replyContent,
+          contentType: () =>
+            getContentTypeFromDecodedMessageContent(reply.content),
           inReplyTo: reply.inReplyTo
             ? new DecodedMessage<ContentTypes>(codecRegistry, reply.inReplyTo)
             : null,

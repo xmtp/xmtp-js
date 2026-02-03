@@ -56,6 +56,7 @@ describe("stringify", () => {
     const content: EnrichedReply<string> = {
       referenceId: "id",
       content: "hi",
+      contentType: () => contentTypeText(),
       inReplyTo: textDecodedMessage,
     };
     const replyDecodedMessage = createDecodedMessage(
