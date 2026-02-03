@@ -1,6 +1,7 @@
 import { Box, Button, Group } from "@mantine/core";
 import type { DecodedMessage } from "@xmtp/browser-sdk";
 import { useNavigate } from "react-router";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { useClient } from "@/contexts/XMTPContext";
 import { isActionable } from "@/helpers/messages";
@@ -43,12 +44,14 @@ export const Message: React.FC<MessageProps> = ({
             `/${environment}/conversations/${message.conversationId}/message/${message.id}`,
           )
         }>
-        <MessageContentWithWrapper
-          message={message}
-          align={align}
-          senderInboxId={message.senderInboxId}
-          scrollToMessage={scrollToMessage}
-        />
+        <ErrorBoundary>
+          <MessageContentWithWrapper
+            message={message}
+            align={align}
+            senderInboxId={message.senderInboxId}
+            scrollToMessage={scrollToMessage}
+          />
+        </ErrorBoundary>
       </Box>
       {hasActions && (
         <Group justify={align === "left" ? "flex-start" : "flex-end"} mt={4}>
