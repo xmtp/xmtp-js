@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 2.0.2
+
+### Patch Changes
+
+- a87b56b: Added help command configuration to CommandRouter middleware
+
 ## 2.0.1
 
 ### Patch Changes
