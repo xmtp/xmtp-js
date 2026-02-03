@@ -2,19 +2,19 @@ import { Box, Button, List, Space, Text, Tooltip } from "@mantine/core";
 import type { TransactionReference, WalletSendCalls } from "@xmtp/browser-sdk";
 import { useCallback } from "react";
 import { useChainId, useSendTransaction, useSwitchChain } from "wagmi";
+import { useConversationContext } from "@/contexts/ConversationContext";
 import { useClient } from "@/contexts/XMTPContext";
 import { useSettings } from "@/hooks/useSettings";
 
 export type WalletSendCallsContentProps = {
   content: WalletSendCalls;
-  conversationId: string;
 };
 
 export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
   content,
-  conversationId,
 }) => {
   const client = useClient();
+  const { conversationId } = useConversationContext();
   const { sendTransactionAsync } = useSendTransaction();
   const { switchChainAsync } = useSwitchChain();
   const wagmiChainId = useChainId();
