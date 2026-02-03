@@ -1,4 +1,7 @@
-import type { ContentCodec } from "@xmtp/content-type-primitives";
+import type {
+  ContentCodec,
+  ContentTypeId,
+} from "@xmtp/content-type-primitives";
 import type {
   Actions,
   Attachment,
@@ -113,6 +116,7 @@ export type ClientOptions = NetworkOptions &
 export type EnrichedReply<T = unknown, U = unknown> = {
   referenceId: string;
   content: T;
+  contentType: () => Promise<ContentTypeId | undefined>;
   inReplyTo: DecodedMessage<U> | null;
 };
 
