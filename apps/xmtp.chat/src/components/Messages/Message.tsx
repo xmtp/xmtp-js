@@ -44,7 +44,7 @@ export const Message: React.FC<MessageProps> = ({
             `/${environment}/conversations/${message.conversationId}/message/${message.id}`,
           )
         }>
-        <ErrorBoundary>
+        <ErrorBoundary key={message.id}>
           <MessageContentWithWrapper
             message={message}
             align={align}
