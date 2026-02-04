@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext, useParams } from "react-router";
 import { CodeWithCopy } from "@/components/CodeWithCopy";
 import type { ConversationOutletContext } from "@/components/Conversation/ConversationOutletContext";
 import { Modal } from "@/components/Modal";
+import { jsonStringify } from "@/helpers/strings";
 import { useCollapsedMediaQuery } from "@/hooks/useCollapsedMediaQuery";
 import { useMessage } from "@/stores/inbox/hooks";
 import { MessageProperties } from "./MessageProperties";
@@ -72,9 +73,7 @@ export const MessageModal: React.FC = () => {
               }}>
               <ScrollArea>
                 {message.content !== undefined ? (
-                  <CodeWithCopy
-                    code={JSON.stringify(message.content, null, 2)}
-                  />
+                  <CodeWithCopy code={jsonStringify(message.content)} />
                 ) : (
                   <Code
                     p="md"

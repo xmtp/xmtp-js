@@ -4,6 +4,7 @@ import {
   type Reaction,
   type RemoteAttachment,
 } from "@xmtp/browser-sdk";
+import { jsonStringify } from "@/helpers/strings";
 
 export const isReaction = (m: DecodedMessage): m is DecodedMessage<Reaction> =>
   m.contentType.typeId === "reaction";
@@ -39,7 +40,7 @@ export const stringify = (message: DecodedMessage): string => {
     case typeof message.fallback === "string":
       return message.fallback;
     default:
-      return JSON.stringify(message.content ?? message.fallback, null, 2);
+      return jsonStringify(message.content ?? message.fallback);
   }
 };
 
