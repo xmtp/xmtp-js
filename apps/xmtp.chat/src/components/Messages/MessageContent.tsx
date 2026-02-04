@@ -16,6 +16,7 @@ import { ReplyContent } from "@/components/Messages/ReplyContent";
 import { TextContent } from "@/components/Messages/TextContent";
 import { TransactionReferenceContent } from "@/components/Messages/TransactionReferenceContent";
 import { WalletSendCallsContent } from "@/components/Messages/WalletSendCallsContent";
+import { jsonStringify } from "@/helpers/strings";
 
 export type MessageContentProps<T> = {
   align: MessageContentAlign;
@@ -82,7 +83,7 @@ export const MessageContent = <T,>({
       block
       w="100%"
       style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
-      {JSON.stringify(content ?? fallback, null, 2)}
+      {jsonStringify(content ?? fallback)}
     </Code>
   );
 };
