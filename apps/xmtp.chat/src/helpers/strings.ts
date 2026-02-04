@@ -19,3 +19,11 @@ export const MEMBER_NO_LONGER_IN_GROUP =
 
 export const isValidEnvironment = (env: string): env is XmtpEnv =>
   ["production", "dev", "local"].includes(env);
+
+export const jsonStringify = (value: unknown): string =>
+  JSON.stringify(
+    value,
+    (_, value: unknown) =>
+      typeof value === "bigint" ? value.toString() : value,
+    2,
+  );
