@@ -8,6 +8,7 @@ import {
 import { useState } from "react";
 import { useClient, type ContentTypes } from "@/contexts/XMTPContext";
 import { dateToNs } from "@/helpers/date";
+import { isReaction } from "@/helpers/messages";
 import {
   useActions,
   useConversations as useConversationsState,
@@ -180,6 +181,16 @@ export const useConversations = () => {
 
   const streamAllMessages = async () => {
     const onValue = (message: DecodedMessage<ContentTypes>) => {
+      if (isReaction(message) && message.content?.reference) {
+        void client.conversations
+          .getMessageById(message.content.reference)
+          .then((updatedMessage) => {
+            if (updatedMessage) {
+              void addMessage(updatedMessage.conversationId, updatedMessage);
+            }
+          });
+        return;
+      }
       void addMessage(message.conversationId, message);
     };
 

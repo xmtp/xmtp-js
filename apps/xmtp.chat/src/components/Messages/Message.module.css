@@ -9,3 +9,7 @@
 .root:focus {
   border-color: var(--mantine-color-blue-outline);
 }
+
+.reaction {
+  cursor: pointer;
+}
