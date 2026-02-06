@@ -1,369 +1,168 @@
-# XMTP CLI
+# @xmtp/cli
 
-XMTP CLI is designed for testing, debugging, and generally interacting with XMTP conversations, groups, and messages. The `xmtp` command allows for managing conversations, sending messages, and debugging your XMTP setup.
+> [!CAUTION]
+> This CLI is in beta status and ready for you to use. Software in this status may change based on feedback.
 
-## Getting started
+A command-line interface for [XMTP](https://xmtp.org), the decentralized messaging protocol.
 
-- [Installation instructions →](#installation)
+## Features
 
-- [Usage without installation →](#usage-without-installation)
+- Send and receive encrypted messages
+- Manage direct messages (DMs) and group conversations
+- Manage identity across multiple wallets
+- Set consent preferences for spam control
+- Stream messages and conversations in real-time
+- JSON output for scripting and automation
 
-- [Full documentation →](https://docs.xmtp.org)
+## Requirements
+
+- Node.js >= 22
 
 ## Installation
 
 ```bash
-npm install -g @xmtp/cli
-# or
-pnpm add -g @xmtp/cli
-# or
-yarn global add @xmtp/cli
-```
-
-## Usage Without Installation
-
-You can also run the CLI without installing it globally:
-
-```bash
 # npm
-npx @xmtp/cli <command> <arguments>
+npm install -g @xmtp/cli
 
 # pnpm
-pnpx @xmtp/cli <command> <arguments>
+pnpm add -g @xmtp/cli
+```
+
+## Run Without Installing
+
+```bash
+# npx
+npx @xmtp/cli --help
+
+# pnpx
+pnpx @xmtp/cli --help
 
 # yarn
-yarn dlx @xmtp/cli <command> <arguments>
+yarn dlx @xmtp/cli --help
 ```
 
-## Features
-
-- Manage XMTP groups and direct messages
-
-- Send messages to conversations
-
-- Debug and diagnose XMTP setup
-
-- List conversations, members, and messages
-
-- Manage group permissions
-
-- Support for various content types (text, markdown, attachments, transactions, and more)
-
-- Formatted and colorized output
-
-[See all features →](https://docs.xmtp.org)
-
-## Environment Variables
-
-Set the following required variables in your `.env` file:
+## Quick Start
 
 ```bash
-XMTP_ENV=dev                    # or production
-XMTP_WALLET_KEY=0x1234...      # Private key for Ethereum wallet
-XMTP_DB_ENCRYPTION_KEY=0xabcd... # Database encryption key
-XMTP_DB_DIRECTORY=my/database/dir # Database directory (optional)
-XMTP_GATEWAY_HOST=https://...  # XMTP Gateway URL (optional)
-```
-
-## Init
-
-Initialize your XMTP environment configuration. Creates a `.env` file with the necessary configuration.
-
-```bash
-# Quick start - generates ephemeral wallet with dev environment (default)
+# 1. Generate wallet and encryption keys
 xmtp init
 
-# Explicitly generate ephemeral wallet
-xmtp init --ephemeral
+# 2. Check if a recipient can receive messages
+xmtp can-message <address>
 
-# Use an existing private key
-xmtp init --private-key 0x1234...
+# 3. Create a DM and send a message
+xmtp conversations create-dm <address>
+xmtp conversation send-text <conversation-id> "Hello!"
 
-# Configure with a custom gateway
-xmtp init --gateway https://my-gateway.example.com
+# 4. Create a group and send a message
+xmtp conversations create-group <address-1> <address-2> --name "My Group"
+xmtp conversation send-text <conversation-id> "Hello!"
+```
 
-# Configure for production environment
+## Configuration
+
+Running `xmtp init` generates a `.env` file at `~/.xmtp/.env` with:
+
+| Variable                 | Description                              |
+| ------------------------ | ---------------------------------------- |
+| `XMTP_WALLET_KEY`        | Ethereum private key (hex)               |
+| `XMTP_DB_ENCRYPTION_KEY` | 32-byte database encryption key (hex)    |
+| `XMTP_ENV`               | Network: `local`, `dev`, or `production` |
+
+The default environment is `dev`. Use `--env` to change it:
+
+```bash
 xmtp init --env production
-
-# Combine options
-xmtp init --private-key 0x1234... --gateway https://my-gateway.example.com --env production
 ```
 
-**Options:**
-
-- `--ephemeral` - Generate a new random wallet key (default behavior, conflicts with `--private-key`)
-- `--private-key <key>` - Use an existing private key in hex format with 0x prefix (conflicts with `--ephemeral`)
-- `--gateway <url>` - XMTP Gateway URL (sets `XMTP_GATEWAY_HOST`)
-- `--env <environment>` - XMTP environment: `dev`, `production`, or `local` (sets `XMTP_ENV`, defaults to `dev` unless `--gateway` is specified)
-
-**Generated `.env` file:**
+Values from the `.env` file can always be overridden with CLI flags:
 
 ```bash
-# XMTP Configuration
-XMTP_WALLET_KEY=0x...
-XMTP_DB_ENCRYPTION_KEY=...
-XMTP_GATEWAY_HOST=https://...  # if --gateway specified
-XMTP_ENV=dev                    # or production/local
-# Wallet address: 0x...
+xmtp client info --env production --wallet-key <key> --db-encryption-key <key> --db-path ./my-db
 ```
 
-## Examples
+Configuration is loaded in priority order:
 
-Send a message to an address:
+1. CLI flags (highest)
+2. `--env-file <path>`
+3. `.env` in current directory
+4. `~/.xmtp/.env` (default)
+
+## Command Topics
+
+| Topic           | Purpose                                |
+| --------------- | -------------------------------------- |
+| `client`        | Identity and installation management   |
+| `conversations` | List, create, and stream conversations |
+| `conversation`  | Interact with a single conversation    |
+| `preferences`   | Consent and preference management      |
+
+Run `xmtp --help` for all commands, or `xmtp <command> --help` for details on a specific command.
+
+## Usage Examples
+
+### Messages
 
 ```bash
-xmtp send --target 0x1234... --message "Hello!"
-# Send a message to a group
-xmtp send --group-id <group-id> --message "Welcome!"
-# Send and wait for a response
-xmtp send --target 0x1234... --wait
+# Send different message types
+xmtp conversation send-text <conversation-id> "Hello!"
+xmtp conversation send-markdown <conversation-id> "**bold** text"
+xmtp conversation send-reply <conversation-id> <message-id> "Reply"
+xmtp conversation send-reaction <conversation-id> <message-id> add "👍"
 
+# Read messages
+xmtp conversation messages <conversation-id>
+xmtp conversation messages <conversation-id> --sync --limit 10
 ```
 
-Create a group and send a message:
+### Streaming
 
 ```bash
-xmtp groups create --type group --name "Team" --member-addresses "0x123...,0x456..."
-xmtp send --group-id <group-id> --message "Welcome!"
+# Stream messages from all conversations
+xmtp conversations stream-all-messages
+
+# Stream from a single conversation
+xmtp conversation stream <conversation-id>
+
+# Stream new conversations
+xmtp conversations stream --type dm
 ```
-
-Get debug information:
-
-```bash
-xmtp debug info
-```
-
-List conversations:
-
-```bash
-xmtp list conversations
-```
-
-Use without installation:
-
-```bash
-npx @xmtp/cli send --target 0x1234... --message "Hello!"
-```
-
-[See more examples →](#commands)
-
-## Commands
 
 ### Groups
 
-Manage XMTP groups and DMs.
-
 ```bash
-# Create a DM
-xmtp groups create --target 0x123...
+# Create with metadata and permissions
+xmtp conversations create-group <address> \
+  --name "Project Team" \
+  --description "Team discussion" \
+  --permissions admin-only
 
-# Create a group with member addresses
-xmtp groups create --type group --name "Team" --member-addresses "0x123...,0x456..."
-
-# Create a group with inbox IDs
-xmtp groups create --type group --name "Team" --member-inbox-ids "inbox1...,inbox2..."
-
-# Create a group with both addresses and inbox IDs
-xmtp groups create --type group --name "Team" --member-addresses "0x123..." --member-inbox-ids "inbox1..."
-
-# Update group metadata
-xmtp groups metadata --group-id <id> --name "New Name"
+# Manage members
+xmtp conversation members <conversation-id>
+xmtp conversation add-members <conversation-id> <inbox-id>
+xmtp conversation remove-members <conversation-id> <inbox-id>
 ```
 
-**Options:**
-
-- `--target <address>` - Target address (required for DM)
-- `--type <type>` - Conversation type: `dm` or `group` (default: `dm`)
-- `--name <name>` - Group name
-- `--member-addresses <addresses>` - Comma-separated member Ethereum addresses
-- `--member-inbox-ids <inboxIds>` - Comma-separated member inbox IDs
-- `--group-id <id>` - Group ID for metadata operations
-- `--image-url <url>` - Image URL for metadata updates
-
-## Debugging
-
-CLI can also recognize the following environment variables for debugging:
-
-| Variable                 | Purpose                                                              | Example                        |
-| ------------------------ | -------------------------------------------------------------------- | ------------------------------ |
-| `XMTP_FORCE_DEBUG`       | [Activate debugging logs](https://docs.xmtp.org/agents/debug-agents) | `XMTP_FORCE_DEBUG=true`        |
-| `XMTP_FORCE_DEBUG_LEVEL` | Specify the logging level (defaults to `"info"`)                     | `XMTP_FORCE_DEBUG_LEVEL=debug` |
-
-### Sync
-
-Sync conversations and groups.
+### Identity
 
 ```bash
-# Sync conversations
-xmtp sync
+# View client info
+xmtp client info
 
-# Sync all conversations and messages
-xmtp syncall
+# Sign and verify messages
+xmtp client sign "Hello, World!"
+xmtp client verify-signature "Hello, World!" --signature <signature>
+
+# Manage wallets
+xmtp client add-account --new-wallet-key <wallet-key> --force
+xmtp client remove-account --identifier <address> --force
 ```
 
-### Send
+### JSON Output
 
-Send messages to conversations.
+All commands support `--json` for machine-readable output:
 
 ```bash
-# Send to address
-xmtp send --target 0x1234... --message "Hello!"
-
-# Send to address with alias
-xmtp send -t 0x1234... -m "Hello!"
-
-# Send to group
-xmtp send --group-id abc123... --message "Hello group!"
-
-# Send and wait for response
-xmtp send --target 0x1234... --message "Hello!" --wait
-
-# Send and wait for response with custom timeout
-xmtp send --target 0x1234... --message "Hello!" --wait --timeout 60000
+DM_ID=$(xmtp conversations create-dm <address> --json | jq -r '.id')
+xmtp conversation send-text "$DM_ID" "Hello!"
 ```
-
-**Options:**
-
-- `--target <address>` / `-t` - Target wallet address
-- `--group-id <id>` - Group ID
-- `--message <text>` / `-m` - Message text (default: "hello world")
-- `--wait` - Wait for a response after sending the message (default: false)
-- `--timeout <ms>` - Timeout in milliseconds when waiting for response (default: 30000)
-
-### Debug
-
-Get debug and diagnostic information.
-
-```bash
-# General info
-xmtp debug info
-
-# Resolve address to inbox ID
-xmtp debug resolve --address 0x1234...
-
-# Get address information
-xmtp debug address --address 0x1234...
-
-# Get inbox information
-xmtp debug inbox --inbox-id abc...
-```
-
-**Operations:** `info` (default), `address`, `inbox`, `resolve`, `installations`, `key-package`
-
-**Options:**
-
-- `--address <address>` - Ethereum address
-- `--inbox-id <id>` - Inbox ID
-
-### Permissions
-
-Manage group permissions.
-
-```bash
-# List members and permissions
-xmtp permissions list --group-id <id>
-
-# Get detailed group info
-xmtp permissions info --group-id <id>
-
-# Update permissions
-xmtp permissions update-permissions --group-id <id> --features update-metadata --permissions admin-only
-```
-
-**Operations:** `list` (default), `info`, `update-permissions`
-
-**Options:**
-
-- `--group-id <id>` - Group ID (required)
-- `--features <features>` - Comma-separated features to update
-- `--permissions <type>` - Permission type: `everyone`, `disabled`, `admin-only`, `super-admin-only`
-
-### List
-
-List conversations, members, and messages.
-
-```bash
-# List conversations
-xmtp list conversations
-
-# List members
-xmtp list members --conversation-id <id>
-
-# List messages
-xmtp list messages --conversation-id <id>
-
-# Find conversation
-xmtp list find --address 0x1234...
-```
-
-**Operations:** `conversations` (default), `members`, `messages`, `find`
-
-**Options:**
-
-- `--conversation-id <id>` - Conversation ID
-- `--limit <count>` - Maximum results (default: 50)
-- `--offset <count>` - Pagination offset (default: 0)
-- `--address <address>` - Ethereum address for find
-- `--inbox-id <id>` - Inbox ID for find
-
-### Content
-
-Demonstrate various XMTP content types.
-
-```bash
-# Send text with reply and reaction
-xmtp content text --target 0x1234...
-
-# Send markdown
-xmtp content markdown --target 0x1234...
-
-# Send attachment
-xmtp content attachment --target 0x1234...
-```
-
-**Operations:** `text` (default), `markdown`, `attachment`, `transaction`, `deeplink`, `miniapp`
-
-**Options:**
-
-- `--target <address>` - Target wallet address
-- `--group-id <id>` - Group ID
-- `--amount <amount>` - Amount for transactions (default: 0.1)
-
-## Getting Help
-
-```bash
-xmtp --help
-xmtp <command> --help
-```
-
-## Community & Support
-
-- Visit the [XMTP website](https://xmtp.org) for full documentation and useful links.
-
-- Join our [Community Forums](https://community.xmtp.org) to ask questions, discuss features, and for general XMTP chat.
-
-- Check out the [XMTP documentation](https://docs.xmtp.org) for detailed guides and API references.
-
-- Create [GitHub Issues](https://github.com/xmtp/xmtp-js/issues) for bug reports and feature requests.
-
-## Contributing
-
-Have a look through existing [Issues](https://github.com/xmtp/xmtp-js/issues) and [Pull Requests](https://github.com/xmtp/xmtp-js/pulls) that you could help with. If you'd like to request a feature or report a bug, please [create a GitHub Issue](https://github.com/xmtp/xmtp-js/issues) using one of the templates provided.
-
-[See contribution guide →](https://github.com/xmtp/xmtp-js/blob/main/CONTRIBUTING.md)
-
-## Development
-
-```bash
-# Build
-yarn build
-
-# Run during development
-yarn start
-```
-
----
-
-Build something delightful. Then tell us what you wish was easier.
-
-Happy hacking!
