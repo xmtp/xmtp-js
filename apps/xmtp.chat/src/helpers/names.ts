@@ -64,10 +64,11 @@ export const resolveName = async (name: string, force: boolean = false) => {
 export const getInboxIdForAddressQuery = async (
   address: string,
   environment: XmtpEnv,
+  gatewayHost?: string,
 ) => {
   return queryClient.fetchQuery({
-    queryKey: ["getInboxIdForAddress", address, environment],
-    queryFn: () => getInboxIdForAddress(address, environment),
+    queryKey: ["getInboxIdForAddress", address, environment, gatewayHost],
+    queryFn: () => getInboxIdForAddress(address, environment, gatewayHost),
     // do not re-query the address for this session
     staleTime: Infinity,
     gcTime: Infinity,
@@ -77,6 +78,7 @@ export const getInboxIdForAddressQuery = async (
 export const getInboxIdForAddress = async (
   address: string,
   environment: XmtpEnv,
+  gatewayHost?: string,
 ): Promise<string | null> => {
   if (!isValidEthereumAddress(address)) {
     return null;
@@ -88,6 +90,7 @@ export const getInboxIdForAddress = async (
       identifierKind: IdentifierKind.Ethereum,
     },
     environment,
+    gatewayHost,
   );
 
   return inboxId ?? null;
