@@ -1,73 +1,109 @@
 {
   "name": "@xmtp/cli",
-  "version": "0.0.6",
-  "description": "A command-line interface for XMTP.",
+  "version": "0.1.0",
+  "description": "A command-line interface for XMTP",
+  "keywords": [
+    "xmtp",
+    "messaging",
+    "web3",
+    "js",
+    "javascript",
+    "node",
+    "nodejs"
+  ],
+  "homepage": "https://github.com/xmtp/xmtp-js",
+  "bugs": {
+    "url": "https://github.com/xmtp/xmtp-js/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://git@github.com/xmtp/xmtp-js.git",
     "directory": "packages/xmtp-cli"
   },
+  "license": "MIT",
+  "author": "XMTP Labs <eng@xmtp.com>",
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/lib.d.ts",
-      "default": "./dist/lib.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
-  "main": "dist/lib.js",
-  "types": "dist/lib.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
-    "xmtp": "dist/index.js"
+    "xmtp": "./bin/run.js"
   },
   "files": [
-    "dist"
+    "bin",
+    "dist",
+    "oclif.manifest.json",
+    "SKILL.md"
   ],
   "scripts": {
-    "build": "yarn clean:dist && npx rollup -c && chmod +x dist/index.js",
-    "clean": "rimraf .turbo && rimraf node_modules && yarn clean:dist",
-    "clean:dist": "rimraf dist",
-    "dev": "tsx --watch index.ts",
-    "format": "cd ../.. && yarn build && yarn format packages/xmtp-cli",
-    "link": "yarn build && yarn link",
-    "lint": "cd ../.. && yarn eslint packages/xmtp-cli",
-    "start": "tsx index.ts",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "dev": "tsx bin/dev.js",
+    "prepack": "yarn build && yarn oclif manifest",
+    "start": "tsx bin/run.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
-    "unlink": "yarn unlink"
+    "typecheck": "tsc --noEmit"
+  },
+  "oclif": {
+    "bin": "xmtp",
+    "commands": "./dist/commands",
+    "dirname": "xmtp",
+    "helpClass": "./dist/help",
+    "plugins": [
+      "@oclif/plugin-autocomplete",
+      "@oclif/plugin-help",
+      "@oclif/plugin-not-found",
+      "@oclif/plugin-warn-if-update-available"
+    ],
+    "topicSeparator": " ",
+    "topics": {
+      "client": {
+        "description": "Manage your XMTP client identity and installations"
+      },
+      "conversation": {
+        "description": "Interact with a specific conversation (group or DM)"
+      },
+      "conversations": {
+        "description": "List, create, and stream conversations"
+      },
+      "debug": {
+        "description": "View API statistics and debug information"
+      },
+      "preferences": {
+        "description": "Manage consent and sync preferences"
+      }
+    },
+    "warn-if-update-available": {
+      "frequency": 1,
+      "frequencyUnit": "days",
+      "message": "<%= config.name %> update available from <%= chalk.greenBright(config.version) %> to <%= chalk.greenBright(latest) %>.",
+      "timeoutInDays": 7
+    }
   },
   "dependencies": {
-    "@xmtp/agent-sdk": "^2.0.2",
-    "@xmtp/content-type-markdown": "^1.0.0",
-    "@xmtp/content-type-reaction": "^2.0.2",
-    "@xmtp/content-type-read-receipt": "^2.0.2",
-    "@xmtp/content-type-remote-attachment": "^2.0.2",
-    "@xmtp/content-type-reply": "^2.0.2",
-    "@xmtp/content-type-text": "^2.0.2",
-    "@xmtp/content-type-transaction-reference": "^2.0.2",
-    "@xmtp/content-type-wallet-send-calls": "^2.0.0",
-    "@xmtp/node-sdk": "5.2.0",
-    "yargs": "^17.7.2"
+    "@oclif/core": "^4.8.0",
+    "@oclif/plugin-autocomplete": "^3.2.40",
+    "@oclif/plugin-help": "^6.2.37",
+    "@oclif/plugin-not-found": "^3.2.74",
+    "@oclif/plugin-warn-if-update-available": "^3.1.55",
+    "@xmtp/node-sdk": "5.3.0",
+    "viem": "^2.44.4"
   },
   "devDependencies": {
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-typescript": "^12.3.0",
+    "@oclif/plugin-legacy": "^2.0.27",
     "@types/node": "^24.10.9",
-    "@types/yargs": "^17.0.33",
-    "rimraf": "^6.1.2",
-    "rollup": "^4.56.0",
-    "rollup-plugin-dts": "^6.3.0",
-    "rollup-plugin-tsconfig-paths": "^1.5.2",
+    "execa": "^9.6.1",
+    "oclif": "^4.22.70",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=22"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true,
-    "registry": "https://registry.npmjs.org/"
   }
 }

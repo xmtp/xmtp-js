@@ -1,5 +1,9 @@
 # @xmtp/cli
 
+## 0.1.0
+
+Rebuilt CLI using oclif.
+
 ## 0.0.6
 
 ### Patch Changes
