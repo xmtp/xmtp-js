@@ -13,8 +13,9 @@ import {
   type DecodedMessage,
   type Reaction,
 } from "@xmtp/browser-sdk";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useConversationContext } from "@/contexts/ConversationContext";
+import { useClient } from "@/contexts/XMTPContext";
 import { useConversation } from "@/hooks/useConversation";
 
 const EMOJIS = ["👍", "❤️", "😂", "🔥", "😮", "🙏", "🎉", "👀"];
@@ -37,13 +38,42 @@ export type ReactionBarProps = {
 export const ReactionPopover: React.FC<ReactionBarProps> = ({ message }) => {
   const { conversationId } = useConversationContext();
   const { sendReaction } = useConversation(conversationId);
+  const client = useClient();
   const [opened, setOpened] = useState(false);
   const [schema, setSchema] = useState<Reaction["schema"]>(
     ReactionSchema.Unicode,
   );
   const [text, setText] = useState("");
 
+  const userReactions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const r of message.reactions) {
+      if (
+        r.content &&
+        r.senderInboxId === client.inboxId &&
+        r.content.schema === ReactionSchema.Unicode
+      ) {
+        const key = r.content.content;
+        const prev = counts.get(key) ?? 0;
+        counts.set(
+          key,
+          r.content.action === ReactionAction.Added ? prev + 1 : prev - 1,
+        );
+      }
+    }
+    const result = new Set<string>();
+    for (const [emoji, count] of counts) {
+      if (count > 0) {
+        result.add(emoji);
+      }
+    }
+    return result;
+  }, [message.reactions, client.inboxId]);
+
   const send = async (content: string) => {
+    if (userReactions.has(content)) {
+      return;
+    }
     const payload: Reaction = {
       action: ReactionAction.Added,
       reference: message.id,
