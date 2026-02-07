@@ -51,7 +51,6 @@ export type {
   Reaction,
   ReadReceipt,
   RemoteAttachment,
-  RemoteAttachmentInfo,
   Reply,
   SendMessageOpts,
   SignatureRequestHandle,
