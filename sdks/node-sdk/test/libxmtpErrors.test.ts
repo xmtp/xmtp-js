@@ -32,8 +32,9 @@ describe("LibXMTP errors", () => {
       expect.fail("Expected an error to be thrown");
     } catch (error) {
       assert(error instanceof Error);
-      const expectation = error.message.startsWith("synced");
-      expect(expectation).toBe(true);
+      expect(
+        error.message.startsWith("[GroupError::Sync] synced 1 messages"),
+      ).toBe(true);
     }
   });
 
@@ -50,9 +51,11 @@ describe("LibXMTP errors", () => {
       await group.addMembers([fakeInboxId]);
       expect.fail("Expected an error to be thrown");
     } catch (error) {
-      if (error instanceof Error) {
-        expect(error.message).toBe("GroupError::MissingSequenceId");
-      }
+      assert(error instanceof Error);
+      console.log(error.message);
+      expect(error.message).toBe(
+        "[GroupError::MissingSequenceId] SequenceId not found in local db",
+      );
     }
   });
 });

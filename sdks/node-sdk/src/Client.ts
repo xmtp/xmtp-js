@@ -1,7 +1,7 @@
 import { type ContentCodec } from "@xmtp/content-type-primitives";
 import {
   applySignatureRequest,
-  inboxStateFromInboxIds,
+  fetchInboxStatesByInboxIds,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
   revokeInstallationsSignatureRequest,
@@ -655,7 +655,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       throw new ClientNotInitializedError();
     }
 
-    return this.#client.getKeyPackageStatusesForInstallationIds(
+    return this.#client.fetchKeyPackageStatusesByInstallationIds(
       installationIds,
     );
   }
@@ -673,7 +673,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       throw new ClientNotInitializedError();
     }
 
-    return this.#client.findInboxIdByIdentifier(identifier);
+    return this.#client.getInboxIdByIdentity(identifier);
   }
 
   /**
@@ -732,7 +732,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     gatewayHost?: string,
   ) {
     const host = ApiUrls[env ?? "dev"];
-    return inboxStateFromInboxIds(host, gatewayHost, inboxIds);
+    return fetchInboxStatesByInboxIds(host, gatewayHost, inboxIds);
   }
 
   /**
@@ -832,6 +832,6 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       throw new ClientNotInitializedError();
     }
 
-    return this.#client.sendSyncRequest();
+    return this.#client.deviceSync().sendSyncRequest();
   }
 }

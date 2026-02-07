@@ -1,6 +1,6 @@
 import {
   generateInboxId as generateInboxIdBinding,
-  getInboxIdForIdentifier as getInboxIdForIdentifierBinding,
+  getInboxIdByIdentity as getInboxIdForIdentifierBinding,
   type Identifier,
 } from "@xmtp/node-bindings";
 import { ApiUrls } from "@/constants";
