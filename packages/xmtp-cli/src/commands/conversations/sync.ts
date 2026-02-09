@@ -1,5 +1,4 @@
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationsSync extends BaseCommand {
   static description = `Sync conversations from the network.
@@ -31,8 +30,7 @@ After syncing, use 'conversations list' to see the updated list.`;
   };
 
   async run(): Promise<void> {
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     await client.conversations.sync();
 

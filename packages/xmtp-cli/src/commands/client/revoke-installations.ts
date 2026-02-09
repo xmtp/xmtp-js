@@ -1,6 +1,6 @@
 import { Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient, toHexBytes } from "../../utils/client.js";
+import { toHexBytes } from "../../utils/client.js";
 
 export default class ClientRevokeInstallations extends BaseCommand {
   static description = `Revoke specific installations from the client's inbox.
@@ -55,8 +55,7 @@ be restored. Make sure you have access to at least one other installation.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientRevokeInstallations);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     // Support both repeated flags and comma-separated values
     const installationIdStrings = flags["installation-ids"]

@@ -1,6 +1,5 @@
 import { Args, Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ClientSign extends BaseCommand {
   static description = `Sign a message with the client's installation key.
@@ -49,8 +48,7 @@ Use cases:
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ClientSign);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const signatureBytes = client.signWithInstallationKey(args.message);
     const signature = flags.base64

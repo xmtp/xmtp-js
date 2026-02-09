@@ -1,7 +1,6 @@
 import { Args } from "@oclif/core";
 import { IdentifierKind } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationsGetDm extends BaseCommand {
   static description = `Get a DM conversation by address or inbox ID.
@@ -41,8 +40,7 @@ the local cache is searched directly.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationsGetDm);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const isAddress = args.addressOrInboxId.startsWith("0x");
 

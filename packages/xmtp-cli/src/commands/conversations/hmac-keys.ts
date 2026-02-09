@@ -1,5 +1,4 @@
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationsHmacKeys extends BaseCommand {
   static description = `Get HMAC keys for all conversations.
@@ -32,8 +31,7 @@ Each key includes the key data and associated metadata.`;
   };
 
   async run(): Promise<void> {
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const hmacKeys = client.conversations.hmacKeys();
 

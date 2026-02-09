@@ -1,7 +1,6 @@
 import { Flags } from "@oclif/core";
 import { IdentifierKind } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ClientRemoveAccount extends BaseCommand {
   static description = `Remove an account (wallet) from the client's inbox.
@@ -55,8 +54,7 @@ this client's inbox.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientRemoveAccount);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     await this.confirmAction(
       "Removing an account is irreversible. The removed wallet will lose access to all messages and conversations in this inbox.",

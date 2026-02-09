@@ -1,5 +1,4 @@
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class PreferencesSync extends BaseCommand {
   static description = `Sync preferences from the network.
@@ -32,8 +31,7 @@ Use this before reading consent states to ensure you have the latest data.`;
 
   async run(): Promise<void> {
     await this.parse(PreferencesSync);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     await client.preferences.sync();
 

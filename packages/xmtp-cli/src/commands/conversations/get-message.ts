@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationsGetMessage extends BaseCommand {
   static description = `Get a message by ID.
@@ -49,8 +48,7 @@ doesn't exist locally, you may need to sync the conversation first.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationsGetMessage);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const message = client.conversations.getMessageById(args.id);
 

@@ -1,6 +1,5 @@
 import { Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ClientKeyPackageStatus extends BaseCommand {
   static description = `Fetch key package statuses for installation IDs.
@@ -47,8 +46,7 @@ whether the key package exists and its validity state.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientKeyPackageStatus);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     // Support both repeated flags and comma-separated values
     const installationIds = flags["installation-ids"]

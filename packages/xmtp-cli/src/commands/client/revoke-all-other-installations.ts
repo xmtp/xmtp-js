@@ -1,6 +1,5 @@
 import { Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ClientRevokeAllOtherInstallations extends BaseCommand {
   static description = `Revoke all other installations from the client's inbox.
@@ -42,8 +41,7 @@ no action taken.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientRevokeAllOtherInstallations);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     await this.confirmAction(
       "This will revoke ALL other installations immediately. They will lose access to send or receive messages. Only the current installation will remain authorized.",

@@ -1,6 +1,8 @@
 import { env } from "node:process";
 import { createInterface } from "node:readline";
 import { Command, Errors, Flags } from "@oclif/core";
+import type { Client } from "@xmtp/node-sdk";
+import { createClient as createClientUtil } from "./utils/client.js";
 import {
   loadConfig,
   mergeConfig,
@@ -138,6 +140,10 @@ export class BaseCommand extends Command {
 
   getConfig(): XmtpConfig {
     return this.#config;
+  }
+
+  async createClient(): Promise<Client> {
+    return createClientUtil(this.getConfig());
   }
 
   async run(): Promise<void> {

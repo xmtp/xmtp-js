@@ -1,5 +1,5 @@
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient, getAccountAddress } from "../../utils/client.js";
+import { getAccountAddress } from "../../utils/client.js";
 import { formatSections } from "../../utils/output.js";
 
 export default class ClientInfo extends BaseCommand {
@@ -34,7 +34,7 @@ application instance using your identity.`;
 
   async run(): Promise<void> {
     const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     if (!config.walletKey) {
       this.error("Wallet key is required");

@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 import { requireGroup } from "../../utils/conversation.js";
 
 export default class ConversationRemoveSuperAdmin extends BaseCommand {
@@ -45,8 +44,7 @@ Note: A group must always have at least one super admin.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationRemoveSuperAdmin);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

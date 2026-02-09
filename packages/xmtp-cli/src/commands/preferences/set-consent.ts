@@ -1,7 +1,6 @@
 import { Flags } from "@oclif/core";
 import { ConsentEntityType, ConsentState } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class PreferencesSetConsent extends BaseCommand {
   static description = `Set consent state for an entity.
@@ -65,8 +64,7 @@ affect push notification behavior across all your installations.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(PreferencesSetConsent);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const entityTypeMap: Record<string, ConsentEntityType> = {
       inbox_id: ConsentEntityType.InboxId,

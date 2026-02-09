@@ -1,7 +1,6 @@
 import { Flags } from "@oclif/core";
 import { IdentifierKind } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ClientChangeRecoveryIdentifier extends BaseCommand {
   static description = `Change the recovery identifier for the client's inbox.
@@ -55,8 +54,7 @@ address, passkey, etc.).`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientChangeRecoveryIdentifier);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     await this.confirmAction(
       "Changing the recovery identifier is a critical security operation. If you lose access to both your installations and the new recovery identifier, you will permanently lose access to this inbox.",

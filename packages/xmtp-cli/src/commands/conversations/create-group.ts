@@ -5,7 +5,6 @@ import {
   type CreateGroupOptions,
 } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationsCreateGroup extends BaseCommand {
   static description = `Create a new group conversation.
@@ -87,8 +86,7 @@ Returns the new group's ID and details.`;
       this.error("At least one identifier is required to create a group");
     }
 
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const identifierObjects = identifiers.map((id) => ({
       identifier: id.toLowerCase(),

@@ -1,7 +1,6 @@
 import { Flags } from "@oclif/core";
 import { ConsentState, ConversationType } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationsStreamAllMessages extends BaseCommand {
   static description = `Stream all messages from all conversations.
@@ -79,8 +78,7 @@ Output includes message ID, conversation ID, sender, content, and timestamps.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ConversationsStreamAllMessages);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     let messageCount = 0;
     const maxCount = flags.count;

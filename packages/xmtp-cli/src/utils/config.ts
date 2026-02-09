@@ -47,8 +47,8 @@ export function loadConfig(envFile?: string): XmtpConfig {
   if (envFile) {
     try {
       loadEnvFile(resolve(envFile));
-    } catch {
-      // Silently ignore if file doesn't exist
+    } catch (error) {
+      throw new Error(`Failed to load env file: ${envFile}`, { cause: error });
     }
   } else {
     try {

@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class PreferencesInboxStates extends BaseCommand {
   static description = `Get cached inbox states for specified inbox IDs.
@@ -51,8 +50,7 @@ latest data if changes were made recently.`;
       this.error("At least one inbox ID is required");
     }
 
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const states = await client.preferences.getInboxStates(inboxIds);
 

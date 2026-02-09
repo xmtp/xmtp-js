@@ -1,7 +1,6 @@
 import { Flags } from "@oclif/core";
 import { ConsentEntityType, ConsentState } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class PreferencesGetConsent extends BaseCommand {
   static description = `Get consent state for an entity.
@@ -53,8 +52,7 @@ Use 'preferences sync' first to ensure you have the latest consent data.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(PreferencesGetConsent);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const entityTypeMap: Record<string, ConsentEntityType> = {
       inbox_id: ConsentEntityType.InboxId,

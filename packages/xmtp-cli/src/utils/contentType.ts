@@ -1,24 +1,5 @@
 import { ContentType } from "@xmtp/node-sdk";
 
-export const contentTypeOptions = [
-  "actions",
-  "attachment",
-  "custom",
-  "group-membership-change",
-  "group-updated",
-  "intent",
-  "leave-request",
-  "markdown",
-  "multi-remote-attachment",
-  "reaction",
-  "read-receipt",
-  "remote-attachment",
-  "reply",
-  "text",
-  "transaction-reference",
-  "wallet-send-calls",
-] as const;
-
 export const contentTypeMap: Record<string, ContentType> = {
   actions: ContentType.Actions,
   attachment: ContentType.Attachment,
@@ -37,3 +18,8 @@ export const contentTypeMap: Record<string, ContentType> = {
   "transaction-reference": ContentType.TransactionReference,
   "wallet-send-calls": ContentType.WalletSendCalls,
 };
+
+export const contentTypeOptions = Object.keys(contentTypeMap) as [
+  string,
+  ...string[],
+];

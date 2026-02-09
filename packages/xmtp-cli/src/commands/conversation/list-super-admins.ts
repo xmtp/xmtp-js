@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 import { requireGroup } from "../../utils/conversation.js";
 
 export default class ConversationListSuperAdmins extends BaseCommand {
@@ -41,8 +40,7 @@ The group creator is typically a super admin by default.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationListSuperAdmins);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

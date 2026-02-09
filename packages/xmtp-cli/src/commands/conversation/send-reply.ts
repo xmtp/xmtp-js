@@ -1,14 +1,12 @@
 import { Args, Flags } from "@oclif/core";
 import { encodeMarkdown, encodeText } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationSendReply extends BaseCommand {
   static description = `Send a text reply to a message in a conversation.
 
 Sends a reply message that references another message in the conversation.
-The reply includes a reference to the original message ID. The current
-client's inbox ID is used as the reply sender.
+The reply includes a reference to the original message ID.
 
 Use --optimistic to send the reply optimistically (queued locally
 and published via 'conversation publish-messages').`;
@@ -61,8 +59,7 @@ and published via 'conversation publish-messages').`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationSendReply);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,
@@ -72,9 +69,15 @@ and published via 'conversation publish-messages').`;
       this.error(`Conversation not found: ${args.id}`);
     }
 
+    const message = client.conversations.getMessageById(args.messageId);
+
+    if (!message) {
+      this.error(`Message not found: ${args.messageId}`);
+    }
+
     const reply = {
       reference: args.messageId,
-      referenceInboxId: client.inboxId,
+      referenceInboxId: message.senderInboxId,
       content: flags.markdown
         ? encodeMarkdown(args.text)
         : encodeText(args.text),
@@ -88,7 +91,7 @@ and published via 'conversation publish-messages').`;
       conversationId: args.id,
       reply: {
         reference: args.messageId,
-        referenceInboxId: client.inboxId,
+        referenceInboxId: message.senderInboxId,
         text: args.text,
       },
       optimistic: flags.optimistic,

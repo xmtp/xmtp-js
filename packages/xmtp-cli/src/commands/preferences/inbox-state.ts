@@ -1,6 +1,5 @@
 import { Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class PreferencesInboxState extends BaseCommand {
   static description = `Get the inbox state for this client.
@@ -39,8 +38,7 @@ Use --sync to fetch the latest state from the network.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(PreferencesInboxState);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const inboxState = flags.sync
       ? await client.preferences.fetchInboxState()

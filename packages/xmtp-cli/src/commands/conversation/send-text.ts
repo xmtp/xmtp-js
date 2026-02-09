@@ -1,6 +1,5 @@
 import { Args, Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationSendText extends BaseCommand {
   static description = `Send a text message to a conversation.
@@ -51,8 +50,7 @@ and published via 'conversation publish-messages').`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationSendText);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

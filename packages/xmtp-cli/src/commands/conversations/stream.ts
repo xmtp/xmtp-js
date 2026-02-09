@@ -1,7 +1,6 @@
 import { Flags } from "@oclif/core";
 import { ConversationType } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 import { isDm, isGroup } from "../../utils/conversation.js";
 
 export default class ConversationsStream extends BaseCommand {
@@ -59,8 +58,7 @@ The stream will continue until:
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ConversationsStream);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     let conversationCount = 0;
     const maxCount = flags.count;

@@ -1,12 +1,9 @@
 import { Args, Flags } from "@oclif/core";
-import {
-  DeliveryStatus,
-  GroupMessageKind,
-  type ListMessagesOptions,
-} from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
-import { contentTypeMap, contentTypeOptions } from "../../utils/contentType.js";
+import {
+  buildMessageFilterOptions,
+  messageFilterFlags,
+} from "../../utils/messageFilters.js";
 
 export default class ConversationCountMessages extends BaseCommand {
   static description = `Count messages in a conversation.
@@ -62,58 +59,16 @@ Use --exclude-sender to hide messages from specific inbox IDs.`;
 
   static flags = {
     ...BaseCommand.baseFlags,
+    ...messageFilterFlags,
     sync: Flags.boolean({
       description: "Sync conversation from network before counting",
       default: false,
-    }),
-    "sent-before": Flags.string({
-      description:
-        "Only count messages sent before this timestamp (nanoseconds)",
-      helpValue: "<ns>",
-    }),
-    "sent-after": Flags.string({
-      description:
-        "Only count messages sent after this timestamp (nanoseconds)",
-      helpValue: "<ns>",
-    }),
-    "inserted-before": Flags.string({
-      description:
-        "Only count messages inserted into local DB before this timestamp (nanoseconds)",
-      helpValue: "<ns>",
-    }),
-    "inserted-after": Flags.string({
-      description:
-        "Only count messages inserted into local DB after this timestamp (nanoseconds)",
-      helpValue: "<ns>",
-    }),
-    "delivery-status": Flags.option({
-      options: ["unpublished", "published", "failed"] as const,
-      description: "Filter by delivery status",
-    })(),
-    kind: Flags.option({
-      options: ["application", "membership-change"] as const,
-      description: "Filter by message kind",
-    })(),
-    "content-type": Flags.option({
-      options: contentTypeOptions,
-      description: "Filter by content type (repeatable)",
-      multiple: true,
-    })(),
-    "exclude-content-type": Flags.option({
-      options: contentTypeOptions,
-      description: "Exclude content type (repeatable)",
-      multiple: true,
-    })(),
-    "exclude-sender": Flags.string({
-      description: "Exclude messages from sender inbox ID (repeatable)",
-      multiple: true,
     }),
   };
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationCountMessages);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,
@@ -127,69 +82,10 @@ Use --exclude-sender to hide messages from specific inbox IDs.`;
       await conversation.sync();
     }
 
-    const deliveryStatusMap: Record<string, DeliveryStatus> = {
-      unpublished: DeliveryStatus.Unpublished,
-      published: DeliveryStatus.Published,
-      failed: DeliveryStatus.Failed,
-    };
-
-    const kindMap: Record<string, GroupMessageKind> = {
-      application: GroupMessageKind.Application,
-      "membership-change": GroupMessageKind.MembershipChange,
-    };
-
-    const options: Omit<ListMessagesOptions, "limit" | "direction"> = {};
-
-    const sentBeforeNs = this.parseBigInt(flags["sent-before"], "sent-before");
-    if (sentBeforeNs !== undefined) {
-      options.sentBeforeNs = sentBeforeNs;
-    }
-
-    const sentAfterNs = this.parseBigInt(flags["sent-after"], "sent-after");
-    if (sentAfterNs !== undefined) {
-      options.sentAfterNs = sentAfterNs;
-    }
-
-    const insertedBeforeNs = this.parseBigInt(
-      flags["inserted-before"],
-      "inserted-before",
+    const options = buildMessageFilterOptions(
+      flags,
+      this.parseBigInt.bind(this),
     );
-    if (insertedBeforeNs !== undefined) {
-      options.insertedBeforeNs = insertedBeforeNs;
-    }
-
-    const insertedAfterNs = this.parseBigInt(
-      flags["inserted-after"],
-      "inserted-after",
-    );
-    if (insertedAfterNs !== undefined) {
-      options.insertedAfterNs = insertedAfterNs;
-    }
-
-    if (flags["delivery-status"]) {
-      options.deliveryStatus = deliveryStatusMap[flags["delivery-status"]];
-    }
-
-    if (flags.kind) {
-      options.kind = kindMap[flags.kind];
-    }
-
-    if (flags["content-type"]?.length) {
-      options.contentTypes = flags["content-type"].map(
-        (ct) => contentTypeMap[ct],
-      );
-    }
-
-    if (flags["exclude-content-type"]?.length) {
-      options.excludeContentTypes = flags["exclude-content-type"].map(
-        (ct) => contentTypeMap[ct],
-      );
-    }
-
-    if (flags["exclude-sender"]?.length) {
-      options.excludeSenderInboxIds = flags["exclude-sender"];
-    }
-
     const count = await conversation.countMessages(options);
 
     this.output({

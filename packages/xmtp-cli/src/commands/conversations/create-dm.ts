@@ -1,7 +1,6 @@
 import { Args, Flags } from "@oclif/core";
 import { IdentifierKind } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationsCreateDm extends BaseCommand {
   static description = `Create a new DM conversation.
@@ -49,8 +48,7 @@ Returns the DM's ID and details.`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationsCreateDm);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const identifierKindMap: Record<string, IdentifierKind> = {
       ethereum: IdentifierKind.Ethereum,

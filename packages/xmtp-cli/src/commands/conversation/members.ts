@@ -1,6 +1,5 @@
 import { Args, Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationMembers extends BaseCommand {
   static description = `List members of a conversation.
@@ -48,8 +47,7 @@ Use --sync to fetch the latest member list from the network before listing.`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationMembers);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

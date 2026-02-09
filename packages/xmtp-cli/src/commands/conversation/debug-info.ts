@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationDebugInfo extends BaseCommand {
   static description = `Get debug information for a conversation.
@@ -36,8 +35,7 @@ conversation issues.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationDebugInfo);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

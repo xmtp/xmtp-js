@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 import { isDm, isGroup } from "../../utils/conversation.js";
 
 export default class ConversationsGet extends BaseCommand {
@@ -45,8 +44,7 @@ Use this to inspect the full details of a specific conversation.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationsGet);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

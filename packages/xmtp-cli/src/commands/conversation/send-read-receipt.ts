@@ -1,6 +1,5 @@
 import { Args, Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationSendReadReceipt extends BaseCommand {
   static description = `Send a read receipt for a conversation.
@@ -45,8 +44,7 @@ and published via 'conversation publish-messages').`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationSendReadReceipt);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

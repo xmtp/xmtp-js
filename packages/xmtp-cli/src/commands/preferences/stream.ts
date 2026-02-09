@@ -5,7 +5,6 @@ import {
   type UserPreferenceUpdate,
 } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class PreferencesStream extends BaseCommand {
   static description = `Stream all preference changes.
@@ -74,8 +73,7 @@ By default, preferences are synced before streaming starts. Use
 
   async run(): Promise<void> {
     const { flags } = await this.parse(PreferencesStream);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const entityTypeNames: Record<ConsentEntityType, string> = {
       [ConsentEntityType.InboxId]: "inbox_id",
@@ -123,7 +121,9 @@ By default, preferences are synced before streaming starts. Use
 
     try {
       for await (const updates of stream) {
-        if (updates.length === 0) continue;
+        if (updates.length === 0) {
+          continue;
+        }
 
         const output = updates.map(formatUpdate);
 

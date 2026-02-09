@@ -1,7 +1,6 @@
 import { Args, Flags } from "@oclif/core";
 import { ConsentState } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationUpdateConsent extends BaseCommand {
   static description = `Update the consent state of a conversation.
@@ -53,8 +52,7 @@ and may affect push notification behavior.`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationUpdateConsent);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

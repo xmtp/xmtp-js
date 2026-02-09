@@ -1,15 +1,12 @@
 import { Args, Flags } from "@oclif/core";
 import { ReactionAction, ReactionSchema } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationSendReaction extends BaseCommand {
   static description = `Send a reaction to a message in a conversation.
 
 Sends a reaction (emoji) to a specific message within a conversation.
 The action argument controls whether the reaction is added or removed.
-
-The current client's inbox ID is used as the reaction sender.
 
 Use --optimistic to send the reaction optimistically (queued locally
 and published via 'conversation publish-messages').`;
@@ -63,8 +60,7 @@ and published via 'conversation publish-messages').`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationSendReaction);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,
@@ -82,7 +78,7 @@ and published via 'conversation publish-messages').`;
 
     const reaction = {
       reference: args.messageId,
-      referenceInboxId: client.inboxId,
+      referenceInboxId: message.senderInboxId,
       content: args.content,
       action:
         args.action === "add" ? ReactionAction.Added : ReactionAction.Removed,

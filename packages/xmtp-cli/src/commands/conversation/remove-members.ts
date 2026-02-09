@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 import { requireGroup } from "../../utils/conversation.js";
 
 export default class ConversationRemoveMembers extends BaseCommand {
@@ -47,8 +46,7 @@ Requires appropriate permissions to remove members (based on group settings).`;
 
   async run(): Promise<void> {
     const { args, argv } = await this.parse(ConversationRemoveMembers);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     // Get inbox IDs from remaining arguments (after the conversation ID)
     const inboxIds = (argv as string[]).slice(1);

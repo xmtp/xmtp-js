@@ -1,6 +1,5 @@
 import { Args, Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ClientVerifySignature extends BaseCommand {
   static description = `Verify a signature created with an installation key.
@@ -56,8 +55,7 @@ The signature can be provided in either hex or base64 encoding.`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ClientVerifySignature);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const signatureBytes = flags.base64
       ? Buffer.from(flags.signature, "base64")

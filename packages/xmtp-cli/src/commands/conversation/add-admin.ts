@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 import { requireGroup } from "../../utils/conversation.js";
 
 export default class ConversationAddAdmin extends BaseCommand {
@@ -44,8 +43,7 @@ Requires appropriate permissions (typically super admin) to add admins.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationAddAdmin);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

@@ -1,6 +1,5 @@
 import { Args, Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationStream extends BaseCommand {
   static description = `Stream messages in a conversation.
@@ -65,8 +64,7 @@ This is useful for:
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationStream);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

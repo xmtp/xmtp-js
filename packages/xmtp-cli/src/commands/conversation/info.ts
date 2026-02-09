@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 import { isDm, isGroup } from "../../utils/conversation.js";
 
 export default class ConversationInfo extends BaseCommand {
@@ -45,8 +44,7 @@ This command is useful for inspecting the full details of a specific conversatio
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationInfo);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,
@@ -93,6 +91,8 @@ This command is useful for inspecting the full details of a specific conversatio
         ...base,
         peerInboxId: conversation.peerInboxId,
       });
+    } else {
+      this.output(base);
     }
   }
 }

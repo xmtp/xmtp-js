@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationSync extends BaseCommand {
   static description = `Sync a conversation from the network.
@@ -31,8 +30,7 @@ before performing operations on the conversation.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationSync);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

@@ -5,7 +5,6 @@ import {
   PermissionUpdateType,
 } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 import { requireGroup } from "../../utils/conversation.js";
 
 const PERMISSION_UPDATE_TYPES = {
@@ -154,8 +153,7 @@ Requires super admin permissions to update permission policies.`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationUpdatePermission);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

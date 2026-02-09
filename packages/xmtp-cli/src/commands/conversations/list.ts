@@ -5,7 +5,6 @@ import {
   ListConversationsOrderBy,
 } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 import { isDm, isGroup } from "../../utils/conversation.js";
 
 export default class ConversationsList extends BaseCommand {
@@ -80,8 +79,7 @@ Use --created-after / --created-before to filter by creation time.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ConversationsList);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     if (flags.sync) {
       await client.conversations.sync();

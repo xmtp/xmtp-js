@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ConversationConsentState extends BaseCommand {
   static description = `Get the consent state of a conversation.
@@ -37,8 +36,7 @@ Consent state affects message filtering and notification behavior.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationConsentState);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

@@ -3,7 +3,6 @@ import { IdentifierKind, type Signer } from "@xmtp/node-sdk";
 import { hexToBytes } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { BaseCommand } from "../../baseCommand.js";
-import { createClient } from "../../utils/client.js";
 
 export default class ClientAddAccount extends BaseCommand {
   static description = `Add a new account (wallet) to the client's inbox.
@@ -52,8 +51,7 @@ want to add. This wallet must sign a message to authorize the association.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientAddAccount);
-    const config = this.getConfig();
-    const client = await createClient(config);
+    const client = await this.createClient();
 
     await this.confirmAction(
       "Adding an account to your inbox is a sensitive operation. If the wallet is already associated with another inbox, it will lose access to that inbox.",

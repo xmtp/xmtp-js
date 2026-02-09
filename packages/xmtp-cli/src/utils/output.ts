@@ -33,7 +33,9 @@ export function formatIdentifierKind(kind: IdentifierKind): string {
 }
 
 export function formatTimestampNs(ns: bigint | string | undefined): string {
-  if (ns === undefined) return "Unknown";
+  if (ns === undefined) {
+    return "Unknown";
+  }
   const ms = Number(BigInt(ns) / BigInt(1_000_000));
   const date = new Date(ms);
   return date
@@ -80,8 +82,12 @@ export function formatHuman(data: unknown, indent = 0): string {
 }
 
 function stringifyValue(value: unknown): string {
-  if (value === null || value === undefined) return "";
-  if (typeof value === "string") return value;
+  if (value === null || value === undefined) {
+    return "";
+  }
+  if (typeof value === "string") {
+    return value;
+  }
   if (
     typeof value === "number" ||
     typeof value === "boolean" ||
@@ -93,7 +99,9 @@ function stringifyValue(value: unknown): string {
 }
 
 function formatTable(rows: Record<string, unknown>[], prefix = ""): string {
-  if (rows.length === 0) return "";
+  if (rows.length === 0) {
+    return "";
+  }
 
   const keys = Object.keys(rows[0]);
   const widths = keys.map((key) =>
@@ -124,7 +132,9 @@ function formatObject(
   const entries = Object.entries(obj).filter(
     ([, v]) => v !== undefined && v !== null && v !== "",
   );
-  if (entries.length === 0) return "";
+  if (entries.length === 0) {
+    return "";
+  }
   const maxKeyLen = keyWidth ?? Math.max(...entries.map(([k]) => k.length));
   return entries
     .map(
