@@ -7,7 +7,7 @@ import {
   VALID_ENVS,
   type XmtpConfig,
 } from "./utils/config.js";
-import { formatOutput, jsonStringify } from "./utils/output.js";
+import { formatOutput, isTTY, jsonStringify } from "./utils/output.js";
 
 export class BaseCommand extends Command {
   static baseFlags = {
@@ -112,6 +112,12 @@ export class BaseCommand extends Command {
   async confirmAction(message: string, force: boolean): Promise<void> {
     if (force) {
       return;
+    }
+
+    if (!isTTY()) {
+      this.error(
+        "Cannot confirm in non-interactive terminal. Use --force to skip confirmation.",
+      );
     }
 
     const rl = createInterface({

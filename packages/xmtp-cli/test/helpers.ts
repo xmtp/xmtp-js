@@ -14,12 +14,17 @@ export interface RunResult {
 
 export async function runCommand(
   args: string[],
-  options: { env?: Record<string, string>; timeout?: number } = {},
+  options: {
+    env?: Record<string, string>;
+    timeout?: number;
+    input?: string;
+  } = {},
 ): Promise<RunResult> {
   const result = await execa("node", [CLI_PATH, ...args], {
     env: { ...process.env, ...options.env },
     reject: false,
     timeout: options.timeout ?? 30000,
+    input: options.input,
   });
   return {
     stdout: result.stdout,
@@ -86,7 +91,7 @@ export async function runWithIdentity(
     dbPath: string;
   },
   args: string[],
-  options?: { timeout?: number },
+  options?: { timeout?: number; input?: string },
 ): Promise<RunResult> {
   return runCommand([...args, ...getBaseFlags(identity)], options);
 }
