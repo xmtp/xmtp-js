@@ -29,6 +29,10 @@ export function formatIdentifierKind(kind: IdentifierKind): string {
       return "Ethereum";
     case IdentifierKind.Passkey:
       return "Passkey";
+    default: {
+      kind satisfies never;
+      return "";
+    }
   }
 }
 
