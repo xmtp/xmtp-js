@@ -43,7 +43,7 @@ Requires appropriate permissions to update the group description.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationUpdateDescription);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

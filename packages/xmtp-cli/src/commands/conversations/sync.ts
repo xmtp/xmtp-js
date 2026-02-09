@@ -30,7 +30,7 @@ After syncing, use 'conversations list' to see the updated list.`;
   };
 
   async run(): Promise<void> {
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     await client.conversations.sync();
 

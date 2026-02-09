@@ -44,7 +44,7 @@ Use this to inspect the full details of a specific conversation.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationsGet);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

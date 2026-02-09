@@ -2,7 +2,7 @@ import { env } from "node:process";
 import { createInterface } from "node:readline";
 import { Command, Errors, Flags } from "@oclif/core";
 import type { Client } from "@xmtp/node-sdk";
-import { createClient as createClientUtil } from "./utils/client.js";
+import { createClient } from "./utils/client.js";
 import {
   loadConfig,
   mergeConfig,
@@ -54,10 +54,15 @@ export class BaseCommand extends Command {
     json: Flags.boolean({
       description: "Format output as JSON",
     }),
+    verbose: Flags.boolean({
+      description: "Show additional diagnostic information",
+      default: false,
+    }),
   };
 
   #config: XmtpConfig = {};
   jsonOutput = false;
+  verbose = false;
 
   async init(): Promise<void> {
     await super.init();
@@ -81,6 +86,7 @@ export class BaseCommand extends Command {
     });
 
     this.jsonOutput = flags.json || env.XMTP_JSON_OUTPUT === "true";
+    this.verbose = flags.verbose || env.XMTP_VERBOSE === "true";
   }
 
   output(data: unknown): void {
@@ -142,8 +148,41 @@ export class BaseCommand extends Command {
     return this.#config;
   }
 
-  async createClient(): Promise<Client> {
-    return createClientUtil(this.getConfig());
+  async initClient(): Promise<Client> {
+    const config = this.getConfig();
+    const client = await createClient(config);
+
+    if (this.verbose) {
+      const lines: [string, string][] = [
+        ["command", this.id ?? "unknown"],
+        ["environment", config.env ?? "dev"],
+        ["dbPath", config.dbPath ?? "in-memory"],
+      ];
+
+      if (client.accountIdentifier) {
+        lines.push(["address", client.accountIdentifier.identifier]);
+      }
+
+      lines.push(
+        ["inboxId", client.inboxId],
+        ["installationId", client.installationId],
+      );
+
+      if (client.libxmtpVersion) {
+        lines.push(["libxmtpVersion", client.libxmtpVersion]);
+      }
+
+      if (config.gatewayHost) {
+        lines.push(["gatewayHost", config.gatewayHost]);
+      }
+
+      const maxKeyLen = Math.max(...lines.map(([k]) => k.length));
+      for (const [key, value] of lines) {
+        this.log(`${key.padEnd(maxKeyLen)}  ${value}`);
+      }
+    }
+
+    return client;
   }
 
   async run(): Promise<void> {

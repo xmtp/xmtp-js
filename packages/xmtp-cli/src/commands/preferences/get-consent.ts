@@ -52,7 +52,7 @@ Use 'preferences sync' first to ensure you have the latest consent data.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(PreferencesGetConsent);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const entityTypeMap: Record<string, ConsentEntityType> = {
       inbox_id: ConsentEntityType.InboxId,

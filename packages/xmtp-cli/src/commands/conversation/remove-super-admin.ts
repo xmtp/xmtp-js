@@ -44,7 +44,7 @@ Note: A group must always have at least one super admin.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationRemoveSuperAdmin);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

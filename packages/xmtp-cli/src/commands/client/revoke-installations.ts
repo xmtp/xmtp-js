@@ -55,7 +55,7 @@ be restored. Make sure you have access to at least one other installation.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientRevokeInstallations);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     // Support both repeated flags and comma-separated values
     const installationIdStrings = flags["installation-ids"]

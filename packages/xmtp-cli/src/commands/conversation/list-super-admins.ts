@@ -40,7 +40,7 @@ The group creator is typically a super admin by default.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationListSuperAdmins);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

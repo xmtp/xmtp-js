@@ -38,7 +38,7 @@ yourself from a group you belong to.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationRequestRemoval);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

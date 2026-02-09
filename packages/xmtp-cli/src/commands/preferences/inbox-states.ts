@@ -50,7 +50,7 @@ latest data if changes were made recently.`;
       this.error("At least one inbox ID is required");
     }
 
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const states = await client.preferences.getInboxStates(inboxIds);
 

@@ -64,7 +64,7 @@ affect push notification behavior across all your installations.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(PreferencesSetConsent);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const entityTypeMap: Record<string, ConsentEntityType> = {
       inbox_id: ConsentEntityType.InboxId,

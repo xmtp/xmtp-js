@@ -28,7 +28,7 @@ queued locally. This is used after sending messages with the
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationPublishMessages);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

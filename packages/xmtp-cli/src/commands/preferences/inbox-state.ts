@@ -38,7 +38,7 @@ Use --sync to fetch the latest state from the network.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(PreferencesInboxState);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const inboxState = flags.sync
       ? await client.preferences.fetchInboxState()

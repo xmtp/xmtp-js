@@ -48,7 +48,7 @@ Use cases:
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ClientSign);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const signatureBytes = client.signWithInstallationKey(args.message);
     const signature = flags.base64

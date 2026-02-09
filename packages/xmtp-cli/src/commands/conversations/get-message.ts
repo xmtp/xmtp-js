@@ -48,7 +48,7 @@ doesn't exist locally, you may need to sync the conversation first.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationsGetMessage);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const message = client.conversations.getMessageById(args.id);
 

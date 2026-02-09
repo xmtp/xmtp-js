@@ -31,7 +31,7 @@ Each key includes the key data and associated metadata.`;
   };
 
   async run(): Promise<void> {
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const hmacKeys = client.conversations.hmacKeys();
 

@@ -54,7 +54,7 @@ address, passkey, etc.).`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientChangeRecoveryIdentifier);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     await this.confirmAction(
       "Changing the recovery identifier is a critical security operation. If you lose access to both your installations and the new recovery identifier, you will permanently lose access to this inbox.",

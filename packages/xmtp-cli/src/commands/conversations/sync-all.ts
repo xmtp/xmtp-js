@@ -42,7 +42,7 @@ Use this when you need a complete refresh of all XMTP data.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ConversationsSyncAll);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const consentStateMap: Record<string, ConsentState> = {
       allowed: ConsentState.Allowed,

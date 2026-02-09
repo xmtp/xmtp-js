@@ -44,7 +44,7 @@ and published via 'conversation publish-messages').`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationSendReadReceipt);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

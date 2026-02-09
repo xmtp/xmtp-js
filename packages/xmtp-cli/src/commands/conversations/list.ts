@@ -79,7 +79,7 @@ Use --created-after / --created-before to filter by creation time.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ConversationsList);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     if (flags.sync) {
       await client.conversations.sync();

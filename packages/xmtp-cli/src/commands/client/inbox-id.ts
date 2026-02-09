@@ -49,7 +49,7 @@ Returns null if the identifier has no associated inbox ID (not registered).`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientInboxId);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const identifierKindMap: Record<string, IdentifierKind> = {
       ethereum: IdentifierKind.Ethereum,

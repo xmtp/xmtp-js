@@ -48,7 +48,7 @@ Returns the DM's ID and details.`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationsCreateDm);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const identifierKindMap: Record<string, IdentifierKind> = {
       ethereum: IdentifierKind.Ethereum,

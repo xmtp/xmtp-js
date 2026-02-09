@@ -58,7 +58,7 @@ The stream will continue until:
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ConversationsStream);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     let conversationCount = 0;
     const maxCount = flags.count;

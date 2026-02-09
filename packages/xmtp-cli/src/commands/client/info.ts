@@ -34,7 +34,7 @@ application instance using your identity.`;
 
   async run(): Promise<void> {
     const config = this.getConfig();
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     if (!config.walletKey) {
       this.error("Wallet key is required");

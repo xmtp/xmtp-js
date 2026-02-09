@@ -73,7 +73,7 @@ By default, preferences are synced before streaming starts. Use
 
   async run(): Promise<void> {
     const { flags } = await this.parse(PreferencesStream);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const entityTypeNames: Record<ConsentEntityType, string> = {
       [ConsentEntityType.InboxId]: "inbox_id",

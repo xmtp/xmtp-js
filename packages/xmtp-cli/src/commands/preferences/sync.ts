@@ -31,7 +31,7 @@ Use this before reading consent states to ensure you have the latest data.`;
 
   async run(): Promise<void> {
     await this.parse(PreferencesSync);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     await client.preferences.sync();
 

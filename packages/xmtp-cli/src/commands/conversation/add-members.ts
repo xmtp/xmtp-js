@@ -46,7 +46,7 @@ Requires appropriate permissions to add members (based on group settings).`;
 
   async run(): Promise<void> {
     const { args, argv } = await this.parse(ConversationAddMembers);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     // Get inbox IDs from remaining arguments (after the conversation ID)
     const inboxIds = (argv as string[]).slice(1);

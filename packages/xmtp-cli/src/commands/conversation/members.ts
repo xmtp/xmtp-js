@@ -47,7 +47,7 @@ Use --sync to fetch the latest member list from the network before listing.`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationMembers);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

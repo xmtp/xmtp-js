@@ -40,7 +40,7 @@ the local cache is searched directly.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationsGetDm);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const isAddress = args.addressOrInboxId.startsWith("0x");
 

@@ -43,7 +43,7 @@ Requires appropriate permissions (typically super admin) to add admins.`;
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationAddAdmin);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

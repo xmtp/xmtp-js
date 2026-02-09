@@ -44,7 +44,7 @@ This command is useful for inspecting the full details of a specific conversatio
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationInfo);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

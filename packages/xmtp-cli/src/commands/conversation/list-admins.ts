@@ -39,7 +39,7 @@ Note: Super admins are not included in this list. Use the
 
   async run(): Promise<void> {
     const { args } = await this.parse(ConversationListAdmins);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const conversation = await client.conversations.getConversationById(
       args.id,

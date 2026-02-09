@@ -55,7 +55,7 @@ The signature can be provided in either hex or base64 encoding.`;
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ClientVerifySignature);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const signatureBytes = flags.base64
       ? Buffer.from(flags.signature, "base64")

@@ -78,7 +78,7 @@ Output includes message ID, conversation ID, sender, content, and timestamps.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ConversationsStreamAllMessages);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     let messageCount = 0;
     const maxCount = flags.count;

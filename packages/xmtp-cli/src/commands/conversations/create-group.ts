@@ -86,7 +86,7 @@ Returns the new group's ID and details.`;
       this.error("At least one identifier is required to create a group");
     }
 
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     const identifierObjects = identifiers.map((id) => ({
       identifier: id.toLowerCase(),

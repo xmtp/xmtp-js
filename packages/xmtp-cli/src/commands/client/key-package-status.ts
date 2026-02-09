@@ -46,7 +46,7 @@ whether the key package exists and its validity state.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientKeyPackageStatus);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     // Support both repeated flags and comma-separated values
     const installationIds = flags["installation-ids"]

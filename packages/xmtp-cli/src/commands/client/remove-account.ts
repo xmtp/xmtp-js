@@ -54,7 +54,7 @@ this client's inbox.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientRemoveAccount);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     await this.confirmAction(
       "Removing an account is irreversible. The removed wallet will lose access to all messages and conversations in this inbox.",

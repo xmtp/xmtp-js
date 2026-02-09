@@ -51,7 +51,7 @@ want to add. This wallet must sign a message to authorize the association.`;
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientAddAccount);
-    const client = await this.createClient();
+    const client = await this.initClient();
 
     await this.confirmAction(
       "Adding an account to your inbox is a sensitive operation. If the wallet is already associated with another inbox, it will lose access to that inbox.",
