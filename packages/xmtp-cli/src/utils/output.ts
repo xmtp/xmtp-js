@@ -134,10 +134,10 @@ function formatObject(
     .join("\n");
 }
 
-export interface Section {
+export type Section = {
   title: string;
   data: Record<string, unknown>;
-}
+};
 
 export function formatSections(sections: Section[], indent = 0): string {
   const prefix = " ".repeat(indent);

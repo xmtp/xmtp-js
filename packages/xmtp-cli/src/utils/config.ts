@@ -7,7 +7,7 @@ export const DEFAULT_HOME_DIR = join(homedir(), ".xmtp");
 export const DEFAULT_ENV_PATH = join(DEFAULT_HOME_DIR, ".env");
 export const DEFAULT_DB_PATH = join(DEFAULT_HOME_DIR, "xmtp-db");
 
-export interface XmtpConfig {
+export type XmtpConfig = {
   walletKey?: string;
   dbEncryptionKey?: string;
   dbPath?: string;
@@ -17,7 +17,7 @@ export interface XmtpConfig {
   structuredLogging?: boolean;
   disableDeviceSync?: boolean;
   appVersion?: string;
-}
+};
 
 export const VALID_ENVS = ["local", "dev", "production"] as const;
 const VALID_LOG_LEVELS = [
