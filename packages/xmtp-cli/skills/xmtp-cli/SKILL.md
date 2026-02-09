@@ -438,6 +438,12 @@ xmtp conversations get-message <message-id>
 xmtp conversation count-messages <conversation-id>
 # sync from network before counting to include latest messages
 xmtp conversation count-messages <conversation-id> --sync
+# count only application messages (exclude membership changes)
+xmtp conversation count-messages <conversation-id> --kind application
+# count only text and markdown messages
+xmtp conversation count-messages <conversation-id> --content-type text --content-type markdown
+# count messages sent after a timestamp (nanoseconds)
+xmtp conversation count-messages <conversation-id> --sent-after 1700000000000000000
 ```
 
 ### Group Admin Operations

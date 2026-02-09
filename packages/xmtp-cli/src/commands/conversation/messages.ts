@@ -234,19 +234,31 @@ Use --sort-by to choose between sorting by sent time or insertion time.`;
         ? SortDirection.Ascending
         : SortDirection.Descending;
 
-    options.sentBeforeNs = this.parseBigInt(
-      flags["sent-before"],
-      "sent-before",
-    );
-    options.sentAfterNs = this.parseBigInt(flags["sent-after"], "sent-after");
-    options.insertedBeforeNs = this.parseBigInt(
+    const sentBeforeNs = this.parseBigInt(flags["sent-before"], "sent-before");
+    if (sentBeforeNs !== undefined) {
+      options.sentBeforeNs = sentBeforeNs;
+    }
+
+    const sentAfterNs = this.parseBigInt(flags["sent-after"], "sent-after");
+    if (sentAfterNs !== undefined) {
+      options.sentAfterNs = sentAfterNs;
+    }
+
+    const insertedBeforeNs = this.parseBigInt(
       flags["inserted-before"],
       "inserted-before",
     );
-    options.insertedAfterNs = this.parseBigInt(
+    if (insertedBeforeNs !== undefined) {
+      options.insertedBeforeNs = insertedBeforeNs;
+    }
+
+    const insertedAfterNs = this.parseBigInt(
       flags["inserted-after"],
       "inserted-after",
     );
+    if (insertedAfterNs !== undefined) {
+      options.insertedAfterNs = insertedAfterNs;
+    }
 
     if (flags["delivery-status"]) {
       options.deliveryStatus = deliveryStatusMap[flags["delivery-status"]];
