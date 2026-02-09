@@ -51,4 +51,19 @@ describe("client add-account", () => {
     expect(result.exitCode).not.toBe(0);
     expect(result.stderr).toContain("new-wallet-key");
   });
+
+  it("fails in non-interactive terminal without --force", async () => {
+    const identity = await createRegisteredIdentity();
+    const newWalletKey = generatePrivateKey();
+
+    const result = await runWithIdentity(
+      identity,
+      ["client", "add-account", "--new-wallet-key", newWalletKey, "--json"],
+      { input: "" },
+    );
+
+    expect(result.exitCode).not.toBe(0);
+    expect(result.stderr).toContain("non-interactive terminal");
+    expect(result.stderr).toContain("--force");
+  });
 });
