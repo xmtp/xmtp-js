@@ -37,8 +37,8 @@
   "files": [
     "bin",
     "dist",
-    "oclif.manifest.json",
-    "SKILL.md"
+    "skills",
+    "oclif.manifest.json"
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
