@@ -53,13 +53,14 @@ want to add. This wallet must sign a message to authorize the association.`;
     const { flags } = await this.parse(ClientAddAccount);
     const client = await this.initClient();
 
+    // Validate the wallet key before confirming
+    const newAccount = privateKeyToAccount(
+      flags["new-wallet-key"] as `0x${string}`,
+    );
+
     await this.confirmAction(
       "Adding an account to your inbox is a sensitive operation. If the wallet is already associated with another inbox, it will lose access to that inbox.",
       flags.force,
-    );
-
-    const newAccount = privateKeyToAccount(
-      flags["new-wallet-key"] as `0x${string}`,
     );
 
     const newSigner: Signer = {

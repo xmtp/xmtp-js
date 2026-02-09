@@ -67,13 +67,13 @@ be restored. Make sure you have access to at least one other installation.`;
       this.error("At least one installation ID is required");
     }
 
+    // Validate hex strings before confirming
+    const installationIds = installationIdStrings.map(toHexBytes);
+
     await this.confirmAction(
       `Revoking ${installationIdStrings.length} installation(s) is irreversible. They will immediately lose access to send or receive messages.`,
       flags.force,
     );
-
-    // Convert hex strings to Uint8Array
-    const installationIds = installationIdStrings.map(toHexBytes);
 
     await client.revokeInstallations(installationIds);
 

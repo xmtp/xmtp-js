@@ -56,11 +56,7 @@ address, passkey, etc.).`;
     const { flags } = await this.parse(ClientChangeRecoveryIdentifier);
     const client = await this.initClient();
 
-    await this.confirmAction(
-      "Changing the recovery identifier is a critical security operation. If you lose access to both your installations and the new recovery identifier, you will permanently lose access to this inbox.",
-      flags.force,
-    );
-
+    // Build identifier before confirming so invalid input fails fast
     const identifierKindMap: Record<string, IdentifierKind> = {
       ethereum: IdentifierKind.Ethereum,
       passkey: IdentifierKind.Passkey,
@@ -70,6 +66,11 @@ address, passkey, etc.).`;
       identifierKind: identifierKindMap[flags.kind],
       identifier: flags.identifier.toLowerCase(),
     };
+
+    await this.confirmAction(
+      "Changing the recovery identifier is a critical security operation. If you lose access to both your installations and the new recovery identifier, you will permanently lose access to this inbox.",
+      flags.force,
+    );
 
     await client.changeRecoveryIdentifier(identifier);
 

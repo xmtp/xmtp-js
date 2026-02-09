@@ -56,11 +56,7 @@ this client's inbox.`;
     const { flags } = await this.parse(ClientRemoveAccount);
     const client = await this.initClient();
 
-    await this.confirmAction(
-      "Removing an account is irreversible. The removed wallet will lose access to all messages and conversations in this inbox.",
-      flags.force,
-    );
-
+    // Build identifier before confirming so invalid input fails fast
     const identifierKindMap: Record<string, IdentifierKind> = {
       ethereum: IdentifierKind.Ethereum,
       passkey: IdentifierKind.Passkey,
@@ -70,6 +66,11 @@ this client's inbox.`;
       identifierKind: identifierKindMap[flags.kind],
       identifier: flags.identifier.toLowerCase(),
     };
+
+    await this.confirmAction(
+      "Removing an account is irreversible. The removed wallet will lose access to all messages and conversations in this inbox.",
+      flags.force,
+    );
 
     await client.removeAccount(identifier);
 
