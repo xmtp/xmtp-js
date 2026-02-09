@@ -1,6 +1,6 @@
 import { Flags } from "@oclif/core";
 import { IdentifierKind, type Signer } from "@xmtp/node-sdk";
-import { hexToBytes } from "viem";
+import { toBytes } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { BaseCommand } from "../../baseCommand.js";
 
@@ -71,7 +71,7 @@ want to add. This wallet must sign a message to authorize the association.`;
       }),
       signMessage: async (message: string) => {
         const signature = await newAccount.signMessage({ message });
-        return hexToBytes(signature);
+        return toBytes(signature);
       },
     };
 

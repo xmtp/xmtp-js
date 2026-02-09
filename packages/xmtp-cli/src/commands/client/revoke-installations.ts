@@ -1,6 +1,6 @@
 import { Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
-import { toHexBytes } from "../../utils/client.js";
+import { hexToBytes } from "../../utils/client.js";
 
 export default class ClientRevokeInstallations extends BaseCommand {
   static description = `Revoke specific installations from the client's inbox.
@@ -68,7 +68,7 @@ be restored. Make sure you have access to at least one other installation.`;
     }
 
     // Validate hex strings before confirming
-    const installationIds = installationIdStrings.map(toHexBytes);
+    const installationIds = installationIdStrings.map(hexToBytes);
 
     await this.confirmAction(
       `Revoking ${installationIdStrings.length} installation(s) is irreversible. They will immediately lose access to send or receive messages.`,

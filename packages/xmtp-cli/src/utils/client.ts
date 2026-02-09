@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { Client, IdentifierKind, LogLevel } from "@xmtp/node-sdk";
-import { hexToBytes } from "viem";
+import { isHex, toBytes } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import type { XmtpConfig } from "./config.js";
 
@@ -33,9 +33,12 @@ function parseLogLevel(value: string | undefined): LogLevel | undefined {
   return LOG_LEVELS[value];
 }
 
-export function toHexBytes(hex: string): Uint8Array {
-  const prefixedHex = hex.startsWith("0x") ? hex : `0x${hex}`;
-  return hexToBytes(prefixedHex as `0x${string}`);
+export function hexToBytes(value: string): Uint8Array {
+  const hex = value.startsWith("0x") ? value : `0x${value}`;
+  if (!isHex(hex, { strict: true })) {
+    throw new Error(`Invalid hex string: ${value}`);
+  }
+  return toBytes(hex);
 }
 
 export async function createClient(config: XmtpConfig): Promise<Client> {
@@ -61,7 +64,7 @@ export async function createClient(config: XmtpConfig): Promise<Client> {
     }),
     signMessage: async (message: string) => {
       const signature = await account.signMessage({ message });
-      return hexToBytes(signature);
+      return toBytes(signature);
     },
   };
 
@@ -71,7 +74,7 @@ export async function createClient(config: XmtpConfig): Promise<Client> {
 
   const client = await Client.create(signer, {
     env: config.env,
-    dbEncryptionKey: toHexBytes(config.dbEncryptionKey),
+    dbEncryptionKey: hexToBytes(config.dbEncryptionKey),
     dbPath: config.dbPath ?? undefined,
     gatewayHost: config.gatewayHost,
     loggingLevel: parseLogLevel(config.logLevel),

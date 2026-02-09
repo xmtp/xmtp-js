@@ -1,9 +1,9 @@
 import { Args, Flags } from "@oclif/core";
 import { Client, IdentifierKind } from "@xmtp/node-sdk";
-import { hexToBytes } from "viem";
+import { toBytes } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { BaseCommand } from "../baseCommand.js";
-import { toHexBytes } from "../utils/client.js";
+import { hexToBytes } from "../utils/client.js";
 
 export default class RevokeInstallations extends BaseCommand {
   static description = `Revoke specific installations from an inbox.
@@ -82,7 +82,7 @@ This command requires:
     }
 
     // Convert hex strings to Uint8Array
-    const installationIds = installationIdStrings.map(toHexBytes);
+    const installationIds = installationIdStrings.map(hexToBytes);
 
     const env = config.env ?? "dev";
 
@@ -97,7 +97,7 @@ This command requires:
       }),
       signMessage: async (message: string) => {
         const signature = await account.signMessage({ message });
-        return hexToBytes(signature);
+        return toBytes(signature);
       },
     };
 
