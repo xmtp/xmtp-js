@@ -12,10 +12,10 @@ XMTP offers SDKs for a variety of use cases. Whether you're building a chat app,
 
 ```mermaid
 graph TD
-    A[What are you building?] --> B{Runs in a browser?}
-    B -->|Yes| C[Browser SDK]
-    B -->|No| D{Is it a bot/agent?}
-    D -->|Yes| E[Agent SDK]
+    A[What are you building?] --> B{A chat bot or agent?}
+    B -->|Yes| C[Agent SDK]
+    B -->|No| D{A chat-based frontend?}
+    D -->|Yes| E[Browser SDK]
     D -->|No| F[Node SDK]
 ```
 
