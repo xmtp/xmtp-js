@@ -177,8 +177,15 @@ export class BaseCommand extends Command {
       }
 
       const maxKeyLen = Math.max(...lines.map(([k]) => k.length));
+      const log = this.jsonOutput
+        ? (msg: string) => {
+            this.logToStderr(msg);
+          }
+        : (msg: string) => {
+            this.log(msg);
+          };
       for (const [key, value] of lines) {
-        this.log(`${key.padEnd(maxKeyLen)}  ${value}`);
+        log(`${key.padEnd(maxKeyLen)}  ${value}`);
       }
     }
 
