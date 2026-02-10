@@ -36,6 +36,7 @@ export interface PerformanceMonitorConfig {
  */
 export class PerformanceMonitor {
   #interval: ReturnType<typeof setInterval> | undefined;
+  #isShutdown: boolean;
   #lastCpuUsage: NodeJS.CpuUsage;
   #lastCpuTime: number;
   #criticalThresholdInterval: number;
@@ -75,6 +76,7 @@ export class PerformanceMonitor {
     this.#onHealthReport = config.onHealthReport ?? defaultHealthReportHandler;
     this.#onResponse = config.onResponse;
     this.#onShutdown = config.onShutdown ?? defaultShutdownHandler;
+    this.#isShutdown = false;
     this.#eventLoopHistogram = monitorEventLoopDelay();
     this.#eventLoopHistogram.enable();
     this.#lastCpuUsage = process.cpuUsage();
@@ -129,7 +131,12 @@ export class PerformanceMonitor {
   }
 
   shutdown() {
+    if (this.#isShutdown) {
+      return;
+    }
+    this.#isShutdown = true;
     clearInterval(this.#interval);
+    this.#interval = undefined;
     this.#eventLoopHistogram.disable();
     this.#onShutdown();
   }

@@ -94,6 +94,14 @@ describe("PerformanceMonitor", () => {
       monitor.shutdown();
       expect(onShutdown).toHaveBeenCalledOnce();
     });
+
+    it("is idempotent when called multiple times", () => {
+      const onShutdown = vi.fn();
+      monitor = new PerformanceMonitor({ onShutdown });
+      monitor.shutdown();
+      monitor.shutdown();
+      expect(onShutdown).toHaveBeenCalledOnce();
+    });
   });
 
   describe("middleware", () => {
