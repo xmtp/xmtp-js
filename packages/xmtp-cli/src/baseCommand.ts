@@ -9,7 +9,7 @@ import {
   VALID_ENVS,
   type XmtpConfig,
 } from "./utils/config.js";
-import { formatOutput, isTTY, jsonStringify } from "./utils/output.js";
+import { formatHuman, isTTY, jsonStringify } from "./utils/output.js";
 
 export class BaseCommand extends Command {
   /** Flags shared by all commands (including those that don't need a client). */
@@ -96,7 +96,11 @@ export class BaseCommand extends Command {
   }
 
   output(data: unknown): void {
-    this.log(formatOutput(data, this.jsonOutput));
+    if (this.jsonOutput) {
+      this.log(jsonStringify(data, true));
+    } else {
+      this.log(formatHuman(data));
+    }
   }
 
   /**
@@ -105,10 +109,9 @@ export class BaseCommand extends Command {
    */
   streamOutput(data: unknown): void {
     if (this.jsonOutput) {
-      // Use compact JSON for streaming (JSONL format)
       this.log(jsonStringify(data));
     } else {
-      this.log(formatOutput(data, false));
+      this.log(formatHuman(data));
     }
   }
 

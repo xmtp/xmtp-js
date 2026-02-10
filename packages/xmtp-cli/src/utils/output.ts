@@ -16,13 +16,6 @@ export function jsonStringify(data: unknown, pretty = false): string {
   );
 }
 
-export function formatOutput(data: unknown, forceJson: boolean): string {
-  if (forceJson || !isTTY()) {
-    return jsonStringify(data, true);
-  }
-  return formatHuman(data);
-}
-
 export function formatIdentifierKind(kind: IdentifierKind): string {
   switch (kind) {
     case IdentifierKind.Ethereum:

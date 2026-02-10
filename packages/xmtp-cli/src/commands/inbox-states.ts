@@ -1,11 +1,7 @@
 import { Args } from "@oclif/core";
 import { Client } from "@xmtp/node-sdk";
 import { BaseCommand } from "../baseCommand.js";
-import {
-  formatIdentifierKind,
-  formatTimestampNs,
-  isTTY,
-} from "../utils/output.js";
+import { formatIdentifierKind, formatTimestampNs } from "../utils/output.js";
 
 export default class InboxStates extends BaseCommand {
   static description = `Fetch inbox states for one or more inbox IDs.
@@ -69,7 +65,7 @@ Use this command to inspect the state of any inbox on the network.`;
       config.gatewayHost,
     );
 
-    if (this.jsonOutput || !isTTY()) {
+    if (this.jsonOutput) {
       const output = states.map((state) => ({
         inboxId: state.inboxId,
         recoveryIdentifier: state.recoveryIdentifier,
