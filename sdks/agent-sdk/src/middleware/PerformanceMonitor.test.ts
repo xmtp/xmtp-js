@@ -55,7 +55,7 @@ describe("PerformanceMonitor", () => {
       });
       // 1 initial call
       expect(onHealthReport).toHaveBeenCalledOnce();
-      const report = onHealthReport.mock.calls[0][0] as HealthReport;
+      const report: HealthReport = onHealthReport.mock.calls[0]![0];
       expect(report.cpuPercent).toBeTypeOf("number");
       expect(report.heapMB).toBeTypeOf("number");
       expect(report.heapPercent).toBeTypeOf("number");
