@@ -60,6 +60,10 @@ This is useful for:
       description: "Stop after receiving N messages",
       helpValue: "<number>",
     }),
+    "disable-sync": Flags.boolean({
+      description: "Skip initial sync before streaming",
+      default: false,
+    }),
   };
 
   async run(): Promise<void> {
@@ -78,7 +82,9 @@ This is useful for:
     const maxCount = flags.count;
     const timeoutMs = flags.timeout ? flags.timeout * 1000 : undefined;
 
-    const stream = await conversation.stream();
+    const stream = await conversation.stream({
+      disableSync: flags["disable-sync"],
+    });
 
     // Set up timeout if specified
     let timeoutId: NodeJS.Timeout | undefined;

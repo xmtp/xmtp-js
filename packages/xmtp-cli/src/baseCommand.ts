@@ -4,6 +4,7 @@ import { Command, Errors, Flags } from "@oclif/core";
 import type { Client } from "@xmtp/node-sdk";
 import { createClient } from "./utils/client.js";
 import {
+  DEFAULT_DB_PATH,
   loadConfig,
   mergeConfig,
   VALID_ENVS,
@@ -47,7 +48,7 @@ export class BaseCommand extends Command {
       helpValue: "<key>",
     }),
     "db-path": Flags.string({
-      description: "Database file path",
+      description: `Database file path (default: ${DEFAULT_DB_PATH})`,
       helpValue: "<path>",
     }),
     "log-level": Flags.option({

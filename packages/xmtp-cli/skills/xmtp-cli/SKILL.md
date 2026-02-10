@@ -290,10 +290,10 @@ xmtp conversations stream --disable-sync
 xmtp conversation members <conversation-id>
 # sync from network before listing to get latest membership
 xmtp conversation members <conversation-id> --sync
-# add members by their inbox IDs (space-separated)
-xmtp conversation add-members <conversation-id> <inbox-id-1> <inbox-id-2>
-# remove a member by their inbox ID
-xmtp conversation remove-members <conversation-id> <inbox-id>
+# add members by their Ethereum addresses (space-separated)
+xmtp conversation add-members <conversation-id> <address-1> <address-2>
+# remove a member by their Ethereum address
+xmtp conversation remove-members <conversation-id> <address>
 ```
 
 ### Update Group Permissions

@@ -30,12 +30,12 @@ describe("conversation remove-members", () => {
     ]);
     const group = parseJsonOutput<{ id: string }>(groupResult.stdout);
 
-    // Remove one member (expects inbox ID, not address)
+    // Remove one member by address
     const removeResult = await runWithIdentity(creator, [
       "conversation",
       "remove-members",
       group.id,
-      member2.inboxId,
+      member2.address,
       "--json",
     ]);
 

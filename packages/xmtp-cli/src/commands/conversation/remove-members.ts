@@ -1,32 +1,33 @@
 import { Args } from "@oclif/core";
+import { IdentifierKind } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
 import { requireGroup } from "../../utils/conversation.js";
 
 export default class ConversationRemoveMembers extends BaseCommand {
   static description = `Remove members from a group conversation.
 
-Removes one or more members from a group conversation using their inbox IDs.
+Removes one or more members from a group conversation using their Ethereum addresses.
 This command is only available for group conversations, not DMs.
 
-Provide inbox IDs as space-separated arguments to remove multiple members.
-The inbox IDs must belong to existing members of the group.
+Provide addresses as space-separated arguments to remove multiple members.
+The addresses must belong to existing members of the group.
 
 Requires appropriate permissions to remove members (based on group settings).`;
 
   static examples = [
     {
       command:
-        "<%= config.bin %> <%= command.id %> <conversation-id> <inbox-id>",
+        "<%= config.bin %> <%= command.id %> <conversation-id> <address>",
       description: "Remove a single member from the group",
     },
     {
       command:
-        "<%= config.bin %> <%= command.id %> <conversation-id> <inbox-id> <inbox-id-2>",
+        "<%= config.bin %> <%= command.id %> <conversation-id> <address> <address-2>",
       description: "Remove multiple members from the group",
     },
     {
       command:
-        "<%= config.bin %> <%= command.id %> <conversation-id> <inbox-id> --json",
+        "<%= config.bin %> <%= command.id %> <conversation-id> <address> --json",
       description: "Output as JSON for scripting",
     },
   ];
@@ -48,11 +49,11 @@ Requires appropriate permissions to remove members (based on group settings).`;
     const { args, argv } = await this.parse(ConversationRemoveMembers);
     const client = await this.initClient();
 
-    // Get inbox IDs from remaining arguments (after the conversation ID)
-    const inboxIds = (argv as string[]).slice(1);
+    // Get addresses from remaining arguments (excluding the conversation ID)
+    const addresses = (argv as string[]).filter((a) => a !== args.id);
 
-    if (inboxIds.length === 0) {
-      this.error("At least one inbox ID is required");
+    if (addresses.length === 0) {
+      this.error("At least one address is required");
     }
 
     const conversation = await client.conversations.getConversationById(
@@ -63,14 +64,19 @@ Requires appropriate permissions to remove members (based on group settings).`;
       this.error(`Conversation not found: ${args.id}`);
     }
 
+    const identifiers = addresses.map((address) => ({
+      identifier: address.toLowerCase(),
+      identifierKind: IdentifierKind.Ethereum,
+    }));
+
     const group = requireGroup(conversation);
-    await group.removeMembers(inboxIds);
+    await group.removeMembersByIdentifiers(identifiers);
 
     this.output({
       success: true,
       conversationId: args.id,
-      removedInboxIds: inboxIds,
-      count: inboxIds.length,
+      removedMembers: addresses,
+      count: addresses.length,
     });
   }
 }

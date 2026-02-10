@@ -29,12 +29,12 @@ describe("conversation add-members", () => {
     ]);
     const group = parseJsonOutput<{ id: string }>(groupResult.stdout);
 
-    // Add another member (expects inbox ID, not address)
+    // Add another member by address
     const addResult = await runWithIdentity(creator, [
       "conversation",
       "add-members",
       group.id,
-      member2.inboxId,
+      member2.address,
       "--json",
     ]);
 
@@ -67,13 +67,13 @@ describe("conversation add-members", () => {
     ]);
     const group = parseJsonOutput<{ id: string }>(groupResult.stdout);
 
-    // Add two more members (expects inbox IDs, not addresses)
+    // Add two more members by address
     const addResult = await runWithIdentity(creator, [
       "conversation",
       "add-members",
       group.id,
-      member2.inboxId,
-      member3.inboxId,
+      member2.address,
+      member3.address,
       "--json",
     ]);
 
