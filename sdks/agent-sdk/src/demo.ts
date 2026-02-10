@@ -4,6 +4,7 @@ import { Agent, AgentError } from "./core/index";
 import { getTestUrl, logDetails } from "./debug/log";
 import { isHexString } from "./index";
 import { CommandRouter } from "./middleware/CommandRouter";
+import { PerformanceMonitor } from "./middleware/PerformanceMonitor";
 import { createNameResolver } from "./user";
 import { createSigner, createUser } from "./user/User";
 
@@ -18,13 +19,19 @@ const agent = process.env.XMTP_WALLET_KEY
       dbPath: null,
     });
 
-const router = new CommandRouter({ helpCommand: "/help" });
+const performanceMonitor = new PerformanceMonitor({
+  healthReportInterval: 10_000,
+  onResponse: (duration) => {
+    console.log(`[PerformanceMonitor] Message loop completed in ${duration}ms`);
+  },
+});
+const commandRouter = new CommandRouter({ helpCommand: "/help" });
 
-router.command("/version", "Show Agent SDK version", async (ctx) => {
+commandRouter.command("/version", "Show Agent SDK version", async (ctx) => {
   await ctx.conversation.sendText(`v${process.env.npm_package_version}`);
 });
 
-router.command("/test-actions", async (ctx) => {
+commandRouter.command("/test-actions", async (ctx) => {
   await ctx.conversation.sendActions({
     id: `actions-${Date.now()}`,
     description: "Would you like to proceed?",
@@ -35,7 +42,8 @@ router.command("/test-actions", async (ctx) => {
   });
 });
 
-agent.use(router.middleware());
+agent.use(performanceMonitor.middleware());
+agent.use(commandRouter.middleware());
 
 agent.on("attachment", async (ctx) => {
   const receivedAttachment = await downloadRemoteAttachment(
@@ -103,6 +111,7 @@ agent.on("start", (ctx) => {
 });
 
 agent.on("stop", (ctx) => {
+  performanceMonitor.shutdown();
   console.log("Agent stopped", ctx);
 });
 

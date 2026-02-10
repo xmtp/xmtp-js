@@ -236,6 +236,11 @@ agent.on("unhandledError", (error) => {
 
 Built‑in, officially supported middleware is provided by the Agent SDK.
 
+| Middleware           | Description                                                                    |
+| -------------------- | ------------------------------------------------------------------------------ |
+| `CommandRouter`      | Slash-command routing with optional help generation and a default handler      |
+| `PerformanceMonitor` | Measures message processing time and logs periodic CPU / memory health reports |
+
 **Example: CommandRouter**
 
 The `CommandRouter` makes it easy to handle slash commands out of the box.
