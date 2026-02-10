@@ -1,7 +1,7 @@
 # @xmtp/cli
 
 > [!CAUTION]
-> This CLI is in beta status and ready for you to use. Software in this status may change based on feedback.
+> This CLI is in beta status and ready for you to use. Software in this status may contain bugs or change based on feedback.
 
 A command-line interface for [XMTP](https://xmtp.org), the decentralized messaging protocol.
 
@@ -139,8 +139,8 @@ xmtp conversations create-group <address> \
 
 # Manage members
 xmtp conversation members <conversation-id>
-xmtp conversation add-members <conversation-id> <inbox-id>
-xmtp conversation remove-members <conversation-id> <inbox-id>
+xmtp conversation add-members <conversation-id> <address>
+xmtp conversation remove-members <conversation-id> <address>
 ```
 
 ### Identity
@@ -174,3 +174,27 @@ Use `--verbose` to see detailed client initialization info. When combined with `
 ```bash
 xmtp client info --verbose
 ```
+
+## AI Coding Agent Skill
+
+This package includes an [agent skill](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview) (`skills/xmtp-cli/SKILL.md`) that teaches AI coding agents how to use the XMTP CLI.
+
+**Claude Code**
+
+Add the skill directory to your project's `.claude/settings.json`:
+
+```json
+{
+  "skills": ["./node_modules/@xmtp/cli/skills"]
+}
+```
+
+**Other agents** (Cursor, Windsurf, Codex, etc.)
+
+Use [openskills](https://github.com/numman-ali/openskills) to install the skill:
+
+```bash
+npx openskills install ./node_modules/@xmtp/cli/skills
+```
+
+Or point your agent to `node_modules/@xmtp/cli/skills/xmtp-cli/SKILL.md` directly.
