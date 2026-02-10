@@ -47,7 +47,7 @@ describe("PerformanceMonitor", () => {
       expect(healthReportCalls).toHaveLength(4);
     });
 
-    it("calls custom onHealthReport handler instead of logging", () => {
+    it("calls custom health report handler instead of logging", () => {
       const onHealthReport = vi.fn<(report: HealthReport) => void>();
       monitor = new PerformanceMonitor({
         healthReportInterval: 5_000,
@@ -67,7 +67,7 @@ describe("PerformanceMonitor", () => {
       expect(onHealthReport).toHaveBeenCalledTimes(3);
     });
 
-    it("disables health reports when reportingIntervalMs is 0", () => {
+    it("disables health reports when reporting interval is 0", () => {
       const spy = vi.spyOn(console, "log");
       monitor = new PerformanceMonitor({ healthReportInterval: 0 });
       vi.advanceTimersByTime(120_000);
@@ -88,7 +88,7 @@ describe("PerformanceMonitor", () => {
       );
     });
 
-    it("calls custom onShutdown handler instead of logging", () => {
+    it("calls custom shutdown handler instead of logging", () => {
       const onShutdown = vi.fn();
       monitor = new PerformanceMonitor({ onShutdown });
       monitor.shutdown();
@@ -110,7 +110,7 @@ describe("PerformanceMonitor", () => {
       expect(typeof monitor.middleware()).toBe("function");
     });
 
-    it("calls next()", async () => {
+    it("calls next middleware", async () => {
       vi.useRealTimers();
       monitor = new PerformanceMonitor({ healthReportInterval: 999_999 });
       const mw = monitor.middleware();
@@ -119,7 +119,7 @@ describe("PerformanceMonitor", () => {
       expect(next).toHaveBeenCalledOnce();
     });
 
-    it("calls onResponse for every message", async () => {
+    it("calls a response callback for every message", async () => {
       vi.useRealTimers();
       const onResponse = vi.fn();
       monitor = new PerformanceMonitor({
@@ -133,7 +133,7 @@ describe("PerformanceMonitor", () => {
       expect(onResponse).toHaveBeenCalledWith(expect.any(Number));
     });
 
-    it("calls onCriticalResponse when duration exceeds threshold", async () => {
+    it("calls critical response callback when duration exceeds threshold", async () => {
       vi.useRealTimers();
       const onCriticalResponse = vi.fn();
       monitor = new PerformanceMonitor({
@@ -152,7 +152,7 @@ describe("PerformanceMonitor", () => {
       expect(duration).toBeGreaterThan(100);
     });
 
-    it("does not call onCriticalResponse when duration is below threshold", async () => {
+    it("does not call critical response callback when duration is below threshold", async () => {
       vi.useRealTimers();
       const onCriticalResponse = vi.fn();
       monitor = new PerformanceMonitor({
@@ -166,7 +166,7 @@ describe("PerformanceMonitor", () => {
       expect(onCriticalResponse).not.toHaveBeenCalled();
     });
 
-    it("uses default onCriticalResponse handler when not provided", async () => {
+    it("uses default critical response handler when not provided", async () => {
       vi.useRealTimers();
       const spy = vi.spyOn(console, "warn");
       monitor = new PerformanceMonitor({
