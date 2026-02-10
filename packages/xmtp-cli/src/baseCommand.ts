@@ -47,7 +47,7 @@ export class BaseCommand extends Command {
       helpValue: "<key>",
     }),
     "db-path": Flags.string({
-      description: "Database path prefix",
+      description: "Database file path",
       helpValue: "<path>",
     }),
     "log-level": Flags.option({

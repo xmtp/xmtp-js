@@ -47,13 +47,13 @@ This creates a `.env` file with:
 
 ### Environment Variables
 
-| Variable                 | Description                                           | Required              |
-| ------------------------ | ----------------------------------------------------- | --------------------- |
-| `XMTP_WALLET_KEY`        | Ethereum private key (hex, with or without 0x prefix) | Yes\*                 |
-| `XMTP_DB_ENCRYPTION_KEY` | 32-byte encryption key (hex)                          | Yes\*                 |
-| `XMTP_ENV`               | Network: `local`, `dev`, or `production`              | No (default: dev)     |
-| `XMTP_DB_PATH`           | Custom database directory path                        | No (default: ~/.xmtp) |
-| `XMTP_GATEWAY_HOST`      | Custom gateway URL                                    | No                    |
+| Variable                 | Description                                           | Required                      |
+| ------------------------ | ----------------------------------------------------- | ----------------------------- |
+| `XMTP_WALLET_KEY`        | Ethereum private key (hex, with or without 0x prefix) | Yes\*                         |
+| `XMTP_DB_ENCRYPTION_KEY` | 32-byte encryption key (hex)                          | Yes\*                         |
+| `XMTP_ENV`               | Network: `local`, `dev`, or `production`              | No (default: dev)             |
+| `XMTP_DB_PATH`           | Custom database file path                             | No (default: ~/.xmtp/xmtp-db) |
+| `XMTP_GATEWAY_HOST`      | Custom gateway URL                                    | No                            |
 
 \*Required for commands that need a client. If missing, the CLI will suggest running `init` to generate them.
 
