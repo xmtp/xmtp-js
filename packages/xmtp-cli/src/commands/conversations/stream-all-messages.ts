@@ -113,6 +113,11 @@ Output includes message ID, conversation ID, sender, content, and timestamps.`;
       }, timeoutMs);
     }
 
+    const onSigint = () => {
+      void stream.return();
+    };
+    process.once("SIGINT", onSigint);
+
     try {
       for await (const message of stream) {
         this.streamOutput({
@@ -132,6 +137,7 @@ Output includes message ID, conversation ID, sender, content, and timestamps.`;
         }
       }
     } finally {
+      process.off("SIGINT", onSigint);
       if (timeoutId) {
         clearTimeout(timeoutId);
       }

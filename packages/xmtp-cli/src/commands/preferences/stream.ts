@@ -102,6 +102,11 @@ By default, preferences are synced before streaming starts. Use
       }, timeoutMs);
     }
 
+    const onSigint = () => {
+      void stream.return();
+    };
+    process.once("SIGINT", onSigint);
+
     const formatUpdate = (update: UserPreferenceUpdate) => {
       if (update.type === "ConsentUpdate") {
         return {
@@ -138,6 +143,7 @@ By default, preferences are synced before streaming starts. Use
         }
       }
     } finally {
+      process.off("SIGINT", onSigint);
       if (timeoutId) {
         clearTimeout(timeoutId);
       }

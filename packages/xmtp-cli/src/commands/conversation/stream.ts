@@ -88,6 +88,11 @@ This is useful for:
       }, timeoutMs);
     }
 
+    const onSigint = () => {
+      void stream.return();
+    };
+    process.once("SIGINT", onSigint);
+
     try {
       for await (const message of stream) {
         this.streamOutput({
@@ -106,6 +111,7 @@ This is useful for:
         }
       }
     } finally {
+      process.off("SIGINT", onSigint);
       if (timeoutId) {
         clearTimeout(timeoutId);
       }

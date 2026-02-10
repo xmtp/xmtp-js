@@ -79,6 +79,11 @@ The stream will continue until:
       }, timeoutMs);
     }
 
+    const onSigint = () => {
+      void stream.return();
+    };
+    process.once("SIGINT", onSigint);
+
     try {
       for await (const conversation of stream) {
         const output: Record<string, unknown> = {
@@ -103,6 +108,7 @@ The stream will continue until:
         }
       }
     } finally {
+      process.off("SIGINT", onSigint);
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
