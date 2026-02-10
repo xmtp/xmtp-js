@@ -7,17 +7,8 @@ To learn more about the contents of this repository, see this README and the REA
 XMTP offers SDKs for a variety of use cases. Whether you're building a chat app, an automated agent, or a custom messaging backend, there's an SDK for you. This guide will help you get started developing with JavaScript or TypeScript.
 
 - **Browser SDK**: Use this if you want to build a **complete messaging web app** (like [xmtp.chat](https://xmtp.chat/)). Runs entirely in the browser using WASM and Web Workers.
+- **Node SDK**: Use this if you want to build a **messaging CLI** or have **custom use cases beyond a chatbot/agent**.
 - **Agent SDK**: Use this if you want to create a **bot that runs on a server** and replies to people messaging it. Built on top of the Node SDK with an event-driven middleware architecture.
-- **Node SDK**: Use this if you want to build a **messaging app backend** or have **custom use cases beyond a bot/agent**. Provides direct Node.js bindings for full flexibility.
-
-```mermaid
-graph TD
-    A[What are you building?] --> B{A chat bot or agent?}
-    B -->|Yes| C[Agent SDK]
-    B -->|No| D{A chat-based frontend?}
-    D -->|Yes| E[Browser SDK]
-    D -->|No| F[Node SDK]
-```
 
 ## What's inside?
 
