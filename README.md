@@ -2,6 +2,14 @@ This is the official repository for XMTP client SDKs and content types for brows
 
 To learn more about the contents of this repository, see this README and the READMEs provided in each workspace directory.
 
+## Which SDK should I use?
+
+XMTP offers SDKs for a variety of use cases. Whether you're building a chat app, an automated agent, or a custom messaging backend, there's an SDK for you. This guide will help you get started developing with JavaScript or TypeScript.
+
+- **Browser SDK**: Use this if you want to build a **complete messaging web app** (like [xmtp.chat](https://xmtp.chat/)). Runs entirely in the browser using WASM and Web Workers.
+- **Node SDK**: Use this if you want to build a **messaging CLI** or have **custom use cases beyond a chatbot/agent**.
+- **Agent SDK**: Use this if you want to create a **bot that runs on a server** and replies to people messaging it. Built on top of the Node SDK with an event-driven middleware architecture.
+
 ## What's inside?
 
 ### Apps
