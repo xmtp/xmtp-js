@@ -1,9 +1,10 @@
-import { performance } from "node:perf_hooks";
+import { monitorEventLoopDelay, performance } from "node:perf_hooks";
 import v8 from "node:v8";
 import type { AgentMiddleware } from "@/core/Agent";
 
 export interface HealthReport {
   cpuPercent: number;
+  eventLoopDelayMs: number;
   heapMB: number;
   heapPercent: number;
   heapLimitMB: number;
@@ -21,6 +22,8 @@ export interface PerformanceMonitorConfig {
   onHealthReport?: (report: HealthReport) => void;
   /** Called after every message with the processing duration in ms. */
   onResponse?: (durationMs: number) => void;
+  /** Called when shutdown is invoked. Defaults to logging a message. */
+  onShutdown?: () => void;
 }
 
 /**
@@ -39,6 +42,8 @@ export class PerformanceMonitor {
   #onCriticalResponse: (durationMs: number) => void;
   #onHealthReport: (report: HealthReport) => void;
   #onResponse?: (durationMs: number) => void;
+  #onShutdown: () => void;
+  #eventLoopHistogram: ReturnType<typeof monitorEventLoopDelay>;
 
   constructor(config: PerformanceMonitorConfig = {}) {
     const {
@@ -56,8 +61,12 @@ export class PerformanceMonitor {
 
     const defaultHealthReportHandler = (report: HealthReport) => {
       console.log(
-        `[${new Date().toISOString()}] CPU: ${report.cpuPercent.toFixed(1)}% | Heap: ${report.heapPercent.toFixed(1)}% (${report.heapMB.toFixed(0)}MB/${report.totalMB.toFixed(1)}MB)`,
+        `[${new Date().toISOString()}] CPU: ${report.cpuPercent.toFixed(1)}% | Event Loop: ${report.eventLoopDelayMs.toFixed(1)}ms | Heap: ${report.heapPercent.toFixed(1)}% (${report.heapMB.toFixed(0)}MB/${report.totalMB.toFixed(1)}MB)`,
       );
+    };
+
+    const defaultShutdownHandler = () => {
+      console.log("[PerformanceMonitor] Monitoring shut down");
     };
 
     this.#onCriticalResponse =
@@ -65,6 +74,9 @@ export class PerformanceMonitor {
 
     this.#onHealthReport = config.onHealthReport ?? defaultHealthReportHandler;
     this.#onResponse = config.onResponse;
+    this.#onShutdown = config.onShutdown ?? defaultShutdownHandler;
+    this.#eventLoopHistogram = monitorEventLoopDelay();
+    this.#eventLoopHistogram.enable();
     this.#lastCpuUsage = process.cpuUsage();
     this.#lastCpuTime = Date.now();
 
@@ -105,15 +117,20 @@ export class PerformanceMonitor {
   #logHealthReport() {
     const cpuPercent = this.#getCpuPercent();
     const mem = this.#getMemory();
+    const mean = this.#eventLoopHistogram.mean;
+    const eventLoopDelayMs = Number.isNaN(mean) ? 0 : mean / 1e6;
+    this.#eventLoopHistogram.reset();
     this.#onHealthReport({
       cpuPercent,
+      eventLoopDelayMs,
       ...mem,
     });
   }
 
   shutdown() {
     clearInterval(this.#interval);
-    console.log("[PerformanceMonitor] Monitoring shut down");
+    this.#eventLoopHistogram.disable();
+    this.#onShutdown();
   }
 
   middleware(): AgentMiddleware {

@@ -57,6 +57,7 @@ describe("PerformanceMonitor", () => {
       expect(onHealthReport).toHaveBeenCalledOnce();
       const report: HealthReport = onHealthReport.mock.calls[0]![0];
       expect(report.cpuPercent).toBeTypeOf("number");
+      expect(report.eventLoopDelayMs).toBeTypeOf("number");
       expect(report.heapMB).toBeTypeOf("number");
       expect(report.heapPercent).toBeTypeOf("number");
       expect(report.heapLimitMB).toBeTypeOf("number");
@@ -78,13 +79,20 @@ describe("PerformanceMonitor", () => {
   });
 
   describe("shutdown", () => {
-    it("logs shutdown message", () => {
+    it("logs shutdown message by default", () => {
       const spy = vi.spyOn(console, "log");
       monitor = new PerformanceMonitor();
       monitor.shutdown();
       expect(spy).toHaveBeenCalledWith(
         "[PerformanceMonitor] Monitoring shut down",
       );
+    });
+
+    it("calls custom onShutdown handler instead of logging", () => {
+      const onShutdown = vi.fn();
+      monitor = new PerformanceMonitor({ onShutdown });
+      monitor.shutdown();
+      expect(onShutdown).toHaveBeenCalledOnce();
     });
   });
 
