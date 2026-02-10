@@ -166,3 +166,11 @@ All commands support `--json` for machine-readable output:
 DM_ID=$(xmtp conversations create-dm <address> --json | jq -r '.id')
 xmtp conversation send-text "$DM_ID" "Hello!"
 ```
+
+### Verbose Output
+
+Use `--verbose` to see detailed client initialization info. When combined with `--json`, verbose logs go to stderr:
+
+```bash
+xmtp client info --verbose
+```

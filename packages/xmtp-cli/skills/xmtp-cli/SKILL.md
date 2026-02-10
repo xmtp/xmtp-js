@@ -83,6 +83,13 @@ All commands support `--json` for machine-readable JSON output:
 xmtp client info --json
 ```
 
+Use `--verbose` to see detailed client initialization logs (env, db path, etc.). When combined with `--json`, verbose output goes to stderr so it doesn't interfere with JSON parsing:
+
+```bash
+xmtp client info --verbose
+xmtp conversations list --json --verbose 2>/dev/null
+```
+
 ## Common Workflows
 
 ### Check if an Address Can Receive Messages
@@ -427,9 +434,6 @@ xmtp conversation permissions <conversation-id>
 
 # get internal debug info for a conversation
 xmtp conversation debug-info <conversation-id>
-
-# fetch a specific conversation by its ID
-xmtp conversations get <conversation-id>
 
 # fetch a specific message by its ID
 xmtp conversations get-message <message-id>
