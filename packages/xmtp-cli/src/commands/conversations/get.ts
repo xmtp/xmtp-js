@@ -61,10 +61,12 @@ Use this to inspect the full details of a specific conversation.`;
       id: conversation.id,
       type: isGroup(conversation) ? "group" : "dm",
       createdAt: conversation.createdAt.toISOString(),
+      createdAtNs: conversation.createdAtNs,
       consentState: conversation.consentState(),
       isActive: conversation.isActive,
       addedByInboxId: conversation.addedByInboxId,
       creatorInboxId: metadata.creatorInboxId,
+      memberCount: members.length,
       members: members.map((m) => ({
         inboxId: m.inboxId,
         accountIdentifiers: m.accountIdentifiers,

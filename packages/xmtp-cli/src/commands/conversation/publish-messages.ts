@@ -40,6 +40,10 @@ queued locally. This is used after sending messages with the
 
     await conversation.publishMessages();
 
-    this.output({ conversationId: args.id });
+    this.output({
+      success: true,
+      conversationId: args.id,
+      message: "Messages published successfully",
+    });
   }
 }

@@ -71,9 +71,6 @@
       "conversations": {
         "description": "List, create, and stream conversations"
       },
-      "debug": {
-        "description": "View API statistics and debug information"
-      },
       "preferences": {
         "description": "Manage consent and sync preferences"
       }

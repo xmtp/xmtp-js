@@ -105,7 +105,7 @@ Use --sort-by to choose between sorting by sent time or insertion time.`;
     direction: Flags.option({
       options: ["ascending", "descending"] as const,
       description: "Sort direction (ascending = oldest first)",
-      default: "descending" as const,
+      default: "descending",
     })(),
     "sort-by": Flags.option({
       options: ["sent-at", "inserted-at"] as const,

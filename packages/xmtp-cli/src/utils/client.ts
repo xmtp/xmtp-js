@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
-import { Client, IdentifierKind, LogLevel } from "@xmtp/node-sdk";
+import { Client, IdentifierKind, LogLevel, type Signer } from "@xmtp/node-sdk";
 import { isHex, toBytes } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import type { XmtpConfig } from "./config.js";
@@ -33,6 +33,21 @@ function parseLogLevel(value: string | undefined): LogLevel | undefined {
   return LOG_LEVELS[value];
 }
 
+export function createEOASigner(walletKey: string): Signer {
+  const account = privateKeyToAccount(walletKey as `0x${string}`);
+  return {
+    type: "EOA" as const,
+    getIdentifier: () => ({
+      identifierKind: IdentifierKind.Ethereum,
+      identifier: account.address.toLowerCase(),
+    }),
+    signMessage: async (message: string) => {
+      const signature = await account.signMessage({ message });
+      return toBytes(signature);
+    },
+  };
+}
+
 export function hexToBytes(value: string): Uint8Array {
   const hex = value.startsWith("0x") ? value : `0x${value}`;
   if (!isHex(hex, { strict: true })) {
@@ -54,19 +69,7 @@ export async function createClient(config: XmtpConfig): Promise<Client> {
     );
   }
 
-  const account = privateKeyToAccount(config.walletKey as `0x${string}`);
-
-  const signer = {
-    type: "EOA" as const,
-    getIdentifier: () => ({
-      identifierKind: IdentifierKind.Ethereum,
-      identifier: account.address.toLowerCase(),
-    }),
-    signMessage: async (message: string) => {
-      const signature = await account.signMessage({ message });
-      return toBytes(signature);
-    },
-  };
+  const signer = createEOASigner(config.walletKey);
 
   if (config.dbPath) {
     await mkdir(dirname(config.dbPath), { recursive: true });
@@ -84,9 +87,4 @@ export async function createClient(config: XmtpConfig): Promise<Client> {
   });
 
   return client;
-}
-
-export function getAccountAddress(walletKey: string): string {
-  const account = privateKeyToAccount(walletKey as `0x${string}`);
-  return account.address;
 }

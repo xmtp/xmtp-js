@@ -1,6 +1,6 @@
 import { Args, Flags } from "@oclif/core";
-import { ConsentState } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
+import { consentStateMap } from "../../utils/enums.js";
 
 export default class ConversationUpdateConsent extends BaseCommand {
   static description = `Update the consent state of a conversation.
@@ -61,12 +61,6 @@ and may affect push notification behavior.`;
     if (!conversation) {
       this.error(`Conversation not found: ${args.id}`);
     }
-
-    const consentStateMap: Record<string, ConsentState> = {
-      allowed: ConsentState.Allowed,
-      denied: ConsentState.Denied,
-      unknown: ConsentState.Unknown,
-    };
 
     const newState = consentStateMap[flags.state];
     conversation.updateConsentState(newState);

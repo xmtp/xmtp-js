@@ -1,6 +1,6 @@
 import { Args, Flags } from "@oclif/core";
-import { IdentifierKind } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
+import { identifierKindMap } from "../../utils/enums.js";
 
 export default class ConversationsCreateDm extends BaseCommand {
   static description = `Create a new DM conversation.
@@ -40,19 +40,15 @@ Returns the DM's ID and details.`;
   static flags = {
     ...BaseCommand.baseFlags,
     "identifier-kind": Flags.option({
-      options: ["ethereum"] as const,
+      options: ["ethereum", "passkey"] as const,
       description: "The type of identifier",
-      default: "ethereum" as const,
+      default: "ethereum",
     })(),
   };
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ConversationsCreateDm);
     const client = await this.initClient();
-
-    const identifierKindMap: Record<string, IdentifierKind> = {
-      ethereum: IdentifierKind.Ethereum,
-    };
 
     const identifier = {
       identifier: args.identifier.toLowerCase(),

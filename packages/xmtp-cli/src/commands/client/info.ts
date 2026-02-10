@@ -1,5 +1,4 @@
 import { BaseCommand } from "../../baseCommand.js";
-import { getAccountAddress } from "../../utils/client.js";
 import { formatSections } from "../../utils/output.js";
 
 export default class ClientInfo extends BaseCommand {
@@ -33,17 +32,12 @@ application instance using your identity.`;
   };
 
   async run(): Promise<void> {
-    const config = this.getConfig();
     const client = await this.initClient();
-
-    if (!config.walletKey) {
-      this.error("Wallet key is required");
-    }
 
     const options = client.options ?? {};
 
     const properties = {
-      address: getAccountAddress(config.walletKey),
+      address: client.accountIdentifier?.identifier,
       inboxId: client.inboxId,
       installationId: client.installationId,
       isRegistered: client.isRegistered,

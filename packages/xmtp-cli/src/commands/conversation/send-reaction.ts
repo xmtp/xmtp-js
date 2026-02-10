@@ -91,8 +91,10 @@ and published via 'conversation publish-messages').`;
     );
 
     this.output({
+      success: true,
       messageId,
       conversationId: args.id,
+      optimistic: flags.optimistic,
       reaction: {
         reference: args.messageId,
         content: args.content,

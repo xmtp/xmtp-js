@@ -1,8 +1,6 @@
 import { Flags } from "@oclif/core";
-import { IdentifierKind, type Signer } from "@xmtp/node-sdk";
-import { toBytes } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { BaseCommand } from "../../baseCommand.js";
+import { createEOASigner } from "../../utils/client.js";
 
 export default class ClientAddAccount extends BaseCommand {
   static description = `Add a new account (wallet) to the client's inbox.
@@ -54,32 +52,20 @@ want to add. This wallet must sign a message to authorize the association.`;
     const client = await this.initClient();
 
     // Validate the wallet key before confirming
-    const newAccount = privateKeyToAccount(
-      flags["new-wallet-key"] as `0x${string}`,
-    );
+    const newSigner = createEOASigner(flags["new-wallet-key"]);
 
     await this.confirmAction(
       "Adding an account to your inbox is a sensitive operation. If the wallet is already associated with another inbox, it will lose access to that inbox.",
       flags.force,
     );
 
-    const newSigner: Signer = {
-      type: "EOA" as const,
-      getIdentifier: () => ({
-        identifierKind: IdentifierKind.Ethereum,
-        identifier: newAccount.address.toLowerCase(),
-      }),
-      signMessage: async (message: string) => {
-        const signature = await newAccount.signMessage({ message });
-        return toBytes(signature);
-      },
-    };
-
     await client.unsafe_addAccount(newSigner, true);
+
+    const identifier = await newSigner.getIdentifier();
 
     this.output({
       success: true,
-      newAddress: newAccount.address,
+      newAddress: identifier.identifier,
       inboxId: client.inboxId,
       message: "Account successfully added to inbox",
     });

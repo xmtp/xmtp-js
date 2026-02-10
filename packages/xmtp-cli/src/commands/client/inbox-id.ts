@@ -1,6 +1,6 @@
 import { Flags } from "@oclif/core";
-import { IdentifierKind } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
+import { identifierKindMap } from "../../utils/enums.js";
 
 export default class ClientInboxId extends BaseCommand {
   static description = `Fetch the inbox ID for an identifier.
@@ -50,11 +50,6 @@ Returns null if the identifier has no associated inbox ID (not registered).`;
   async run(): Promise<void> {
     const { flags } = await this.parse(ClientInboxId);
     const client = await this.initClient();
-
-    const identifierKindMap: Record<string, IdentifierKind> = {
-      ethereum: IdentifierKind.Ethereum,
-      passkey: IdentifierKind.Passkey,
-    };
 
     const identifier = {
       identifierKind: identifierKindMap[flags.kind],

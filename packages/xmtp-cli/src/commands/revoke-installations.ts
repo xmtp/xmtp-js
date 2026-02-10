@@ -1,9 +1,7 @@
 import { Args, Flags } from "@oclif/core";
-import { Client, IdentifierKind } from "@xmtp/node-sdk";
-import { toBytes } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { Client } from "@xmtp/node-sdk";
 import { BaseCommand } from "../baseCommand.js";
-import { hexToBytes } from "../utils/client.js";
+import { createEOASigner, hexToBytes } from "../utils/client.js";
 
 export default class RevokeInstallations extends BaseCommand {
   static description = `Revoke specific installations from an inbox.
@@ -86,23 +84,8 @@ This command requires:
 
     const env = config.env ?? "dev";
 
-    // Create signer from wallet key
-    const account = privateKeyToAccount(config.walletKey as `0x${string}`);
-
-    const signer = {
-      type: "EOA" as const,
-      getIdentifier: () => ({
-        identifierKind: IdentifierKind.Ethereum,
-        identifier: account.address.toLowerCase(),
-      }),
-      signMessage: async (message: string) => {
-        const signature = await account.signMessage({ message });
-        return toBytes(signature);
-      },
-    };
-
     await Client.revokeInstallations(
-      signer,
+      createEOASigner(config.walletKey),
       args.inboxId,
       installationIds,
       env,

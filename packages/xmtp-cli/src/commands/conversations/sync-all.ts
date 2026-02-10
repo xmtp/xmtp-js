@@ -1,6 +1,7 @@
 import { Flags } from "@oclif/core";
-import { ConsentState } from "@xmtp/node-sdk";
+import { type ConsentState } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
+import { consentStateMap } from "../../utils/enums.js";
 
 export default class ConversationsSyncAll extends BaseCommand {
   static description = `Sync all conversations and messages from the network.
@@ -43,12 +44,6 @@ Use this when you need a complete refresh of all XMTP data.`;
   async run(): Promise<void> {
     const { flags } = await this.parse(ConversationsSyncAll);
     const client = await this.initClient();
-
-    const consentStateMap: Record<string, ConsentState> = {
-      allowed: ConsentState.Allowed,
-      denied: ConsentState.Denied,
-      unknown: ConsentState.Unknown,
-    };
 
     let consentStates: ConsentState[] | undefined;
     if (flags["consent-state"] && flags["consent-state"].length > 0) {

@@ -36,16 +36,19 @@ Each key includes the key data and associated metadata.`;
     const hmacKeys = client.conversations.hmacKeys();
 
     // Convert the HMAC keys to a serializable format
-    const output: Record<string, unknown[]> = {};
+    const output: Record<
+      string,
+      {
+        key: string;
+        epoch: bigint;
+      }[]
+    > = {};
 
     for (const [conversationId, keys] of Object.entries(hmacKeys)) {
-      output[conversationId] = (keys as unknown[]).map((key: unknown) => {
-        const k = key as { key: Uint8Array; epoch: bigint };
-        return {
-          key: Buffer.from(k.key).toString("hex"),
-          epoch: k.epoch,
-        };
-      });
+      output[conversationId] = keys.map((k) => ({
+        key: Buffer.from(k.key).toString("hex"),
+        epoch: k.epoch,
+      }));
     }
 
     this.output(output);

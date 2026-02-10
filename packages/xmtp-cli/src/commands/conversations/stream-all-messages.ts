@@ -1,6 +1,7 @@
 import { Flags } from "@oclif/core";
-import { ConsentState, ConversationType } from "@xmtp/node-sdk";
+import { type ConsentState, type ConversationType } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
+import { consentStateMap, conversationTypeMap } from "../../utils/enums.js";
 
 export default class ConversationsStreamAllMessages extends BaseCommand {
   static description = `Stream all messages from all conversations.
@@ -83,17 +84,6 @@ Output includes message ID, conversation ID, sender, content, and timestamps.`;
     let messageCount = 0;
     const maxCount = flags.count;
     const timeoutMs = flags.timeout ? flags.timeout * 1000 : undefined;
-
-    const conversationTypeMap: Record<string, ConversationType> = {
-      group: ConversationType.Group,
-      dm: ConversationType.Dm,
-    };
-
-    const consentStateMap: Record<string, ConsentState> = {
-      allowed: ConsentState.Allowed,
-      denied: ConsentState.Denied,
-      unknown: ConsentState.Unknown,
-    };
 
     const streamOptions: {
       conversationType?: ConversationType;

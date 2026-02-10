@@ -1,6 +1,7 @@
 import { Flags } from "@oclif/core";
-import { ConsentEntityType, ConsentState } from "@xmtp/node-sdk";
+import { ConsentEntityType } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
+import { consentStateMap } from "../../utils/enums.js";
 
 export default class PreferencesSetConsent extends BaseCommand {
   static description = `Set consent state for an entity.
@@ -42,8 +43,6 @@ affect push notification behavior across all your installations.`;
     },
   ];
 
-  static args = {};
-
   static flags = {
     ...BaseCommand.baseFlags,
     "entity-type": Flags.option({
@@ -69,12 +68,6 @@ affect push notification behavior across all your installations.`;
     const entityTypeMap: Record<string, ConsentEntityType> = {
       inbox_id: ConsentEntityType.InboxId,
       conversation_id: ConsentEntityType.GroupId,
-    };
-
-    const consentStateMap: Record<string, ConsentState> = {
-      allowed: ConsentState.Allowed,
-      denied: ConsentState.Denied,
-      unknown: ConsentState.Unknown,
     };
 
     const entityType = entityTypeMap[flags["entity-type"]];

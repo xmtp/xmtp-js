@@ -67,6 +67,13 @@ This command is useful for inspecting the full details of a specific conversatio
       addedByInboxId: conversation.addedByInboxId,
       creatorInboxId: metadata.creatorInboxId,
       memberCount: members.length,
+      members: members.map((m) => ({
+        inboxId: m.inboxId,
+        accountIdentifiers: m.accountIdentifiers,
+        installationIds: m.installationIds,
+        permissionLevel: m.permissionLevel,
+        consentState: m.consentState,
+      })),
     };
 
     if (isGroup(conversation)) {

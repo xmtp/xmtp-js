@@ -1,11 +1,8 @@
 import { Flags } from "@oclif/core";
-import {
-  ConsentState,
-  ConversationType,
-  ListConversationsOrderBy,
-} from "@xmtp/node-sdk";
+import { ListConversationsOrderBy } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
 import { isDm, isGroup } from "../../utils/conversation.js";
+import { consentStateMap, conversationTypeMap } from "../../utils/enums.js";
 
 export default class ConversationsList extends BaseCommand {
   static description = `List all conversations.
@@ -84,17 +81,6 @@ Use --created-after / --created-before to filter by creation time.`;
     if (flags.sync) {
       await client.conversations.sync();
     }
-
-    const consentStateMap: Record<string, ConsentState> = {
-      allowed: ConsentState.Allowed,
-      denied: ConsentState.Denied,
-      unknown: ConsentState.Unknown,
-    };
-
-    const conversationTypeMap: Record<string, ConversationType> = {
-      dm: ConversationType.Dm,
-      group: ConversationType.Group,
-    };
 
     const orderByMap: Record<string, ListConversationsOrderBy> = {
       "created-at": ListConversationsOrderBy.CreatedAt,

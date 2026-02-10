@@ -1,7 +1,7 @@
 import { Flags } from "@oclif/core";
-import { ConversationType } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
 import { isDm, isGroup } from "../../utils/conversation.js";
+import { conversationTypeMap } from "../../utils/enums.js";
 
 export default class ConversationsStream extends BaseCommand {
   static description = `Stream new conversations.
@@ -63,11 +63,6 @@ The stream will continue until:
     let conversationCount = 0;
     const maxCount = flags.count;
     const timeoutMs = flags.timeout ? flags.timeout * 1000 : undefined;
-
-    const conversationTypeMap: Record<string, ConversationType> = {
-      dm: ConversationType.Dm,
-      group: ConversationType.Group,
-    };
 
     const stream = await client.conversations.stream({
       conversationType: flags.type

@@ -74,7 +74,7 @@ Returns the new group's ID and details.`;
     permissions: Flags.option({
       options: ["all-members", "admin-only"] as const,
       description: "Permission preset for the group",
-      default: "all-members" as const,
+      default: "all-members",
     })(),
   };
 

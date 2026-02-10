@@ -1,6 +1,6 @@
 import { Flags } from "@oclif/core";
-import { IdentifierKind } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
+import { identifierKindMap } from "../../utils/enums.js";
 
 export default class ClientRemoveAccount extends BaseCommand {
   static description = `Remove an account (wallet) from the client's inbox.
@@ -57,11 +57,6 @@ this client's inbox.`;
     const client = await this.initClient();
 
     // Build identifier before confirming so invalid input fails fast
-    const identifierKindMap: Record<string, IdentifierKind> = {
-      ethereum: IdentifierKind.Ethereum,
-      passkey: IdentifierKind.Passkey,
-    };
-
     const identifier = {
       identifierKind: identifierKindMap[flags.kind],
       identifier: flags.identifier.toLowerCase(),
