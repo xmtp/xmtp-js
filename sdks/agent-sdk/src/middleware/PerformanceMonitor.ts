@@ -84,7 +84,7 @@ export class PerformanceMonitor {
       this.#logHealthReport();
       this.#interval = setInterval(() => {
         this.#logHealthReport();
-      }, healthReportInterval);
+      }, healthReportInterval).unref();
     }
   }
 
