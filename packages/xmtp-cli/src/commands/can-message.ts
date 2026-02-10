@@ -2,6 +2,9 @@ import { Args } from "@oclif/core";
 import { Client, IdentifierKind } from "@xmtp/node-sdk";
 import { BaseCommand } from "../baseCommand.js";
 
+// gateway-host is not supported by Client.canMessage
+const { "gateway-host": _, ...canMessageFlags } = BaseCommand.commonFlags;
+
 export default class CanMessage extends BaseCommand {
   static description = `Check if one or more identifiers can receive XMTP messages.
 
@@ -35,9 +38,7 @@ XMTP messages (true/false).`;
     }),
   };
 
-  static flags = {
-    ...BaseCommand.commonFlags,
-  };
+  static flags = canMessageFlags;
 
   async run(): Promise<void> {
     const { argv } = await this.parse(CanMessage);
@@ -48,7 +49,7 @@ XMTP messages (true/false).`;
     }
 
     const config = this.getConfig();
-    const env = config.env ?? "dev";
+    const env = config.env;
 
     const identifierObjects = identifiers.map((id) => ({
       identifierKind: IdentifierKind.Ethereum,

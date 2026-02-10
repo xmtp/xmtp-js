@@ -50,7 +50,7 @@ This is useful for:
     const { args } = await this.parse(AddressAuthorized);
 
     const config = this.getConfig();
-    const env = config.env ?? "dev";
+    const env = config.env;
 
     const isAuthorized = await Client.isAddressAuthorized(
       args.inboxId,

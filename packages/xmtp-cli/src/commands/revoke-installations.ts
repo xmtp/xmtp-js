@@ -49,7 +49,11 @@ This command requires:
   };
 
   static flags = {
-    ...BaseCommand.baseFlags,
+    ...BaseCommand.commonFlags,
+    "wallet-key": Flags.string({
+      description: "Wallet private key (required for signing)",
+      helpValue: "<key>",
+    }),
     "installation-ids": Flags.string({
       char: "i",
       description:
@@ -91,7 +95,7 @@ This command requires:
       flags.force,
     );
 
-    const env = config.env ?? "dev";
+    const env = config.env;
 
     await Client.revokeInstallations(
       createEOASigner(config.walletKey),

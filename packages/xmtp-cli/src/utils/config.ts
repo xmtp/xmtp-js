@@ -7,20 +7,8 @@ export const DEFAULT_HOME_DIR = join(homedir(), ".xmtp");
 export const DEFAULT_ENV_PATH = join(DEFAULT_HOME_DIR, ".env");
 export const DEFAULT_DB_PATH = join(DEFAULT_HOME_DIR, "xmtp-db");
 
-export type XmtpConfig = {
-  walletKey?: string;
-  dbEncryptionKey?: string;
-  dbPath?: string;
-  env?: XmtpEnv;
-  gatewayHost?: string;
-  logLevel?: "off" | "error" | "warn" | "info" | "debug" | "trace";
-  structuredLogging?: boolean;
-  disableDeviceSync?: boolean;
-  appVersion?: string;
-};
-
 export const VALID_ENVS = ["local", "dev", "production"] as const;
-const VALID_LOG_LEVELS = [
+export const VALID_LOG_LEVELS = [
   "off",
   "error",
   "warn",
@@ -28,6 +16,18 @@ const VALID_LOG_LEVELS = [
   "debug",
   "trace",
 ] as const;
+
+export type XmtpConfig = {
+  walletKey?: string;
+  dbEncryptionKey?: string;
+  dbPath?: string;
+  env?: XmtpEnv;
+  gatewayHost?: string;
+  logLevel?: (typeof VALID_LOG_LEVELS)[number];
+  structuredLogging?: boolean;
+  disableDeviceSync?: boolean;
+  appVersion?: string;
+};
 
 function parseEnv(value: string | undefined): XmtpConfig["env"] {
   return VALID_ENVS.includes(value as (typeof VALID_ENVS)[number])

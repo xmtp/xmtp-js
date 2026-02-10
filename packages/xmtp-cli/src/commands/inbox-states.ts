@@ -61,7 +61,7 @@ Use this command to inspect the state of any inbox on the network.`;
     }
 
     const config = this.getConfig();
-    const env = config.env ?? "dev";
+    const env = config.env;
 
     const states = await Client.fetchInboxStates(
       inboxIds,

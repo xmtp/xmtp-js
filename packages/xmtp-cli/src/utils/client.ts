@@ -34,7 +34,11 @@ function parseLogLevel(value: string | undefined): LogLevel | undefined {
 }
 
 export function createEOASigner(walletKey: string): Signer {
-  const account = privateKeyToAccount(walletKey as `0x${string}`);
+  const hex = walletKey.startsWith("0x") ? walletKey : `0x${walletKey}`;
+  if (!isHex(hex, { strict: true })) {
+    throw new Error("Invalid wallet key: must be a hex string");
+  }
+  const account = privateKeyToAccount(hex);
   return {
     type: "EOA" as const,
     getIdentifier: () => ({

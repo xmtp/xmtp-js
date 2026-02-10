@@ -54,7 +54,7 @@ The installation ID should be provided as a hex-encoded string.`;
     const { args } = await this.parse(InstallationAuthorized);
 
     const config = this.getConfig();
-    const env = config.env ?? "dev";
+    const env = config.env;
 
     // Convert hex string to Uint8Array
     const installationBytes = hexToBytes(args.installationId);
