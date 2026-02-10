@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 2.1.0
+
+### Minor Changes
+
+- 126833a: Added PerformanceMonitor middleware
+
 ## 2.0.2
 
 ### Patch Changes
