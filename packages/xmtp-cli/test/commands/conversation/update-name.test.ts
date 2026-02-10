@@ -40,8 +40,8 @@ describe("conversation update-name", () => {
 
     // Verify name was updated
     const infoResult = await runWithIdentity(creator, [
-      "conversation",
-      "info",
+      "conversations",
+      "get",
       group.id,
       "--json",
     ]);

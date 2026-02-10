@@ -9,11 +9,12 @@ interface Conversation {
   id: string;
   createdAt: string;
   isActive: boolean;
+  memberCount: number;
 }
 
 interface GroupConversation extends Conversation {
   name?: string;
-  memberCount: number;
+  description?: string;
 }
 
 describe("conversations get", () => {
@@ -43,6 +44,66 @@ describe("conversations get", () => {
     const conversation = parseJsonOutput<GroupConversation>(getResult.stdout);
     expect(conversation.id).toBe(created.id);
     expect(conversation.name).toBe("My Group");
+  });
+
+  it("returns group info with metadata", async () => {
+    const creator = await createRegisteredIdentity();
+    const member = await createRegisteredIdentity();
+
+    const groupResult = await runWithIdentity(creator, [
+      "conversations",
+      "create-group",
+      member.address,
+      "--name",
+      "Test Group",
+      "--description",
+      "A test group",
+      "--json",
+    ]);
+    const group = parseJsonOutput<{ id: string }>(groupResult.stdout);
+
+    const getResult = await runWithIdentity(creator, [
+      "conversations",
+      "get",
+      group.id,
+      "--json",
+    ]);
+
+    expect(getResult.exitCode).toBe(0);
+
+    const info = parseJsonOutput<GroupConversation>(getResult.stdout);
+    expect(info.id).toBe(group.id);
+    expect(info.name).toBe("Test Group");
+    expect(info.description).toBe("A test group");
+    expect(info.isActive).toBe(true);
+    expect(info.memberCount).toBe(2);
+  });
+
+  it("returns DM info", async () => {
+    const sender = await createRegisteredIdentity();
+    const recipient = await createRegisteredIdentity();
+
+    const dmResult = await runWithIdentity(sender, [
+      "conversations",
+      "create-dm",
+      recipient.address,
+      "--json",
+    ]);
+    const dm = parseJsonOutput<{ id: string }>(dmResult.stdout);
+
+    const getResult = await runWithIdentity(sender, [
+      "conversations",
+      "get",
+      dm.id,
+      "--json",
+    ]);
+
+    expect(getResult.exitCode).toBe(0);
+
+    const info = parseJsonOutput<Conversation>(getResult.stdout);
+    expect(info.id).toBe(dm.id);
+    expect(info.isActive).toBe(true);
+    expect(info.memberCount).toBe(2);
   });
 
   it("returns error for non-existent conversation", async () => {

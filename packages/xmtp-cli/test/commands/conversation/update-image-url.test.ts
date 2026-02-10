@@ -39,8 +39,8 @@ describe("conversation update-image-url", () => {
     expect(updateResult.exitCode).toBe(0);
 
     const infoResult = await runWithIdentity(creator, [
-      "conversation",
-      "info",
+      "conversations",
+      "get",
       group.id,
       "--json",
     ]);

@@ -420,7 +420,7 @@ xmtp client inbox-id --identifier <address>
 
 ```bash
 # get detailed info about a conversation (type, metadata, members)
-xmtp conversation info <conversation-id>
+xmtp conversations get <conversation-id>
 
 # get the permission policies for a group conversation
 xmtp conversation permissions <conversation-id>
