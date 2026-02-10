@@ -92,13 +92,14 @@ export class PerformanceMonitor {
     const currentCpuUsage = process.cpuUsage(this.#lastCpuUsage);
     const elapsedMs = Date.now() - this.#lastCpuTime;
     const totalCpuMicros = currentCpuUsage.user + currentCpuUsage.system;
+    const elapsedMicros = elapsedMs * 1000;
     const percent =
-      elapsedMs > 0 ? (totalCpuMicros / (elapsedMs * 1000)) * 100 : 0;
+      elapsedMicros > 0 ? (totalCpuMicros / elapsedMicros) * 100 : 0;
 
     this.#lastCpuUsage = process.cpuUsage();
     this.#lastCpuTime = Date.now();
 
-    return Math.min(percent, 100);
+    return percent;
   }
 
   #getMemory() {
