@@ -124,5 +124,55 @@ describe("PerformanceMonitor", () => {
       expect(onResponse).toHaveBeenCalledTimes(2);
       expect(onResponse).toHaveBeenCalledWith(expect.any(Number));
     });
+
+    it("calls onCriticalResponse when duration exceeds threshold", async () => {
+      vi.useRealTimers();
+      const onCriticalResponse = vi.fn();
+      monitor = new PerformanceMonitor({
+        healthReportInterval: 999_999,
+        criticalThresholdInterval: 100,
+        onCriticalResponse,
+      });
+      const mw = monitor.middleware();
+      const slowNext = vi.fn(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      });
+      await mw({} as never, slowNext);
+      expect(onCriticalResponse).toHaveBeenCalledOnce();
+      expect(onCriticalResponse).toHaveBeenCalledWith(expect.any(Number));
+      const duration = onCriticalResponse.mock.calls[0]![0] as number;
+      expect(duration).toBeGreaterThan(100);
+    });
+
+    it("does not call onCriticalResponse when duration is below threshold", async () => {
+      vi.useRealTimers();
+      const onCriticalResponse = vi.fn();
+      monitor = new PerformanceMonitor({
+        healthReportInterval: 999_999,
+        criticalThresholdInterval: 100,
+        onCriticalResponse,
+      });
+      const mw = monitor.middleware();
+      const fastNext = vi.fn();
+      await mw({} as never, fastNext);
+      expect(onCriticalResponse).not.toHaveBeenCalled();
+    });
+
+    it("uses default onCriticalResponse handler when not provided", async () => {
+      vi.useRealTimers();
+      const spy = vi.spyOn(console, "warn");
+      monitor = new PerformanceMonitor({
+        healthReportInterval: 999_999,
+        criticalThresholdInterval: 100,
+      });
+      const mw = monitor.middleware();
+      const slowNext = vi.fn(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      });
+      await mw({} as never, slowNext);
+      expect(spy).toHaveBeenCalledWith(
+        expect.stringContaining("Critical: Response time exceeded"),
+      );
+    });
   });
 });
