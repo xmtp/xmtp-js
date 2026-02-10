@@ -38,7 +38,7 @@ export class PerformanceMonitor {
   #interval: ReturnType<typeof setInterval> | undefined;
   #lastCpuUsage: NodeJS.CpuUsage;
   #lastCpuTime: number;
-  #criticalThresholdMs: number;
+  #criticalThresholdInterval: number;
   #onCriticalResponse: (durationMs: number) => void;
   #onHealthReport: (report: HealthReport) => void;
   #onResponse?: (durationMs: number) => void;
@@ -51,7 +51,7 @@ export class PerformanceMonitor {
       criticalThresholdInterval = 10_000,
     } = config;
 
-    this.#criticalThresholdMs = criticalThresholdInterval;
+    this.#criticalThresholdInterval = criticalThresholdInterval;
 
     const defaultCriticalResponseHandler = (durationMs: number) => {
       console.warn(
@@ -142,7 +142,7 @@ export class PerformanceMonitor {
       } finally {
         const duration = performance.now() - start;
         this.#onResponse?.(duration);
-        if (duration > this.#criticalThresholdMs) {
+        if (duration > this.#criticalThresholdInterval) {
           this.#onCriticalResponse(duration);
         }
       }
