@@ -48,7 +48,7 @@ describe("PerformanceMonitor", () => {
     });
 
     it("calls custom onHealthReport handler instead of logging", () => {
-      const onHealthReport = vi.fn();
+      const onHealthReport = vi.fn<(report: HealthReport) => void>();
       monitor = new PerformanceMonitor({
         healthReportInterval: 5_000,
         onHealthReport,
