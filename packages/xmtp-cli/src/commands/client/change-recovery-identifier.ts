@@ -18,8 +18,7 @@ Use cases:
 - Rotating recovery credentials periodically
 - Migrating recovery to a different wallet
 
-The recovery identifier can be any supported identifier type (Ethereum
-address, passkey, etc.).`;
+The recovery identifier must be an Ethereum address.`;
 
   static examples = [
     {
@@ -42,7 +41,7 @@ address, passkey, etc.).`;
     }),
     kind: Flags.option({
       char: "k",
-      options: ["ethereum", "passkey"] as const,
+      options: ["ethereum"] as const,
       description: "Type of identifier",
       default: "ethereum",
     })(),

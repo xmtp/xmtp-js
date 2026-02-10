@@ -2,7 +2,6 @@ import { ConsentState, ConversationType, IdentifierKind } from "@xmtp/node-sdk";
 
 export const identifierKindMap: Record<string, IdentifierKind> = {
   ethereum: IdentifierKind.Ethereum,
-  passkey: IdentifierKind.Passkey,
 };
 
 export const consentStateMap: Record<string, ConsentState> = {

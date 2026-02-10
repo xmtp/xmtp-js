@@ -41,7 +41,7 @@ Returns null if the identifier has no associated inbox ID (not registered).`;
     }),
     kind: Flags.option({
       char: "k",
-      options: ["ethereum", "passkey"] as const,
+      options: ["ethereum"] as const,
       description: "Type of identifier",
       default: "ethereum",
     })(),

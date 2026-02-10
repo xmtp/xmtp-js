@@ -40,7 +40,7 @@ Returns the DM's ID and details.`;
   static flags = {
     ...BaseCommand.baseFlags,
     "identifier-kind": Flags.option({
-      options: ["ethereum", "passkey"] as const,
+      options: ["ethereum"] as const,
       description: "The type of identifier",
       default: "ethereum",
     })(),
