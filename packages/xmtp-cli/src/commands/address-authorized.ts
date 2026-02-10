@@ -43,7 +43,7 @@ This is useful for:
   };
 
   static flags = {
-    ...BaseCommand.baseFlags,
+    ...BaseCommand.commonFlags,
   };
 
   async run(): Promise<void> {

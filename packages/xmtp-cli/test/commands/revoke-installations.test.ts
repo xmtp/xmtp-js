@@ -8,8 +8,10 @@ describe("revoke-installations", () => {
 
     const result = await runWithIdentity(identity, [
       "revoke-installations",
+      identity.inboxId,
       "--installation-ids",
       fakeInstallationId,
+      "--force",
       "--json",
     ]);
 
@@ -22,6 +24,7 @@ describe("revoke-installations", () => {
 
     const result = await runWithIdentity(identity, [
       "revoke-installations",
+      identity.inboxId,
       "--json",
     ]);
 

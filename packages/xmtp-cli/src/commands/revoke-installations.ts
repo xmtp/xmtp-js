@@ -57,6 +57,10 @@ This command requires:
       required: true,
       multiple: true,
     }),
+    force: Flags.boolean({
+      description: "Skip confirmation prompt",
+      default: false,
+    }),
   };
 
   async run(): Promise<void> {
@@ -79,8 +83,13 @@ This command requires:
       this.error("At least one installation ID is required");
     }
 
-    // Convert hex strings to Uint8Array
+    // Validate hex strings before confirming
     const installationIds = installationIdStrings.map(hexToBytes);
+
+    await this.confirmAction(
+      `Revoking ${installationIdStrings.length} installation(s) is irreversible. They will immediately lose access to send or receive messages.`,
+      flags.force,
+    );
 
     const env = config.env ?? "dev";
 

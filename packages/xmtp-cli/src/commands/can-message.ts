@@ -36,7 +36,7 @@ XMTP messages (true/false).`;
   };
 
   static flags = {
-    ...BaseCommand.baseFlags,
+    ...BaseCommand.commonFlags,
   };
 
   async run(): Promise<void> {

@@ -47,7 +47,7 @@ The installation ID should be provided as a hex-encoded string.`;
   };
 
   static flags = {
-    ...BaseCommand.baseFlags,
+    ...BaseCommand.commonFlags,
   };
 
   async run(): Promise<void> {

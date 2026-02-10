@@ -12,7 +12,8 @@ import {
 import { formatOutput, isTTY, jsonStringify } from "./utils/output.js";
 
 export class BaseCommand extends Command {
-  static baseFlags = {
+  /** Flags shared by all commands (including those that don't need a client). */
+  static commonFlags = {
     "env-file": Flags.string({
       description: "Path to .env file",
       helpValue: "<path>",
@@ -21,6 +22,22 @@ export class BaseCommand extends Command {
       options: [...VALID_ENVS],
       description: "XMTP environment",
     })(),
+    "gateway-host": Flags.string({
+      description: "Custom gateway URL",
+      helpValue: "<url>",
+    }),
+    json: Flags.boolean({
+      description: "Format output as JSON",
+    }),
+    verbose: Flags.boolean({
+      description: "Show additional diagnostic information",
+      default: false,
+    }),
+  };
+
+  /** Full flag set for commands that create a client. */
+  static baseFlags = {
+    ...BaseCommand.commonFlags,
     "wallet-key": Flags.string({
       description: "Wallet private key (overrides env)",
       helpValue: "<key>",
@@ -30,12 +47,8 @@ export class BaseCommand extends Command {
       helpValue: "<key>",
     }),
     "db-path": Flags.string({
-      description: "Database directory path",
+      description: "Database path prefix",
       helpValue: "<path>",
-    }),
-    "gateway-host": Flags.string({
-      description: "Custom gateway URL",
-      helpValue: "<url>",
     }),
     "log-level": Flags.option({
       options: ["off", "error", "warn", "info", "debug", "trace"] as const,
@@ -50,13 +63,6 @@ export class BaseCommand extends Command {
     "app-version": Flags.string({
       description: "App version string",
       helpValue: "<version>",
-    }),
-    json: Flags.boolean({
-      description: "Format output as JSON",
-    }),
-    verbose: Flags.boolean({
-      description: "Show additional diagnostic information",
-      default: false,
     }),
   };
 

@@ -101,36 +101,31 @@ Use --created-after / --created-before to filter by creation time.`;
       ),
     });
 
-    const output = await Promise.all(
-      conversations.map(async (conversation) => {
-        const members = await conversation.members();
+    const output = conversations.map((conversation) => {
+      const base = {
+        id: conversation.id,
+        type: isGroup(conversation) ? "group" : "dm",
+        createdAt: conversation.createdAt.toISOString(),
+        consentState: conversation.consentState(),
+        isActive: conversation.isActive,
+      };
 
-        const base = {
-          id: conversation.id,
-          type: isGroup(conversation) ? "group" : "dm",
-          createdAt: conversation.createdAt.toISOString(),
-          consentState: conversation.consentState(),
-          isActive: conversation.isActive,
-          memberCount: members.length,
+      if (isGroup(conversation)) {
+        return {
+          ...base,
+          name: conversation.name,
+          description: conversation.description,
+          imageUrl: conversation.imageUrl,
         };
+      } else if (isDm(conversation)) {
+        return {
+          ...base,
+          peerInboxId: conversation.peerInboxId,
+        };
+      }
 
-        if (isGroup(conversation)) {
-          return {
-            ...base,
-            name: conversation.name,
-            description: conversation.description,
-            imageUrl: conversation.imageUrl,
-          };
-        } else if (isDm(conversation)) {
-          return {
-            ...base,
-            peerInboxId: conversation.peerInboxId,
-          };
-        }
-
-        return base;
-      }),
-    );
+      return base;
+    });
 
     this.output(output);
   }

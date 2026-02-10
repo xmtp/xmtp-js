@@ -49,7 +49,7 @@ Use this command to inspect the state of any inbox on the network.`;
   };
 
   static flags = {
-    ...BaseCommand.baseFlags,
+    ...BaseCommand.commonFlags,
   };
 
   async run(): Promise<void> {
