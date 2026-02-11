@@ -46,7 +46,7 @@ export const InboxTools: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const {
     blockchain,
-    environment,
+    sdkEnv,
     useSCW,
     ephemeralAccountEnabled,
     setEphemeralAccountEnabled,
@@ -61,7 +61,7 @@ export const InboxTools: React.FC = () => {
     setInstallations([]);
     setSelectedInstallationIds([]);
     try {
-      const inboxState = await Client.fetchInboxStates([inboxId], environment);
+      const inboxState = await Client.fetchInboxStates([inboxId], sdkEnv);
       setInstallations(
         inboxState[0].installations.sort(
           (a, b) =>
@@ -73,7 +73,7 @@ export const InboxTools: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [inboxId, environment]);
+  }, [inboxId, sdkEnv]);
 
   const handleRevokeInstallations = useCallback(
     async (installationIds: Uint8Array[]) => {
@@ -109,7 +109,7 @@ export const InboxTools: React.FC = () => {
           signer,
           inboxId,
           installationIds,
-          environment,
+          sdkEnv,
         );
       } finally {
         setLoading(false);
@@ -117,7 +117,7 @@ export const InboxTools: React.FC = () => {
       void handleFindInstallations();
     },
     [
-      environment,
+      sdkEnv,
       address,
       blockchain,
       useSCW,
@@ -157,7 +157,7 @@ export const InboxTools: React.FC = () => {
   useEffect(() => {
     setInstallations([]);
     setSelectedInstallationIds([]);
-  }, [environment]);
+  }, [sdkEnv]);
 
   useEffect(() => {
     if (isConnected || ephemeralAccountEnabled) {

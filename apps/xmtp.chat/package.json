@@ -44,6 +44,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-basic-ssl": "^2.1.4",
     "@vitejs/plugin-react": "^5.1.2",
     "@vitest/browser": "^4.0.18",
     "@vitest/browser-playwright": "^4.0.18",

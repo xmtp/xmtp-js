@@ -1,7 +1,13 @@
 import { useLocalStorage } from "@mantine/hooks";
-import { LogLevel, type ClientOptions, type XmtpEnv } from "@xmtp/browser-sdk";
+import { LogLevel, type ClientOptions } from "@xmtp/browser-sdk";
 import { useEffect } from "react";
 import type { Hex } from "viem";
+import {
+  type AppEnv,
+  getD14nGatewayHost,
+  getSdkEnv,
+  isD14nEnv,
+} from "@/helpers/strings";
 import type { ConnectorString } from "@/hooks/useWallet";
 
 const loggingLevelStringToEnum = {
@@ -14,7 +20,7 @@ const loggingLevelStringToEnum = {
 };
 
 export const useSettings = () => {
-  const [environment, setEnvironment] = useLocalStorage<XmtpEnv>({
+  const [environment, setEnvironment] = useLocalStorage<AppEnv>({
     key: "XMTP_NETWORK",
     defaultValue: "dev",
     getInitialValueInEffect: false,
@@ -83,6 +89,14 @@ export const useSettings = () => {
   // Convert empty string (coming from localStorage) to undefined for gateway host
   const normalizedGatewayHost = gatewayHost || undefined;
 
+  // Compute SDK environment (D14N envs map to "dev")
+  const sdkEnv = getSdkEnv(environment);
+
+  // For D14N envs, auto-set gateway host; otherwise use manual setting
+  const effectiveGatewayHost = isD14nEnv(environment)
+    ? getD14nGatewayHost(environment)
+    : normalizedGatewayHost;
+
   // fix for old logging level values
   useEffect(() => {
     if (typeof loggingLevel === "string") {
@@ -100,8 +114,9 @@ export const useSettings = () => {
     ephemeralAccountEnabled,
     ephemeralAccountKey,
     forceSCW,
-    gatewayHost: normalizedGatewayHost,
+    gatewayHost: effectiveGatewayHost,
     loggingLevel,
+    sdkEnv,
     useSCW,
     showDisclaimer,
     setAutoConnect,
