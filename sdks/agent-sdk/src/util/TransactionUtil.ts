@@ -1,3 +1,4 @@
+import type { WalletSendCalls } from "@xmtp/node-sdk";
 import {
   createPublicClient,
   encodeFunctionData,
@@ -7,7 +8,6 @@ import {
   type Hex,
   type Transport,
 } from "viem";
-import type { WalletSendCalls } from "@xmtp/node-sdk";
 
 /**
  * Minimal ERC-20 ABI containing transfer, balanceOf, and decimals functions.

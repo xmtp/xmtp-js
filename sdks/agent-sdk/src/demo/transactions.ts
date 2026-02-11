@@ -1,14 +1,14 @@
 import { loadEnvFile } from "node:process";
-import { validHex } from "@xmtp/node-sdk";
-import { formatUnits, parseUnits, type Hex } from "viem";
+import { validHex, type TransactionReference } from "@xmtp/node-sdk";
+import { formatUnits, parseUnits } from "viem";
 import { base } from "viem/chains";
-import { Agent } from "../core/index";
-import { getTestUrl } from "../debug/log";
-import { CommandRouter } from "../middleware/CommandRouter";
+import { Agent } from "@/core/index";
+import { getTestUrl } from "@/debug/log";
+import { CommandRouter } from "@/middleware/CommandRouter";
 import {
   createERC20TransferCalls,
   getERC20Balance,
-} from "../util/TransactionUtil";
+} from "@/util/TransactionUtil";
 
 try {
   loadEnvFile();
@@ -68,17 +68,17 @@ agent.on("start", (ctx) => {
 });
 
 agent.on("transaction-reference", async (ctx) => {
-  // @ts-expect-error - Coinbase Wallet incorrectly wraps in extra transactionReference
-  let transactionRef = ctx.message.content.transactionReference;
-  if (transactionRef.transactionReference) {
-    transactionRef = transactionRef.transactionReference;
-  }
+  const content = ctx.message.content as TransactionReference & {
+    transactionReference?: TransactionReference;
+  };
+  // Coinbase Wallet incorrectly wraps in extra transactionReference
+  const transactionRef = content.transactionReference ?? content;
 
   await ctx.conversation.sendText(
     `Transaction confirmed!\n` +
       `Network: ${transactionRef.networkId}\n` +
       `Hash: ${transactionRef.reference}\n` +
-      `${transactionRef.metadata ? "Transaction metadata received" : ""}`,
+      (transactionRef.metadata ? "Transaction metadata received" : ""),
   );
 });
 
