@@ -1,15 +1,15 @@
 import { loadEnvFile } from "node:process";
 import { downloadRemoteAttachment } from "@/util/AttachmentUtil";
-import { Agent, AgentError } from "./core/index";
-import { getTestUrl, logDetails } from "./debug/log";
-import { isHexString } from "./index";
-import { CommandRouter } from "./middleware/CommandRouter";
-import { PerformanceMonitor } from "./middleware/PerformanceMonitor";
-import { createNameResolver } from "./user";
-import { createSigner, createUser } from "./user/User";
+import { Agent, AgentError } from "../core/index";
+import { getTestUrl, logDetails } from "../debug/log";
+import { isHexString } from "../index";
+import { CommandRouter } from "../middleware/CommandRouter";
+import { PerformanceMonitor } from "../middleware/PerformanceMonitor";
+import { createNameResolver } from "../user";
+import { createSigner, createUser } from "../user/User";
 
 try {
-  loadEnvFile(".env");
+  loadEnvFile();
   console.info(`Loaded keys from ".env" file.`);
 } catch {}
 
