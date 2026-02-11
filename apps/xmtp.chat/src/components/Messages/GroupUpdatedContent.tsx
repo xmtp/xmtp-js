@@ -237,7 +237,7 @@ const GroupMetadataUpdatedContent: React.FC<
   }, [metadataFieldChange.fieldName]);
 
   return (
-    <Group gap="4" wrap="wrap" justify="center">
+    <Group gap="4" wrap="wrap" justify="center" maw="100%">
       {initiatedByMember ? (
         <Identity
           {...combineProfiles(
@@ -385,7 +385,7 @@ export const GroupUpdatedContent: React.FC<GroupUpdatedContentProps> = ({
 
   if (content.metadataFieldChanges.length > 0) {
     return (
-      <Stack gap="xxxs" align="center">
+      <Stack gap="xxxs" align="center" style={{ overflow: "hidden" }}>
         <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
         {content.metadataFieldChanges.map((change) => (
           <GroupMetadataUpdatedContent
