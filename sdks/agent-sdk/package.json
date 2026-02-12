@@ -66,7 +66,7 @@
   },
   "dependencies": {
     "@xmtp/content-type-primitives": "3.0.1",
-    "@xmtp/node-sdk": "5.2.0",
+    "@xmtp/node-sdk": "5.3.0",
     "viem": "^2.37.6"
   },
   "devDependencies": {
