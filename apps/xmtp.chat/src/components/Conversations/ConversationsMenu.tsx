@@ -19,7 +19,7 @@ export const ConversationsMenu: React.FC<ConversationsMenuProps> = ({
   return (
     <Menu shadow="md" disabled={disabled} position="bottom-end">
       <Menu.Target>
-        <ActionIcon variant="default" loading={loading}>
+        <ActionIcon variant="default" loading={loading} aria-label="Sync Conversations">
           <IconRefresh />
         </ActionIcon>
       </Menu.Target>
