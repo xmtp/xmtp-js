@@ -23,7 +23,7 @@ const USDC_TOKEN_CONTRACT =
 const USDC_DECIMALS = await getERC20Decimals({
   chain: CHAIN,
   tokenAddress: USDC_TOKEN_CONTRACT,
-});
+}).catch(() => 6);
 
 const agent = await Agent.createFromEnv();
 const router = new CommandRouter({ helpCommand: "/help" });
