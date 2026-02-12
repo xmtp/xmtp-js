@@ -12,6 +12,8 @@ import {
 /**
  * Minimal ERC-20 ABI containing transfer, balanceOf, and decimals functions.
  * Can be used with viem's encodeFunctionData for custom ERC-20 interactions.
+ *
+ * @see https://eips.ethereum.org/EIPS/eip-20#methods
  */
 export const erc20Abi = [
   {
@@ -43,7 +45,7 @@ export const erc20Abi = [
 export type CreateERC20TransferCallsOptions = {
   /** The viem Chain object (e.g., baseSepolia from "viem/chains"). */
   chain: Chain;
-  /** The ERC-20 token contract address. */
+  /** The ERC-20 token contract address (e.g., Base Token Contract List: https://basescan.org/tokens). */
   tokenAddress: Hex;
   /** The sender's address. */
   from: Hex;
@@ -51,22 +53,14 @@ export type CreateERC20TransferCallsOptions = {
   to: Hex;
   /** The amount to transfer in the token's base units (e.g., 1_000_000 for 1 USDC). */
   amount: bigint;
-  /** Text that will be shown in the app for the transaction. */
+  /** Description that will be shown in the app with the transaction. */
   description: string;
 };
 
-export type CreateNativeTransferCallsOptions = {
-  /** The viem Chain object (e.g., baseSepolia from "viem/chains"). */
-  chain: Chain;
-  /** The sender's address. */
-  from: Hex;
-  /** The recipient's address. */
-  to: Hex;
-  /** The amount to transfer in wei. */
-  amount: bigint;
-  /** Optional metadata to attach to the call. Auto-generated if omitted. */
-  metadata?: Record<string, string>;
-};
+export type CreateNativeTransferCallsOptions = Omit<
+  CreateERC20TransferCallsOptions,
+  "tokenAddress"
+>;
 
 export type GetERC20BalanceOptions = {
   /** The viem Chain object. */
@@ -91,8 +85,8 @@ export type GetERC20DecimalsOptions = {
 /**
  * Creates a WalletSendCalls payload for an ERC-20 token transfer.
  *
- * @param options - The transfer options including chain, token, sender, recipient, and amount
- * @returns A WalletSendCalls object ready to send via conversation.sendWalletSendCalls()
+ * @param options - The transfer options
+ * @returns A WalletSendCalls object ready to send
  */
 export function createERC20TransferCalls(
   options: CreateERC20TransferCallsOptions,
@@ -126,13 +120,13 @@ export function createERC20TransferCalls(
 /**
  * Creates a WalletSendCalls payload for a native token transfer (ETH, MATIC, etc.).
  *
- * @param options - The transfer options including chain, sender, recipient, and amount
- * @returns A WalletSendCalls object ready to send via conversation.sendWalletSendCalls()
+ * @param options - The transfer options
+ * @returns A WalletSendCalls object ready to send
  */
 export function createNativeTransferCalls(
   options: CreateNativeTransferCallsOptions,
 ): WalletSendCalls {
-  const { chain, from, to, amount, metadata } = options;
+  const { chain, from, to, amount, description } = options;
 
   return {
     version: "1.0",
@@ -142,8 +136,8 @@ export function createNativeTransferCalls(
       {
         to,
         value: toHex(amount),
-        metadata: metadata ?? {
-          description: "Native token transfer",
+        metadata: {
+          description,
           transactionType: "transfer",
         },
       },

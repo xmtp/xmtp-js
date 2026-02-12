@@ -1,4 +1,5 @@
 import { toHex } from "viem";
+import { base } from "viem/chains";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createERC20TransferCalls,
@@ -20,13 +21,7 @@ vi.mock("viem", async () => {
   };
 });
 
-const testChain = {
-  id: 84532,
-  name: "Base Sepolia",
-  nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-  rpcUrls: { default: { http: ["https://sepolia.base.org"] } },
-} as const;
-
+const testChain = base;
 const testTokenAddress = "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as const;
 const testFrom = "0x1234567890abcdef1234567890abcdef12345678" as const;
 const testTo = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" as const;
@@ -54,6 +49,7 @@ describe("TransactionUtil", () => {
         from: testFrom,
         to: testTo,
         amount: 1_000_000n,
+        description: "Transfer 1 USDC",
       });
 
       expect(result.version).toBe("1.0");
@@ -61,9 +57,9 @@ describe("TransactionUtil", () => {
       expect(result.from).toBe(testFrom);
       expect(result.calls).toHaveLength(1);
 
-      const call = result.calls[0]!;
-      expect(call.to).toBe(testTokenAddress);
-      expect(call.value).toBe("0x0");
+      const call = result.calls[0];
+      expect(call?.to).toBe(testTokenAddress);
+      expect(call?.value).toBe("0x0");
     });
 
     it("encodes transfer data correctly", () => {
@@ -73,35 +69,16 @@ describe("TransactionUtil", () => {
         from: testFrom,
         to: testTo,
         amount: 1_000_000n,
+        description: "Transfer 1 USDC",
       });
 
-      const call = result.calls[0]!;
+      const call = result.calls[0];
       // ERC-20 transfer function selector
-      expect(call.data).toMatch(/^0xa9059cbb/);
+      expect(call?.data).toMatch(/^0xa9059cbb/);
     });
 
-    it("uses default metadata when none provided", () => {
-      const result = createERC20TransferCalls({
-        chain: testChain,
-        tokenAddress: testTokenAddress,
-        from: testFrom,
-        to: testTo,
-        amount: 1_000_000n,
-      });
-
-      const call = result.calls[0]!;
-      expect(call.metadata).toEqual({
-        description: "ERC-20 token transfer",
-        transactionType: "transfer",
-      });
-    });
-
-    it("uses custom metadata when provided", () => {
-      const customMetadata = {
-        description: "Send 1 USDC",
-        transactionType: "transfer",
-        currency: "USDC",
-      };
+    it("includes description in metadata", () => {
+      const description = "Send 1 USDC";
 
       const result = createERC20TransferCalls({
         chain: testChain,
@@ -109,11 +86,14 @@ describe("TransactionUtil", () => {
         from: testFrom,
         to: testTo,
         amount: 1_000_000n,
-        metadata: customMetadata,
+        description,
       });
 
-      const call = result.calls[0]!;
-      expect(call.metadata).toEqual(customMetadata);
+      const call = result.calls[0];
+      expect(call?.metadata).toEqual({
+        description,
+        transactionType: "transfer",
+      });
     });
 
     it("converts chain ID to hex", () => {
@@ -123,6 +103,7 @@ describe("TransactionUtil", () => {
         from: testFrom,
         to: testTo,
         amount: 1n,
+        description: "Transfer USDC",
       });
 
       expect(result.chainId).toBe(toHex(8453));
@@ -138,6 +119,7 @@ describe("TransactionUtil", () => {
         from: testFrom,
         to: testTo,
         amount,
+        description: "Transfer 1 ETH",
       });
 
       expect(result.version).toBe("1.0");
@@ -145,9 +127,9 @@ describe("TransactionUtil", () => {
       expect(result.from).toBe(testFrom);
       expect(result.calls).toHaveLength(1);
 
-      const call = result.calls[0]!;
-      expect(call.to).toBe(testTo);
-      expect(call.value).toBe(toHex(amount));
+      const call = result.calls[0];
+      expect(call?.to).toBe(testTo);
+      expect(call?.value).toBe(toHex(amount));
     });
 
     it("does not set data field", () => {
@@ -156,43 +138,29 @@ describe("TransactionUtil", () => {
         from: testFrom,
         to: testTo,
         amount: 1n,
+        description: "Transfer ETH",
       });
 
-      const call = result.calls[0]!;
-      expect(call.data).toBeUndefined();
+      const call = result.calls[0];
+      expect(call?.data).toBeUndefined();
     });
 
-    it("uses default metadata when none provided", () => {
-      const result = createNativeTransferCalls({
-        chain: testChain,
-        from: testFrom,
-        to: testTo,
-        amount: 1n,
-      });
-
-      const call = result.calls[0]!;
-      expect(call.metadata).toEqual({
-        description: "Native token transfer",
-        transactionType: "transfer",
-      });
-    });
-
-    it("uses custom metadata when provided", () => {
-      const customMetadata = {
-        description: "Send 0.5 ETH",
-        transactionType: "transfer",
-      };
+    it("includes description in metadata", () => {
+      const description = "Send 0.5 ETH";
 
       const result = createNativeTransferCalls({
         chain: testChain,
         from: testFrom,
         to: testTo,
         amount: 500_000_000_000_000_000n,
-        metadata: customMetadata,
+        description,
       });
 
-      const call = result.calls[0]!;
-      expect(call.metadata).toEqual(customMetadata);
+      const call = result.calls[0];
+      expect(call?.metadata).toEqual({
+        description,
+        transactionType: "transfer",
+      });
     });
   });
 

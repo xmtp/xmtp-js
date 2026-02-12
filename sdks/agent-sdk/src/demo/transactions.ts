@@ -1,6 +1,6 @@
 import { loadEnvFile } from "node:process";
 import { validHex } from "@xmtp/node-sdk";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits, hexToNumber, parseUnits } from "viem";
 import { base } from "viem/chains";
 import { Agent } from "@/core/index";
 import { getTestUrl } from "@/debug/log";
@@ -8,6 +8,7 @@ import { CommandRouter } from "@/middleware/CommandRouter";
 import {
   createERC20TransferCalls,
   getERC20Balance,
+  getERC20Decimals,
 } from "@/util/TransactionUtil";
 
 try {
@@ -15,13 +16,16 @@ try {
   console.info(`Loaded keys from ".env" file.`);
 } catch {}
 
-const agent = await Agent.createFromEnv();
 const CHAIN = base;
 /** USDC Token address on Base chain: https://basescan.org/token/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 */
 const USDC_TOKEN_CONTRACT =
   "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as const;
-const USDC_DECIMALS = 6;
+const USDC_DECIMALS = await getERC20Decimals({
+  chain: CHAIN,
+  tokenAddress: USDC_TOKEN_CONTRACT,
+});
 
+const agent = await Agent.createFromEnv();
 const router = new CommandRouter({ helpCommand: "/help" });
 
 router.command("/my-balance", "Check your USDC balance", async (ctx) => {
@@ -68,19 +72,17 @@ router.command("/tx", "Send USDC to the agent (e.g. /tx 0.1)", async (ctx) => {
   });
 
   await ctx.conversation.sendWalletSendCalls(walletSendCalls);
-  await ctx.conversation.sendText(
-    "After completing the transaction, send a transaction reference to confirm.",
-  );
 });
 
 agent.use(router.middleware());
 
 agent.on("transaction-reference", async (ctx) => {
-  const transactionReference = ctx.message.content;
-  await ctx.conversation.sendText(
+  const { networkId, reference } = ctx.message.content;
+  const networkIdDecimal = hexToNumber(validHex(networkId));
+  await ctx.conversation.sendMarkdown(
     `Transaction confirmed!\n` +
-      `Network: ${transactionReference.networkId}\n` +
-      `Hash: ${transactionReference.reference}`,
+      `Chain ID: [${networkIdDecimal}](https://chainlist.org/chain/${networkIdDecimal})\n` +
+      `Transaction Hash: [${reference}](https://basescan.org/tx/${reference})`,
   );
 });
 
