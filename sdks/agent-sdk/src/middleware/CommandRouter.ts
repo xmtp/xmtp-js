@@ -1,4 +1,3 @@
-import type { BuiltInContentTypes } from "@xmtp/node-sdk";
 import { type AgentMessageHandler, type AgentMiddleware } from "@/core/Agent";
 import type { MessageContext } from "@/core/MessageContext";
 

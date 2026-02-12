@@ -1,6 +1,5 @@
 import { monitorEventLoopDelay, performance } from "node:perf_hooks";
 import v8 from "node:v8";
-import { BuiltInContentTypes } from "@xmtp/node-sdk";
 import type { AgentMiddleware } from "@/core/Agent";
 
 export interface HealthReport {
