@@ -1,5 +1,6 @@
 import { monitorEventLoopDelay, performance } from "node:perf_hooks";
 import v8 from "node:v8";
+import { BuiltInContentTypes } from "@xmtp/node-sdk";
 import type { AgentMiddleware } from "@/core/Agent";
 
 export interface HealthReport {
@@ -34,7 +35,7 @@ export interface PerformanceMonitorConfig {
  * middleware and handlers, giving you the total processing time independent
  * of other logic.
  */
-export class PerformanceMonitor {
+export class PerformanceMonitor<ContentTypes = unknown> {
   #interval: ReturnType<typeof setInterval> | undefined;
   #isShutdown: boolean;
   #lastCpuUsage: NodeJS.CpuUsage;
@@ -141,7 +142,7 @@ export class PerformanceMonitor {
     this.#onShutdown();
   }
 
-  middleware(): AgentMiddleware {
+  middleware(): AgentMiddleware<ContentTypes> {
     return async (_, next) => {
       const start = performance.now();
       try {

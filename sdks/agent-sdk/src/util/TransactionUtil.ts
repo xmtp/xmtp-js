@@ -51,8 +51,8 @@ export type CreateERC20TransferCallsOptions = {
   to: Hex;
   /** The amount to transfer in the token's base units (e.g., 1_000_000 for 1 USDC). */
   amount: bigint;
-  /** Optional metadata to attach to the call. Auto-generated if omitted. */
-  metadata?: Record<string, string>;
+  /** Text that will be shown in the app for the transaction. */
+  description: string;
 };
 
 export type CreateNativeTransferCallsOptions = {
@@ -97,7 +97,7 @@ export type GetERC20DecimalsOptions = {
 export function createERC20TransferCalls(
   options: CreateERC20TransferCallsOptions,
 ): WalletSendCalls {
-  const { chain, tokenAddress, from, to, amount, metadata } = options;
+  const { chain, tokenAddress, from, to, amount, description } = options;
 
   const data = encodeFunctionData({
     abi: erc20Abi,
@@ -114,8 +114,8 @@ export function createERC20TransferCalls(
         to: tokenAddress,
         data,
         value: "0x0",
-        metadata: metadata ?? {
-          description: "ERC-20 token transfer",
+        metadata: {
+          description,
           transactionType: "transfer",
         },
       },

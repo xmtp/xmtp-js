@@ -10,6 +10,7 @@ export type TransactionReferenceContentProps = {
 export const TransactionReferenceContent: React.FC<
   TransactionReferenceContentProps
 > = ({ content }) => {
+  console.log(content);
   const chain = useMemo(() => {
     const chains = Object.values(viemChains);
     const chainId =
