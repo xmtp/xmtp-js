@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 2.2.0
+
+### Minor Changes
+
+- da8658f: Added transaction utility functions
+
 ## 2.1.0
 
 ### Minor Changes
