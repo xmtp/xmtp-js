@@ -150,7 +150,10 @@ export class Conversations<ContentTypes = unknown> {
     identifiers: Identifier[],
     options?: CreateGroupOptions,
   ) {
-    const group = await this.#conversations.createGroupByIdentity(identifiers, options);
+    const group = await this.#conversations.createGroupByIdentity(
+      identifiers,
+      options,
+    );
     const conversation = new Group<ContentTypes>(
       this.#client,
       this.#codecRegistry,
@@ -168,10 +171,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#create-a-new-group-chat
    */
   async createGroup(inboxIds: string[], options?: CreateGroupOptions) {
-    const group = await this.#conversations.createGroup(
-      inboxIds,
-      options,
-    );
+    const group = await this.#conversations.createGroup(inboxIds, options);
     const conversation = new Group<ContentTypes>(
       this.#client,
       this.#codecRegistry,
@@ -192,7 +192,10 @@ export class Conversations<ContentTypes = unknown> {
     identifier: Identifier,
     options?: CreateDmOptions,
   ) {
-    const group = await this.#conversations.createDmByIdentity(identifier, options);
+    const group = await this.#conversations.createDmByIdentity(
+      identifier,
+      options,
+    );
     const conversation = new Dm<ContentTypes>(
       this.#client,
       this.#codecRegistry,
