@@ -34,7 +34,7 @@ export interface PerformanceMonitorConfig {
  * middleware and handlers, giving you the total processing time independent
  * of other logic.
  */
-export class PerformanceMonitor {
+export class PerformanceMonitor<ContentTypes = unknown> {
   #interval: ReturnType<typeof setInterval> | undefined;
   #isShutdown: boolean;
   #lastCpuUsage: NodeJS.CpuUsage;
@@ -141,7 +141,7 @@ export class PerformanceMonitor {
     this.#onShutdown();
   }
 
-  middleware(): AgentMiddleware {
+  middleware(): AgentMiddleware<ContentTypes> {
     return async (_, next) => {
       const start = performance.now();
       try {

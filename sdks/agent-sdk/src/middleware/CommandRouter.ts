@@ -1,4 +1,3 @@
-import type { BuiltInContentTypes } from "@xmtp/node-sdk";
 import { type AgentMessageHandler, type AgentMiddleware } from "@/core/Agent";
 import type { MessageContext } from "@/core/MessageContext";
 
@@ -15,7 +14,7 @@ export interface CommandRouterConfig {
   helpCommand?: `/${string}`;
 }
 
-export class CommandRouter<ContentTypes = BuiltInContentTypes> {
+export class CommandRouter<ContentTypes = unknown> {
   #commandMap = new Map<string, CommandEntry>();
   #defaultHandler: AgentMessageHandler<SupportedType> | null = null;
 
