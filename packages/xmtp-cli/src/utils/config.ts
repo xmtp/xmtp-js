@@ -27,6 +27,9 @@ export type XmtpConfig = {
   structuredLogging?: boolean;
   disableDeviceSync?: boolean;
   appVersion?: string;
+  uploadProvider?: string;
+  uploadProviderToken?: string;
+  uploadProviderGateway?: string;
 };
 
 function parseEnv(value: string | undefined): XmtpConfig["env"] {
@@ -74,6 +77,9 @@ export function loadConfig(envFile?: string): XmtpConfig {
     disableDeviceSync:
       env.XMTP_DISABLE_DEVICE_SYNC === "true" ? true : undefined,
     appVersion: env.XMTP_APP_VERSION,
+    uploadProvider: env.XMTP_UPLOAD_PROVIDER,
+    uploadProviderToken: env.XMTP_UPLOAD_PROVIDER_TOKEN,
+    uploadProviderGateway: env.XMTP_UPLOAD_PROVIDER_GATEWAY,
   };
 }
 
@@ -91,5 +97,10 @@ export function mergeConfig(
     structuredLogging: flags.structuredLogging ?? fileConfig.structuredLogging,
     disableDeviceSync: flags.disableDeviceSync ?? fileConfig.disableDeviceSync,
     appVersion: flags.appVersion ?? fileConfig.appVersion,
+    uploadProvider: flags.uploadProvider ?? fileConfig.uploadProvider,
+    uploadProviderToken:
+      flags.uploadProviderToken ?? fileConfig.uploadProviderToken,
+    uploadProviderGateway:
+      flags.uploadProviderGateway ?? fileConfig.uploadProviderGateway,
   };
 }

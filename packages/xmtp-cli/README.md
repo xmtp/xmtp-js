@@ -8,6 +8,7 @@ A command-line interface for [XMTP](https://xmtp.org), the decentralized messagi
 ## Features
 
 - Send and receive encrypted messages
+- Send file attachments (inline or via remote upload)
 - Manage direct messages (DMs) and group conversations
 - Manage identity across multiple wallets
 - Set consent preferences for spam control
@@ -63,11 +64,14 @@ xmtp conversation send-text <conversation-id> "Hello!"
 
 Running `xmtp init` generates a `.env` file at `~/.xmtp/.env` with:
 
-| Variable                 | Description                              |
-| ------------------------ | ---------------------------------------- |
-| `XMTP_WALLET_KEY`        | Ethereum private key (hex)               |
-| `XMTP_DB_ENCRYPTION_KEY` | 32-byte database encryption key (hex)    |
-| `XMTP_ENV`               | Network: `local`, `dev`, or `production` |
+| Variable                       | Description                                      |
+| ------------------------------ | ------------------------------------------------ |
+| `XMTP_WALLET_KEY`              | Ethereum private key (hex)                       |
+| `XMTP_DB_ENCRYPTION_KEY`       | 32-byte database encryption key (hex)            |
+| `XMTP_ENV`                     | Network: `local`, `dev`, or `production`         |
+| `XMTP_UPLOAD_PROVIDER`         | Upload provider for attachments (e.g., `pinata`) |
+| `XMTP_UPLOAD_PROVIDER_TOKEN`   | Authentication token for upload provider         |
+| `XMTP_UPLOAD_PROVIDER_GATEWAY` | Custom gateway URL for upload provider           |
 
 The default environment is `dev`. Use `--env` to change it:
 
@@ -113,6 +117,50 @@ xmtp conversation send-reaction <conversation-id> <message-id> add "👍"
 # Read messages
 xmtp conversation messages <conversation-id>
 xmtp conversation messages <conversation-id> --sync --limit 10
+```
+
+### Attachments
+
+```bash
+# Send a small file inline (auto-detected for files ≤1MB)
+xmtp conversation send-attachment <conversation-id> ./photo.jpg
+
+# Large files are automatically encrypted and uploaded via configured provider
+xmtp conversation send-attachment <conversation-id> ./video.mp4
+
+# Force remote upload even for small files
+xmtp conversation send-attachment <conversation-id> ./photo.jpg --remote
+
+# Override per-command (no .env needed)
+xmtp conversation send-attachment <conversation-id> ./photo.jpg \
+  --upload-provider pinata --upload-provider-token <jwt>
+
+# Encrypt only (for manual upload workflows)
+xmtp conversation send-attachment <conversation-id> ./photo.jpg --encrypt
+
+# Send a pre-uploaded encrypted file
+xmtp conversation send-remote-attachment <conversation-id> <url> \
+  --content-digest <hex> --secret <base64> --salt <base64> \
+  --nonce <base64> --content-length <bytes>
+
+# Download an attachment (handles both inline and remote transparently)
+xmtp conversation download-attachment <conversation-id> <message-id>
+
+# Download to a specific path
+xmtp conversation download-attachment <conversation-id> <message-id> \
+  --output ./photo.jpg
+
+# Save encrypted payload without decrypting
+xmtp conversation download-attachment <conversation-id> <message-id> --raw
+```
+
+To configure an upload provider, add to your `.env`:
+
+```bash
+XMTP_UPLOAD_PROVIDER=pinata
+XMTP_UPLOAD_PROVIDER_TOKEN=<your-pinata-jwt>
+# Optional: custom gateway URL
+XMTP_UPLOAD_PROVIDER_GATEWAY=https://your-gateway.mypinata.cloud
 ```
 
 ### Streaming
