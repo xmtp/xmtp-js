@@ -3,10 +3,10 @@ import { LogLevel, type ClientOptions } from "@xmtp/browser-sdk";
 import { useEffect } from "react";
 import type { Hex } from "viem";
 import {
-  type AppEnv,
   getD14nGatewayHost,
   getSdkEnv,
   isD14nEnv,
+  type AppEnv,
 } from "@/helpers/strings";
 import type { ConnectorString } from "@/hooks/useWallet";
 

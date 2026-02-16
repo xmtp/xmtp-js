@@ -7,7 +7,7 @@ import { Disclaimer } from "@/components/App/Disclaimer";
 import { ConversationsNavbar } from "@/components/Conversations/ConversationsNavbar";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useXMTP } from "@/contexts/XMTPContext";
-import { type AppEnv, getSdkEnv, isValidEnvironment } from "@/helpers/strings";
+import { getSdkEnv, isValidEnvironment, type AppEnv } from "@/helpers/strings";
 import { useRedirect } from "@/hooks/useRedirect";
 import { useSettings } from "@/hooks/useSettings";
 import { CenteredLayout } from "@/layouts/CenteredLayout";
@@ -52,7 +52,7 @@ export const AppLayout: React.FC = () => {
     const isInvalidEnvironment =
       !envParam ||
       !isValidEnvironment(envParam) ||
-      getSdkEnv(envParam as AppEnv) !== sessionSdkEnv;
+      getSdkEnv(envParam) !== sessionSdkEnv;
 
     let timeout: NodeJS.Timeout;
 
@@ -64,7 +64,7 @@ export const AppLayout: React.FC = () => {
       }, REDIRECT_TIMEOUT);
     } else if (envParam !== environment) {
       // URL doesn't match localStorage, sync localStorage to URL
-      setEnvironment(envParam as AppEnv);
+      setEnvironment(envParam);
       setValidEnvironment(true);
     } else {
       setValidEnvironment(true);

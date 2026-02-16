@@ -1,10 +1,6 @@
 import { Group, NativeSelect, Text, Tooltip } from "@mantine/core";
 import { ApiUrls } from "@xmtp/browser-sdk";
-import {
-  type AppEnv,
-  getD14nGatewayHost,
-  isD14nEnv,
-} from "@/helpers/strings";
+import { getD14nGatewayHost, isD14nEnv, type AppEnv } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
 
 const networkOptions = [
@@ -17,7 +13,7 @@ const networkOptions = [
 ];
 
 const getNetworkUrl = (env: AppEnv): string => {
-  if (isD14nEnv(env)) return getD14nGatewayHost(env) ?? "";
+  if (isD14nEnv(env)) return getD14nGatewayHost(env);
   return ApiUrls[env as keyof typeof ApiUrls] ?? "";
 };
 
