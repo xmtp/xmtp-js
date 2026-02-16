@@ -10,12 +10,12 @@ const networkOptions = [
   { value: "production", label: "Production" },
   { value: "d14n-dev", label: "D14N Dev" },
   { value: "d14n-staging", label: "D14N Staging" },
-  { value: "testnet", label: "Testnet" },
+  { value: "testnet", label: "D14N Testnet" },
 ];
 
 const getNetworkUrl = (env: AppEnv): string => {
   if (isD14nEnv(env)) return getD14nGatewayHost(env);
-  return ApiUrls[env as keyof typeof ApiUrls] ?? "";
+  return ApiUrls[env as keyof typeof ApiUrls];
 };
 
 export const NetworkSelect: React.FC = () => {

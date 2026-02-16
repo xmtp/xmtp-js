@@ -7,7 +7,7 @@ import { Disclaimer } from "@/components/App/Disclaimer";
 import { ConversationsNavbar } from "@/components/Conversations/ConversationsNavbar";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useXMTP } from "@/contexts/XMTPContext";
-import { getSdkEnv, isValidEnvironment, type AppEnv } from "@/helpers/strings";
+import { getSdkEnv, isValidEnvironment } from "@/helpers/strings";
 import { useRedirect } from "@/hooks/useRedirect";
 import { useSettings } from "@/hooks/useSettings";
 import { CenteredLayout } from "@/layouts/CenteredLayout";
