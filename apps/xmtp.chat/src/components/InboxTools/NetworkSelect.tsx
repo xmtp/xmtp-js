@@ -13,6 +13,7 @@ const networkOptions = [
   { value: "production", label: "Production" },
   { value: "d14n-dev", label: "D14N Dev" },
   { value: "d14n-staging", label: "D14N Staging" },
+  { value: "testnet", label: "Testnet" },
 ];
 
 const getNetworkUrl = (env: AppEnv): string => {
