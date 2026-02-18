@@ -62,7 +62,11 @@ export const InboxTools: React.FC = () => {
     setInstallations([]);
     setSelectedInstallationIds([]);
     try {
-      const inboxState = await Client.fetchInboxStates([inboxId], sdkEnv, gatewayHost);
+      const inboxState = await Client.fetchInboxStates(
+        [inboxId],
+        sdkEnv,
+        gatewayHost,
+      );
       setInstallations(
         inboxState[0].installations.sort(
           (a, b) =>
