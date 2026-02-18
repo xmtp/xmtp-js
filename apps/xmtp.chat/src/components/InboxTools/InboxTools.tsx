@@ -157,7 +157,7 @@ export const InboxTools: React.FC = () => {
   useEffect(() => {
     setInstallations([]);
     setSelectedInstallationIds([]);
-  }, [environment]);
+  }, [sdkEnv]);
 
   useEffect(() => {
     if (isConnected || ephemeralAccountEnabled) {
