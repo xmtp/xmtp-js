@@ -1,5 +1,9 @@
 # @xmtp/cli
 
+## 0.2.0
+
+Added default app version
+
 ## 0.1.0
 
 Rebuilt CLI using oclif.
