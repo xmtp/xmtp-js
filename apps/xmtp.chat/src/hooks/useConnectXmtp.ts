@@ -37,6 +37,7 @@ export const useConnectXmtp = () => {
     // connect ephemeral account if enabled
     if (ephemeralAccountEnabled) {
       initialize({
+        apiUrl: gatewayHost,
         dbEncryptionKey: encryptionKey
           ? hexToUint8Array(encryptionKey)
           : undefined,
@@ -62,6 +63,7 @@ export const useConnectXmtp = () => {
     }
 
     initialize({
+      apiUrl: gatewayHost,
       dbEncryptionKey: encryptionKey
         ? hexToUint8Array(encryptionKey)
         : undefined,
