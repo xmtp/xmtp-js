@@ -8,8 +8,7 @@ export const D14N_GATEWAY_HOSTS: Record<string, string> = {
   testnet: "https://payer.testnet.xmtp.network",
 };
 
-export const isD14nEnv = (env: string): boolean =>
-  env.startsWith("d14n-") || env === "testnet";
+export const isD14nEnv = (env: string): boolean => env in D14N_GATEWAY_HOSTS;
 
 export const getSdkEnv = (env: AppEnv): XmtpEnv => {
   if (isD14nEnv(env)) return "dev";
