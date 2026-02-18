@@ -17,6 +17,7 @@ export const useConnectXmtp = () => {
     blockchain,
     encryptionKey,
     environment,
+    sdkEnv,
     ephemeralAccountEnabled,
     ephemeralAccountKey,
     setEphemeralAccountKey,
@@ -39,7 +40,7 @@ export const useConnectXmtp = () => {
         dbEncryptionKey: encryptionKey
           ? hexToUint8Array(encryptionKey)
           : undefined,
-        env: environment,
+        env: sdkEnv,
         loggingLevel,
         signer: ephemeralSigner,
         gatewayHost,
@@ -64,7 +65,7 @@ export const useConnectXmtp = () => {
       dbEncryptionKey: encryptionKey
         ? hexToUint8Array(encryptionKey)
         : undefined,
-      env: environment,
+      env: sdkEnv,
       loggingLevel,
       gatewayHost,
       signer: useSCW
@@ -91,7 +92,7 @@ export const useConnectXmtp = () => {
     client,
     blockchain,
     encryptionKey,
-    environment,
+    sdkEnv,
     ephemeralAccountEnabled,
     ephemeralAccountKey,
     ephemeralSigner,

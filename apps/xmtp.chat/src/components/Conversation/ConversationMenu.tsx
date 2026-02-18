@@ -38,7 +38,7 @@ export const ConversationMenu: React.FC<ConversationMenuProps> = ({
     <Menu shadow="md" disabled={disabled} position="bottom-end">
       <Menu.Target>
         <Tooltip label="Manage Conversation" fz="xs">
-          <ActionIcon variant="default">
+          <ActionIcon variant="default" aria-label="Manage Conversation">
             <IconSettings />
           </ActionIcon>
         </Tooltip>
