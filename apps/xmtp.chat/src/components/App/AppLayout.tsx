@@ -65,7 +65,7 @@ export const AppLayout: React.FC = () => {
       timeout = setTimeout(() => {
         void navigate(`/${redirectEnv}`);
       }, REDIRECT_TIMEOUT);
-    } else if (envParam !== environment) {
+    } else if (getSdkEnv(envParam) !== getSdkEnv(environment)) {
       // URL doesn't match localStorage, sync localStorage to URL
       setEnvironment(envParam);
       setValidEnvironment(true);
