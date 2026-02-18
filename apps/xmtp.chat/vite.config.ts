@@ -1,4 +1,3 @@
-import basicSsl from "@vitejs/plugin-basic-ssl";
 import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig, mergeConfig } from "vite";
@@ -7,15 +6,12 @@ import { defineConfig as defineVitestConfig } from "vitest/config";
 
 // https://vitejs.dev/config/
 const viteConfig = defineConfig({
-  plugins: [tsconfigPaths(), react(), basicSsl()],
+  plugins: [tsconfigPaths(), react()],
   optimizeDeps: {
     exclude: ["@xmtp/wasm-bindings"],
   },
   build: {
     sourcemap: true,
-  },
-  server: {
-    allowedHosts: true,
   },
 });
 

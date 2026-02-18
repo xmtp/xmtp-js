@@ -56,9 +56,7 @@ export const config = createConfig({
       appName: "xmtp.chat",
     }),
     metaMask(),
-    ...(import.meta.env.VITE_PROJECT_ID
-      ? [walletConnect({ projectId: import.meta.env.VITE_PROJECT_ID })]
-      : []),
+    walletConnect({ projectId: import.meta.env.VITE_PROJECT_ID }),
   ],
   chains: [
     abstract,

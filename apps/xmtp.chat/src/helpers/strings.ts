@@ -1,4 +1,4 @@
-import type { XmtpEnv } from "@xmtp/browser-sdk";
+import { ApiUrls, type XmtpEnv } from "@xmtp/browser-sdk";
 
 export type AppEnv = XmtpEnv | "d14n-dev" | "d14n-staging" | "testnet";
 
@@ -17,6 +17,20 @@ export const getSdkEnv = (env: AppEnv): XmtpEnv => {
 
 export const getD14nGatewayHost = (env: AppEnv): string =>
   D14N_GATEWAY_HOSTS[env];
+
+export const networkOptions = [
+  { value: "local", label: "Local" },
+  { value: "dev", label: "Dev" },
+  { value: "production", label: "Production" },
+  { value: "d14n-dev", label: "D14N Dev" },
+  { value: "d14n-staging", label: "D14N Staging" },
+  { value: "testnet", label: "D14N Testnet" },
+];
+
+export const getNetworkUrl = (env: AppEnv): string => {
+  if (isD14nEnv(env)) return getD14nGatewayHost(env);
+  return ApiUrls[env as keyof typeof ApiUrls];
+};
 
 export const isValidEthereumAddress = (
   address: string,
