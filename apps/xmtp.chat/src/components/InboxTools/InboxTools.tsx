@@ -47,6 +47,7 @@ export const InboxTools: React.FC = () => {
   const {
     blockchain,
     sdkEnv,
+    gatewayHost,
     useSCW,
     ephemeralAccountEnabled,
     setEphemeralAccountEnabled,
@@ -61,7 +62,11 @@ export const InboxTools: React.FC = () => {
     setInstallations([]);
     setSelectedInstallationIds([]);
     try {
-      const inboxState = await Client.fetchInboxStates([inboxId], sdkEnv);
+      const inboxState = await Client.fetchInboxStates(
+        [inboxId],
+        sdkEnv,
+        gatewayHost,
+      );
       setInstallations(
         inboxState[0].installations.sort(
           (a, b) =>
@@ -73,7 +78,7 @@ export const InboxTools: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [inboxId, sdkEnv]);
+  }, [inboxId, sdkEnv, gatewayHost]);
 
   const handleRevokeInstallations = useCallback(
     async (installationIds: Uint8Array[]) => {
