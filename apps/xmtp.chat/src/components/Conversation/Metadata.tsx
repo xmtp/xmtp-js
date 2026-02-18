@@ -51,6 +51,7 @@ export const Metadata: React.FC<MetadataProps> = ({
         <TextInput
           size="sm"
           flex="1 1 65%"
+          aria-label="Name"
           value={name}
           disabled={
             conversation &&
@@ -69,6 +70,7 @@ export const Metadata: React.FC<MetadataProps> = ({
         <Textarea
           size="sm"
           flex="1 1 65%"
+          aria-label="Description"
           value={description}
           disabled={
             conversation &&
@@ -87,6 +89,7 @@ export const Metadata: React.FC<MetadataProps> = ({
         <TextInput
           size="sm"
           flex="1 1 65%"
+          aria-label="Image URL"
           value={imageUrl}
           disabled={
             conversation &&
