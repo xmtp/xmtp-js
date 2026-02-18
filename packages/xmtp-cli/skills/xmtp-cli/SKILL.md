@@ -47,13 +47,16 @@ This creates a `.env` file with:
 
 ### Environment Variables
 
-| Variable                 | Description                                           | Required                      |
-| ------------------------ | ----------------------------------------------------- | ----------------------------- |
-| `XMTP_WALLET_KEY`        | Ethereum private key (hex, with or without 0x prefix) | Yes\*                         |
-| `XMTP_DB_ENCRYPTION_KEY` | 32-byte encryption key (hex)                          | Yes\*                         |
-| `XMTP_ENV`               | Network: `local`, `dev`, or `production`              | No (default: dev)             |
-| `XMTP_DB_PATH`           | Custom database file path                             | No (default: ~/.xmtp/xmtp-db) |
-| `XMTP_GATEWAY_HOST`      | Custom gateway URL                                    | No                            |
+| Variable                       | Description                                           | Required                      |
+| ------------------------------ | ----------------------------------------------------- | ----------------------------- |
+| `XMTP_WALLET_KEY`              | Ethereum private key (hex, with or without 0x prefix) | Yes\*                         |
+| `XMTP_DB_ENCRYPTION_KEY`       | 32-byte encryption key (hex)                          | Yes\*                         |
+| `XMTP_ENV`                     | Network: `local`, `dev`, or `production`              | No (default: dev)             |
+| `XMTP_DB_PATH`                 | Custom database file path                             | No (default: ~/.xmtp/xmtp-db) |
+| `XMTP_GATEWAY_HOST`            | Custom gateway URL                                    | No                            |
+| `XMTP_UPLOAD_PROVIDER`         | Upload provider for attachments (e.g., `pinata`)      | No                            |
+| `XMTP_UPLOAD_PROVIDER_TOKEN`   | Authentication token for upload provider              | No                            |
+| `XMTP_UPLOAD_PROVIDER_GATEWAY` | Custom gateway URL for upload provider                | No                            |
 
 \*Required for commands that need a client. If missing, the CLI will suggest running `init` to generate them.
 
@@ -170,6 +173,54 @@ xmtp conversation send-reaction <conversation-id> <message-id> remove "👍"
 # send a read receipt to mark conversation as read
 xmtp conversation send-read-receipt <conversation-id>
 ```
+
+### Send Attachments
+
+Small files (≤1MB) are sent inline. Large files are automatically encrypted and uploaded via the configured upload provider, then sent as a remote attachment.
+
+```bash
+# Send a file (auto-detects inline vs remote based on size)
+xmtp conversation send-attachment <conversation-id> ./photo.jpg
+
+# Force remote upload even for small files
+xmtp conversation send-attachment <conversation-id> ./photo.jpg --remote
+
+# Override MIME type
+xmtp conversation send-attachment <conversation-id> ./file.bin --mime-type image/png
+
+# Use upload provider via flags (no .env needed)
+xmtp conversation send-attachment <conversation-id> ./photo.jpg \
+  --upload-provider pinata --upload-provider-token <jwt>
+
+# Encrypt only — outputs encrypted file + decryption keys for manual upload
+xmtp conversation send-attachment <conversation-id> ./photo.jpg --encrypt
+xmtp conversation send-attachment <conversation-id> ./photo.jpg --encrypt --encrypted-output ./out.enc
+
+# Send a pre-uploaded encrypted file with decryption keys
+xmtp conversation send-remote-attachment <conversation-id> <url> \
+  --content-digest <hex> --secret <base64> --salt <base64> \
+  --nonce <base64> --content-length <bytes> --filename photo.jpg
+
+# Download an attachment (handles both inline and remote transparently)
+xmtp conversation download-attachment <conversation-id> <message-id>
+
+# Download to a specific path
+xmtp conversation download-attachment <conversation-id> <message-id> --output ./photo.jpg
+
+# Save encrypted payload without decrypting
+xmtp conversation download-attachment <conversation-id> <message-id> --raw
+```
+
+To enable automatic upload for large files, configure a provider in your `.env`:
+
+```bash
+XMTP_UPLOAD_PROVIDER=pinata
+XMTP_UPLOAD_PROVIDER_TOKEN=<your-pinata-jwt>
+# Optional: custom gateway URL
+XMTP_UPLOAD_PROVIDER_GATEWAY=https://your-gateway.mypinata.cloud
+```
+
+Supported upload providers: `pinata`
 
 ### Create a Group
 
