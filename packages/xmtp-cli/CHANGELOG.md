@@ -2,7 +2,8 @@
 
 ## 0.2.0
 
-Added default app version
+- Added default app version
+- Updated default network to `production`
 
 ## 0.1.0
 
