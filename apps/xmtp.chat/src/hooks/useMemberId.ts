@@ -17,7 +17,7 @@ export const useMemberId = () => {
   const [description, setDescription] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { environment, gatewayHost } = useSettings();
+  const { environment, sdkEnv, gatewayHost } = useSettings();
 
   useEffect(() => {
     const checkMemberId = async () => {
@@ -44,7 +44,7 @@ export const useMemberId = () => {
         try {
           const inboxId = await getInboxIdForAddressQuery(
             memberId.toLowerCase(),
-            environment,
+            sdkEnv,
             gatewayHost,
           );
 
@@ -76,7 +76,7 @@ export const useMemberId = () => {
               );
               const inboxId = await getInboxIdForAddressQuery(
                 profile.address,
-                environment,
+                sdkEnv,
                 gatewayHost,
               );
               if (!inboxId) {
@@ -105,7 +105,7 @@ export const useMemberId = () => {
     };
 
     void checkMemberId();
-  }, [memberId, environment, gatewayHost]);
+  }, [memberId, sdkEnv, gatewayHost]);
 
   return {
     memberId,
