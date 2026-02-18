@@ -18,6 +18,7 @@ import { useActions } from "@/stores/inbox/hooks";
 export type ContentTypes = BuiltInContentTypes;
 
 export type InitializeClientOptions = {
+  apiUrl?: string;
   dbEncryptionKey?: Uint8Array;
   env?: ClientOptions["env"];
   loggingLevel?: ClientOptions["loggingLevel"];
@@ -86,6 +87,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
    */
   const initialize = useCallback(
     async ({
+      apiUrl,
       dbEncryptionKey,
       env,
       loggingLevel,
@@ -114,6 +116,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
         try {
           // create a new XMTP client
           xmtpClient = await Client.create(signer, {
+            apiUrl,
             env,
             loggingLevel,
             dbEncryptionKey,

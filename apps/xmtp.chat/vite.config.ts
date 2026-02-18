@@ -10,6 +10,9 @@ const viteConfig = defineConfig({
   optimizeDeps: {
     exclude: ["@xmtp/wasm-bindings"],
   },
+  server: {
+    allowedHosts: true,
+  },
   build: {
     sourcemap: true,
   },

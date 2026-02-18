@@ -13,9 +13,8 @@ export const createClient = async (
   options?: Omit<ClientOptions, "codecs">,
 ) => {
   const env = options?.env || "dev";
+  const host = options?.apiUrl || ApiUrls[env];
   const gatewayHost = options?.gatewayHost || undefined;
-  // When gatewayHost is set, use it as the primary host (for D14N)
-  const host = gatewayHost || options?.apiUrl || ApiUrls[env];
   const isSecure = host.startsWith("https");
   const inboxId =
     (await getInboxIdForIdentifier(host, gatewayHost, isSecure, identifier)) ||
