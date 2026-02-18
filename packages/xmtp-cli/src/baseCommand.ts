@@ -89,7 +89,7 @@ export class BaseCommand extends Command {
       logLevel: flags["log-level"],
       structuredLogging: flags["structured-logging"],
       disableDeviceSync: flags["disable-device-sync"],
-      appVersion: flags["app-version"],
+      appVersion: flags["app-version"] || `xmtp-cli/${this.config.version}`,
     });
 
     this.jsonOutput = flags.json || env.XMTP_JSON_OUTPUT === "true";
