@@ -47,6 +47,7 @@ describe("client info", () => {
     expect(info.properties.isRegistered).toBe(true);
     expect(info.properties.libxmtpVersion).toBeDefined();
     expect(info.properties.appVersion).toBeDefined();
+    expect(info.options.appVersion).toMatch(/^xmtp-cli\/\d+\.\d+\.\d+/);
     expect(info.options.env).toBe("local");
     expect(info.options.dbPath).toBeDefined();
   });

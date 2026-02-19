@@ -80,16 +80,18 @@ export function loadConfig(envFile?: string): XmtpConfig {
 export function mergeConfig(
   fileConfig: XmtpConfig,
   flags: Partial<XmtpConfig>,
+  defaults?: Partial<XmtpConfig>,
 ): XmtpConfig {
   return {
     walletKey: flags.walletKey ?? fileConfig.walletKey,
     dbEncryptionKey: flags.dbEncryptionKey ?? fileConfig.dbEncryptionKey,
     dbPath: flags.dbPath ?? fileConfig.dbPath ?? DEFAULT_DB_PATH,
-    env: flags.env ?? fileConfig.env ?? "dev",
+    env: flags.env ?? fileConfig.env ?? defaults?.env,
     gatewayHost: flags.gatewayHost ?? fileConfig.gatewayHost,
     logLevel: flags.logLevel ?? fileConfig.logLevel,
     structuredLogging: flags.structuredLogging ?? fileConfig.structuredLogging,
     disableDeviceSync: flags.disableDeviceSync ?? fileConfig.disableDeviceSync,
-    appVersion: flags.appVersion ?? fileConfig.appVersion,
+    appVersion:
+      flags.appVersion ?? fileConfig.appVersion ?? defaults?.appVersion,
   };
 }

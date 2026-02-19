@@ -80,17 +80,25 @@ export class BaseCommand extends Command {
     const fileConfig = loadConfig(flags["env-file"]);
 
     // Merge with CLI flags (CLI flags take precedence)
-    this.#config = mergeConfig(fileConfig, {
-      walletKey: flags["wallet-key"],
-      dbEncryptionKey: flags["db-encryption-key"],
-      dbPath: flags["db-path"],
-      env: flags.env,
-      gatewayHost: flags["gateway-host"],
-      logLevel: flags["log-level"],
-      structuredLogging: flags["structured-logging"],
-      disableDeviceSync: flags["disable-device-sync"],
-      appVersion: flags["app-version"],
-    });
+    this.#config = mergeConfig(
+      fileConfig,
+      {
+        walletKey: flags["wallet-key"],
+        dbEncryptionKey: flags["db-encryption-key"],
+        dbPath: flags["db-path"],
+        env: flags.env,
+        gatewayHost: flags["gateway-host"],
+        logLevel: flags["log-level"],
+        structuredLogging: flags["structured-logging"],
+        disableDeviceSync: flags["disable-device-sync"],
+        appVersion: flags["app-version"],
+      },
+      // defaults
+      {
+        appVersion: `xmtp-cli/${this.config.version}`,
+        env: "production",
+      },
+    );
 
     this.jsonOutput = flags.json || env.XMTP_JSON_OUTPUT === "true";
     this.verbose = flags.verbose || env.XMTP_VERBOSE === "true";

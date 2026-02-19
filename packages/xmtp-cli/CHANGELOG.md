@@ -1,5 +1,10 @@
 # @xmtp/cli
 
+## 0.2.0
+
+- Added default app version
+- Updated default network to `production`
+
 ## 0.1.0
 
 Rebuilt CLI using oclif.
