@@ -21,8 +21,14 @@ const agent = process.env.XMTP_WALLET_KEY
 
 const performanceMonitor = new PerformanceMonitor({
   healthReportInterval: 10_000,
+  criticalThresholdInterval: 5_000,
   onResponse: (duration) => {
     console.log(`[PerformanceMonitor] Message loop completed in ${duration}ms`);
+  },
+  onCriticalResponse: (duration) => {
+    console.warn(
+      `[PerformanceMonitor] Slow response detected: ${duration.toFixed(0)}ms (threshold: 5000ms)`,
+    );
   },
 });
 const commandRouter = new CommandRouter({ helpCommand: "/help" });
