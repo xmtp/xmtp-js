@@ -1,10 +1,9 @@
 import {
   generateInboxId as generateInboxIdBinding,
-  getInboxIdByIdentity as getInboxIdForIdentifierBinding,
+  getInboxIdByIdentity,
+  type Backend,
   type Identifier,
 } from "@xmtp/node-bindings";
-import { ApiUrls } from "@/constants";
-import type { XmtpEnv } from "@/types";
 
 export const generateInboxId = (
   identifier: Identifier,
@@ -14,16 +13,8 @@ export const generateInboxId = (
 };
 
 export const getInboxIdForIdentifier = async (
+  backend: Backend,
   identifier: Identifier,
-  env: XmtpEnv = "dev",
-  gatewayHost?: string,
 ) => {
-  const host = ApiUrls[env];
-  const isSecure = host.startsWith("https");
-  return getInboxIdForIdentifierBinding(
-    host,
-    gatewayHost,
-    isSecure,
-    identifier,
-  );
+  return getInboxIdByIdentity(backend, identifier);
 };

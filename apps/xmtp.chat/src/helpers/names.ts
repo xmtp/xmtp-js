@@ -1,4 +1,5 @@
 import {
+  createBackend,
   getInboxIdForIdentifier,
   IdentifierKind,
   type XmtpEnv,
@@ -84,14 +85,11 @@ export const getInboxIdForAddress = async (
     return null;
   }
 
-  const inboxId = await getInboxIdForIdentifier(
-    {
-      identifier: address.toLowerCase(),
-      identifierKind: IdentifierKind.Ethereum,
-    },
-    environment,
-    gatewayHost,
-  );
+  const backend = await createBackend({ env: environment, gatewayHost });
+  const inboxId = await getInboxIdForIdentifier(backend, {
+    identifier: address.toLowerCase(),
+    identifierKind: IdentifierKind.Ethereum,
+  });
 
   return inboxId ?? null;
 };

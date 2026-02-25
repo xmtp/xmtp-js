@@ -1,4 +1,8 @@
 import { Badge, Box, Group, Stack, Text } from "@mantine/core";
+import {
+  BackupElementSelectionOption,
+  HistorySyncUrls,
+} from "@xmtp/browser-sdk";
 import { useCallback, useEffect, useRef } from "react";
 import { ConversationsList } from "@/components/Conversations/ConversationList";
 import { ConversationsMenu } from "@/components/Conversations/ConversationsMenu";
@@ -48,7 +52,18 @@ export const ConversationsNavbar: React.FC = () => {
   }, [syncAll, startStreams, stopStreams]);
 
   const handleSendSyncRequest = useCallback(async () => {
-    await client.sendSyncRequest();
+    const env = client.env!;
+    const serverUrl = HistorySyncUrls[env];
+    await client.sendSyncRequest(
+      {
+        elements: [
+          BackupElementSelectionOption.Messages,
+          BackupElementSelectionOption.Consent,
+        ],
+        excludeDisappearingMessages: false,
+      },
+      serverUrl,
+    );
   }, [client]);
 
   // loading conversations on mount, and start streaming

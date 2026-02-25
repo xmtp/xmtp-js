@@ -31,19 +31,19 @@ export const parseLogLevel = (rawLevel: string) => {
 
 export const logDetails = async <ContentTypes>(agent: Agent<ContentTypes>) => {
   const xmtp = `\x1b[38;2;252;76;52m
-    ██╗  ██╗███╗   ███╗████████╗██████╗ 
+    ██╗  ██╗███╗   ███╗████████╗██████╗
     ╚██╗██╔╝████╗ ████║╚══██╔══╝██╔══██╗
      ╚███╔╝ ██╔████╔██║   ██║   ██████╔╝
-     ██╔██╗ ██║╚██╔╝██║   ██║   ██╔═══╝ 
-    ██╔╝ ██╗██║ ╚═╝ ██║   ██║   ██║     
-    ╚═╝  ╚═╝╚═╝     ╚═╝   ╚═╝   ╚═╝     
+     ██╔██╗ ██║╚██╔╝██║   ██║   ██╔═══╝
+    ██╔╝ ██╗██║ ╚═╝ ██║   ██║   ██║
+    ╚═╝  ╚═╝╚═╝     ╚═╝   ╚═╝   ╚═╝
   \x1b[0m`;
 
   const client = agent.client;
   const clientsByAddress = client.accountIdentifier?.identifier;
   const inboxId = client.inboxId;
   const installationId = client.installationId;
-  const env = client.options?.env ?? "dev";
+  const env = client.env;
 
   const urls = [`http://xmtp.chat/${env}/dm/${clientsByAddress}`];
 
@@ -64,7 +64,7 @@ export const logDetails = async <ContentTypes>(agent: Agent<ContentTypes>) => {
   }
   console.log(`
     ${xmtp}
-    
+
     ✓ XMTP Client:
     • InboxId: ${inboxId}
     • LibXMTP Version: ${agent.libxmtpVersion}
@@ -86,7 +86,7 @@ export const logDetails = async <ContentTypes>(agent: Agent<ContentTypes>) => {
  */
 export const getTestUrl = <ContentTypes>(client: Client<ContentTypes>) => {
   const address = client.accountIdentifier?.identifier;
-  const env = client.options?.env ?? "dev";
+  const env = client.env;
   return `http://xmtp.chat/${env}/dm/${address}`;
 };
 
@@ -103,10 +103,15 @@ export const getInstallationInfo = async <ContentTypes>(
   const myInboxId = client.inboxId;
   const myInstallationId = client.installationId;
 
+  const env = client.env;
+  const gatewayHost =
+    client.options && "gatewayHost" in client.options
+      ? client.options.gatewayHost
+      : undefined;
   const inboxStates = await Client.fetchInboxStates(
     [myInboxId],
-    client.options?.env,
-    client.options?.gatewayHost,
+    env,
+    gatewayHost,
   );
 
   const installations =

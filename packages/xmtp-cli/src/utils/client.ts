@@ -1,6 +1,12 @@
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
-import { Client, IdentifierKind, LogLevel, type Signer } from "@xmtp/node-sdk";
+import {
+  Client,
+  IdentifierKind,
+  LogLevel,
+  type NetworkOptions,
+  type Signer,
+} from "@xmtp/node-sdk";
 import { isHex, toBytes } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import type { XmtpConfig } from "./config.js";
@@ -79,15 +85,19 @@ export async function createClient(config: XmtpConfig): Promise<Client> {
     await mkdir(dirname(config.dbPath), { recursive: true });
   }
 
-  const client = await Client.create(signer, {
+  const networkOptions: NetworkOptions = {
     env: config.env,
+    gatewayHost: config.gatewayHost,
+    appVersion: config.appVersion,
+  };
+
+  const client = await Client.create(signer, {
+    ...networkOptions,
     dbEncryptionKey: hexToBytes(config.dbEncryptionKey),
     dbPath: config.dbPath ?? undefined,
-    gatewayHost: config.gatewayHost,
     loggingLevel: parseLogLevel(config.logLevel),
     structuredLogging: config.structuredLogging,
     disableDeviceSync: config.disableDeviceSync,
-    appVersion: config.appVersion,
   });
 
   return client;

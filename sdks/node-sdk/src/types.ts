@@ -2,6 +2,7 @@ import type { ContentCodec } from "@xmtp/content-type-primitives";
 import {
   type Actions,
   type Attachment,
+  type Backend,
   type ContentTypeId,
   type DeletedMessage,
   type GroupUpdated,
@@ -15,14 +16,20 @@ import {
   type TransactionReference,
   type WalletSendCalls,
 } from "@xmtp/node-bindings";
-import type { ApiUrls } from "@/constants";
 import type { DecodedMessage } from "@/DecodedMessage";
 import type { HexString } from "./utils/validation";
 
 /**
  * XMTP environment
  */
-export type XmtpEnv = keyof typeof ApiUrls;
+export type XmtpEnv =
+  | "local"
+  | "dev"
+  | "production"
+  | "testnet-staging"
+  | "testnet-dev"
+  | "testnet"
+  | "mainnet";
 
 /**
  * Network options
@@ -40,6 +47,24 @@ export type NetworkOptions = {
    */
   apiUrl?: string;
   /**
+   * The host of the XMTP Gateway for your application
+   *
+   * Only valid for `dev` and `production` environments
+   *
+   * @see https://docs.xmtp.org/fund-agents-apps/run-gateway
+   */
+  gatewayHost?: string;
+  /**
+   * Custom app version
+   */
+  appVersion?: string;
+};
+
+/**
+ * Device sync options
+ */
+export type DeviceSyncOptions = {
+  /**
    * historySyncUrl can be used to override the `env` flag and connect to a
    * specific endpoint for syncing history
    *
@@ -47,13 +72,9 @@ export type NetworkOptions = {
    */
   historySyncUrl?: string | null;
   /**
-   * The host of the XMTP Gateway for your application
-   *
-   * Only valid for `testnet` and `mainnet` environments
-   *
-   * @see:https://docs.xmtp.org/fund-agents-apps/run-gateway
+   * Disable device sync
    */
-  gatewayHost?: string;
+  disableDeviceSync?: boolean;
 };
 
 /**
@@ -111,21 +132,14 @@ export type OtherOptions = {
    */
   disableAutoRegister?: boolean;
   /**
-   * Disable device sync
-   */
-  disableDeviceSync?: boolean;
-  /**
-   * Custom app version
-   */
-  appVersion?: string;
-  /**
    * The nonce to use when generating an inbox ID
    * (default: undefined = 1)
    */
   nonce?: bigint;
 };
 
-export type ClientOptions = NetworkOptions &
+export type ClientOptions = (NetworkOptions | { backend: Backend }) &
+  DeviceSyncOptions &
   StorageOptions &
   ContentOptions &
   OtherOptions;

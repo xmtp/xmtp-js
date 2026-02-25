@@ -5,6 +5,7 @@ export { Conversation } from "./Conversation";
 export { Dm } from "./Dm";
 export { Group } from "./Group";
 export { DecodedMessage } from "./DecodedMessage";
+export { createBackend } from "./utils/createBackend";
 export { generateInboxId, getInboxIdForIdentifier } from "./utils/inboxId";
 export { metadataFieldName } from "./utils/metadata";
 export { ApiUrls, HistorySyncUrls } from "./constants";
@@ -16,7 +17,10 @@ export type {
   Action,
   Actions,
   ApiStats,
+  ArchiveOptions,
   Attachment,
+  Backend,
+  BackendBuilder,
   Consent,
   ConversationDebugInfo,
   ConversationListItem,
@@ -50,7 +54,6 @@ export type {
   Reaction,
   ReadReceipt,
   RemoteAttachment,
-  RemoteAttachmentInfo,
   Reply,
   SendMessageOpts,
   SignatureRequestHandle,
@@ -62,6 +65,7 @@ export type {
 } from "@xmtp/wasm-bindings";
 export {
   ActionStyle,
+  BackupElementSelectionOption,
   ConsentEntityType,
   ConsentState,
   ContentType,

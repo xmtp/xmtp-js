@@ -1,6 +1,7 @@
 /**
  * Pre-configured URLs for the XMTP network based on the environment
  *
+ * @deprecated Use `createBackend()` instead.
  * @constant
  * @property {string} local - The local URL for the XMTP network
  * @property {string} dev - The development URL for the XMTP network
@@ -24,4 +25,8 @@ export const HistorySyncUrls = {
   local: "http://localhost:5558",
   dev: "https://message-history.dev.ephemera.network",
   production: "https://message-history.production.ephemera.network",
+  "testnet-staging": "https://message-history.dev.ephemera.network",
+  "testnet-dev": "https://message-history.dev.ephemera.network",
+  testnet: "https://message-history.dev.ephemera.network",
+  mainnet: "https://message-history.production.ephemera.network",
 } as const;

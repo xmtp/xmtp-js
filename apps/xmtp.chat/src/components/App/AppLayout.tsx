@@ -48,7 +48,7 @@ export const AppLayout: React.FC = () => {
     }
 
     // the session's actual SDK environment from client options
-    const sessionSdkEnv = client.options?.env ?? "dev";
+    const sessionSdkEnv = client.env!;
     const isInvalidEnvironment =
       !envParam ||
       !isValidEnvironment(envParam) ||

@@ -1,11 +1,12 @@
 import {
   verifySignedWithPublicKey,
+  type ArchiveOptions,
   type Client,
   type Identifier,
   type KeyPackageStatus,
   type SignatureRequestHandle,
 } from "@xmtp/wasm-bindings";
-import type { ClientOptions } from "@/types/options";
+import type { ClientOptions, XmtpEnv } from "@/types/options";
 import { createClient } from "@/utils/createClient";
 import type { SafeSigner } from "@/utils/signer";
 import { WorkerConversations } from "@/WorkerConversations";
@@ -16,10 +17,12 @@ export class WorkerClient {
   #client: Client;
   #conversations: WorkerConversations;
   #debugInformation: WorkerDebugInformation;
+  #env: XmtpEnv;
   #preferences: WorkerPreferences;
 
-  constructor(client: Client) {
+  constructor(client: Client, env: XmtpEnv) {
     this.#client = client;
+    this.#env = env;
     const conversations = client.conversations();
     this.#conversations = new WorkerConversations(this, conversations);
     this.#debugInformation = new WorkerDebugInformation(client);
@@ -30,8 +33,8 @@ export class WorkerClient {
     identifier: Identifier,
     options?: Omit<ClientOptions, "codecs">,
   ) {
-    const client = await createClient(identifier, options);
-    return new WorkerClient(client);
+    const { client, env } = await createClient(identifier, options);
+    return new WorkerClient(client, env as XmtpEnv);
   }
 
   get libxmtpVersion() {
@@ -40,6 +43,10 @@ export class WorkerClient {
 
   get appVersion() {
     return this.#client.appVersion;
+  }
+
+  get env() {
+    return this.#env;
   }
 
   get accountIdentifier() {
@@ -144,7 +151,7 @@ export class WorkerClient {
   }
 
   async getInboxIdByIdentifier(identifier: Identifier) {
-    return this.#client.findInboxIdByIdentifier(identifier);
+    return this.#client.findInboxIdByIdentity(identifier);
   }
 
   signWithInstallationKey(signatureText: string) {
@@ -185,7 +192,7 @@ export class WorkerClient {
     ) as Promise<Map<string, KeyPackageStatus>>;
   }
 
-  async sendSyncRequest() {
-    return this.#client.sendSyncRequest();
+  async sendSyncRequest(options: ArchiveOptions, serverUrl: string) {
+    return this.#client.device_sync().sendSyncRequest(options, serverUrl);
   }
 }

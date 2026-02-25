@@ -3,7 +3,6 @@ import fs from "node:fs";
 import path from "node:path";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import {
-  ApiUrls,
   Client,
   DecodedMessage,
   Dm,
@@ -37,6 +36,7 @@ import {
   type Intent,
   type LeaveRequest,
   type MultiRemoteAttachment,
+  type NetworkOptions,
   type Reaction,
   type ReadReceipt,
   type RemoteAttachment,
@@ -127,6 +127,9 @@ export type AgentErrorMiddleware<ContentTypes = unknown> = (
   next: (err?: unknown) => Promise<void> | void,
 ) => Promise<void> | void;
 
+export type AgentCreateOptions<ContentCodecs extends ContentCodec[] = []> =
+  Omit<ClientOptions & NetworkOptions, "codecs"> & { codecs?: ContentCodecs };
+
 export type AgentStreamingOptions = Omit<StreamOptions, "onValue" | "onError">;
 
 export type StreamAllMessagesOptions<ContentTypes> = Parameters<
@@ -187,7 +190,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   static async create<ContentCodecs extends ContentCodec[] = []>(
     signer: Parameters<typeof Client.create>[0],
     // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
-    options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
+    options?: AgentCreateOptions<ContentCodecs>,
   ) {
     const initializedOptions = { ...(options ?? {}) };
     initializedOptions.appVersion ??= `agent-sdk/${appVersion}`;
@@ -225,7 +228,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
   static async createFromEnv<ContentCodecs extends ContentCodec[] = []>(
     // Note: we need to omit this so that "Client.create" can correctly infer the codecs.
-    options?: Omit<ClientOptions, "codecs"> & { codecs?: ContentCodecs },
+    options?: AgentCreateOptions<ContentCodecs>,
   ) {
     const {
       XMTP_DB_DIRECTORY,
@@ -253,7 +256,16 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           : `0x${XMTP_DB_ENCRYPTION_KEY}`
         : undefined;
 
-    if (XMTP_ENV && Object.keys(ApiUrls).includes(XMTP_ENV)) {
+    const validEnvs: XmtpEnv[] = [
+      "local",
+      "dev",
+      "production",
+      "testnet-staging",
+      "testnet-dev",
+      "testnet",
+      "mainnet",
+    ];
+    if (XMTP_ENV && validEnvs.includes(XMTP_ENV as XmtpEnv)) {
       initializedOptions.env = XMTP_ENV as XmtpEnv;
     }
 
