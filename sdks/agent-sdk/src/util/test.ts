@@ -3,11 +3,16 @@ import {
   type ContentTypeId,
   type EncodedContent,
 } from "@xmtp/content-type-primitives";
-import { Client, generateInboxId, type ClientOptions } from "@xmtp/node-sdk";
+import {
+  Client,
+  generateInboxId,
+  type ClientOptions,
+  type NetworkOptions,
+} from "@xmtp/node-sdk";
 import { createSigner, createUser } from "@/user/User";
 
 export const createClient = async <ContentCodecs extends ContentCodec[] = []>(
-  options?: Omit<ClientOptions, "codecs"> & {
+  options?: Omit<ClientOptions & NetworkOptions, "codecs"> & {
     codecs?: ContentCodecs;
   },
 ) => {
@@ -28,6 +33,8 @@ export const createClient = async <ContentCodecs extends ContentCodec[] = []>(
     historySyncUrl: undefined,
     disableDeviceSync: true,
     env: "local",
+  } as Omit<ClientOptions & NetworkOptions, "codecs"> & {
+    codecs?: ContentCodecs;
   });
 };
 

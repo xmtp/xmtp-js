@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createBackend } from "@/utils/createBackend";
 import { generateInboxId, getInboxIdForIdentifier } from "@/utils/inboxId";
 import { createRegisteredClient, createSigner } from "@test/helpers";
 
@@ -19,14 +20,16 @@ describe("generateInboxId", () => {
 describe("getInboxIdForIdentifier", () => {
   it("should return `undefined` inbox ID for unregistered address", async () => {
     const { identifier } = createSigner();
-    const inboxId = await getInboxIdForIdentifier(identifier, "local");
+    const backend = await createBackend({ env: "local" });
+    const inboxId = await getInboxIdForIdentifier(backend, identifier);
     expect(inboxId).toBeUndefined();
   });
 
   it("should return inbox ID for registered address", async () => {
     const { signer, identifier } = createSigner();
     const client = await createRegisteredClient(signer);
-    const inboxId = await getInboxIdForIdentifier(identifier, "local");
+    const backend = await createBackend({ env: "local" });
+    const inboxId = await getInboxIdForIdentifier(backend, identifier);
     expect(inboxId).toBe(client.inboxId);
   });
 });

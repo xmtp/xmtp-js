@@ -61,7 +61,7 @@ describe("Client", () => {
   it("should return a version", async () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);
-    expect(client.appVersion).toBe("0.0.0");
+    expect(client.appVersion).toBe("");
     expect(client.libxmtpVersion).toBeTypeOf("string");
 
     const client2 = await createRegisteredClient(signer, {

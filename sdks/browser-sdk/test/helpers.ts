@@ -11,8 +11,20 @@ import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { Client } from "@/Client";
-import type { ClientOptions } from "@/types/options";
+import type {
+  ContentOptions,
+  DeviceSyncOptions,
+  NetworkOptions,
+  OtherOptions,
+  StorageOptions,
+} from "@/types/options";
 import type { Signer } from "@/utils/signer";
+
+type TestClientOptions = NetworkOptions &
+  DeviceSyncOptions &
+  ContentOptions &
+  StorageOptions &
+  OtherOptions;
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -61,13 +73,13 @@ export type User = ReturnType<typeof createUser>;
 
 export const buildClient = async <ContentCodecs extends ContentCodec[] = []>(
   identifier: Identifier,
-  options?: ClientOptions & {
+  options?: TestClientOptions & {
     codecs?: ContentCodecs;
   },
 ) => {
   const opts = {
     ...options,
-    env: options?.env ?? "local",
+    env: options?.env ?? ("local" as const),
   };
   return Client.build<ContentCodecs>(identifier, {
     ...opts,
@@ -77,13 +89,13 @@ export const buildClient = async <ContentCodecs extends ContentCodec[] = []>(
 
 export const createClient = async <ContentCodecs extends ContentCodec[] = []>(
   signer: Signer,
-  options?: ClientOptions & {
+  options?: TestClientOptions & {
     codecs?: ContentCodecs;
   },
 ) => {
   const opts = {
     ...options,
-    env: options?.env ?? "local",
+    env: options?.env ?? ("local" as const),
   };
   const identifier = await signer.getIdentifier();
   return Client.create<ContentCodecs>(signer, {
@@ -97,13 +109,13 @@ export const createRegisteredClient = async <
   ContentCodecs extends ContentCodec[] = [],
 >(
   signer: Signer,
-  options?: ClientOptions & {
+  options?: TestClientOptions & {
     codecs?: ContentCodecs;
   },
 ) => {
   const opts = {
     ...options,
-    env: options?.env ?? "local",
+    env: options?.env ?? ("local" as const),
   };
   const identifier = await signer.getIdentifier();
   return Client.create<ContentCodecs>(signer, {

@@ -15,8 +15,20 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { Client } from "@/Client";
 import { HistorySyncUrls } from "@/constants";
-import type { ClientOptions } from "@/types";
+import type {
+  ContentOptions,
+  DeviceSyncOptions,
+  NetworkOptions,
+  OtherOptions,
+  StorageOptions,
+} from "@/types";
 import type { Signer } from "@/utils/signer";
+
+type TestClientOptions = NetworkOptions &
+  DeviceSyncOptions &
+  StorageOptions &
+  ContentOptions &
+  OtherOptions;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -67,7 +79,7 @@ export type User = ReturnType<typeof createUser>;
 
 export const buildClient = async <ContentCodecs extends ContentCodec[] = []>(
   identifier: Identifier,
-  options?: ClientOptions & {
+  options?: TestClientOptions & {
     codecs?: ContentCodecs;
   },
 ) => {
@@ -83,7 +95,7 @@ export const buildClient = async <ContentCodecs extends ContentCodec[] = []>(
 
 export const createClient = async <ContentCodecs extends ContentCodec[] = []>(
   signer: Signer,
-  options?: Omit<ClientOptions, "codecs"> & {
+  options?: TestClientOptions & {
     codecs?: ContentCodecs;
   },
 ) => {
@@ -113,7 +125,7 @@ export const createRegisteredClient = async <
   ContentCodecs extends ContentCodec[] = [],
 >(
   signer: Signer,
-  options?: Omit<ClientOptions, "codecs"> & {
+  options?: TestClientOptions & {
     codecs?: ContentCodecs;
   },
 ) => {
