@@ -33,9 +33,13 @@ const performanceMonitor = new PerformanceMonitor({
 });
 const commandRouter = new CommandRouter({ helpCommand: "/help" });
 
-commandRouter.command("/version", "Show Agent SDK version", async (ctx) => {
-  await ctx.conversation.sendText(`v${process.env.npm_package_version}`);
-});
+commandRouter.command(
+  ["/v", "/version"],
+  "Show Agent SDK version",
+  async (ctx) => {
+    await ctx.conversation.sendText(`v${process.env.npm_package_version}`);
+  },
+);
 
 commandRouter.command("/test-actions", async (ctx) => {
   await ctx.conversation.sendActions({
