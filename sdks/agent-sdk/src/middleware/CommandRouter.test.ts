@@ -165,4 +165,49 @@ describe("CommandRouter", () => {
       expect(router.commandList).not.toContain("/help");
     });
   });
+
+  describe("multiple command aliases", () => {
+    it("should register the same handler for multiple command strings", async () => {
+      const router = new CommandRouter();
+      const handler = vi.fn();
+      router.command(["/v", "/version"], handler);
+
+      agent.use(router.middleware());
+      await agent.start();
+
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+
+      await dm.sendText("/v");
+      await vi.waitFor(() => {
+        expect(handler).toHaveBeenCalledTimes(1);
+      });
+
+      await dm.sendText("/version");
+      await vi.waitFor(() => {
+        expect(handler).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it("should include all aliases in the command list", () => {
+      const router = new CommandRouter();
+      router.command(["/v", "/version"], vi.fn());
+      expect(router.commandList).toContain("/v");
+      expect(router.commandList).toContain("/version");
+    });
+
+    it("should accept a description with multiple command strings", () => {
+      const router = new CommandRouter();
+      router.command(["/v", "/version"], "Show version", vi.fn());
+      expect(router.commandList).toContain("/v");
+      expect(router.commandList).toContain("/version");
+    });
+
+    it("should throw if any command in the array does not start with /", () => {
+      const router = new CommandRouter();
+      expect(() => {
+        router.command(["/valid", "invalid"], vi.fn());
+      }).toThrow('Command must start with "/"');
+    });
+  });
 });
