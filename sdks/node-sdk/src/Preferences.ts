@@ -32,7 +32,7 @@ export class Preferences {
   }
 
   sync() {
-    return this.#client.syncPreferences();
+    return this.#conversations.syncPreferences();
   }
 
   /**
@@ -61,7 +61,7 @@ export class Preferences {
    * @returns Promise that resolves with the inbox states for the inbox IDs
    */
   async getInboxStates(inboxIds: string[]) {
-    return this.#client.addressesFromInboxId(false, inboxIds);
+    return this.#client.fetchInboxStatesByInboxIds(inboxIds, false);
   }
 
   /**
@@ -71,7 +71,7 @@ export class Preferences {
    * @returns Promise that resolves with the inbox states for the inbox IDs
    */
   async fetchInboxStates(inboxIds: string[]) {
-    return this.#client.addressesFromInboxId(true, inboxIds);
+    return this.#client.fetchInboxStatesByInboxIds(inboxIds, true);
   }
 
   /**

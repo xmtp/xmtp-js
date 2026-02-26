@@ -132,14 +132,14 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * The list of admins of the group
    */
   listAdmins() {
-    return this.#conversation.adminList();
+    return this.#conversation.listAdmins();
   }
 
   /**
    * The list of super admins of the group
    */
   listSuperAdmins() {
-    return this.#conversation.superAdminList();
+    return this.#conversation.listSuperAdmins();
   }
 
   /**
@@ -168,7 +168,7 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * @param identifiers Array of member identifiers to add
    */
   async addMembersByIdentifiers(identifiers: Identifier[]) {
-    return this.#conversation.addMembers(identifiers);
+    return this.#conversation.addMembersByIdentity(identifiers);
   }
 
   /**
@@ -177,7 +177,7 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * @param inboxIds Array of inbox IDs to add
    */
   async addMembers(inboxIds: string[]) {
-    return this.#conversation.addMembersByInboxId(inboxIds);
+    return this.#conversation.addMembers(inboxIds);
   }
 
   /**
@@ -186,7 +186,7 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * @param identifiers Array of member identifiers to remove
    */
   async removeMembersByIdentifiers(identifiers: Identifier[]) {
-    return this.#conversation.removeMembers(identifiers);
+    return this.#conversation.removeMembersByIdentity(identifiers);
   }
 
   /**
@@ -195,7 +195,7 @@ export class Group<ContentTypes = unknown> extends Conversation<ContentTypes> {
    * @param inboxIds Array of inbox IDs to remove
    */
   async removeMembers(inboxIds: string[]) {
-    return this.#conversation.removeMembersByInboxId(inboxIds);
+    return this.#conversation.removeMembers(inboxIds);
   }
 
   /**
