@@ -43,12 +43,10 @@ export const AppLayout: React.FC = () => {
   }, [client]);
 
   useEffect(() => {
-    if (!client) {
+    const sessionSdkEnv = client?.env;
+    if (!client || !sessionSdkEnv) {
       return;
     }
-
-    // the session's actual SDK environment from client options
-    const sessionSdkEnv = client.env!;
     const isInvalidEnvironment =
       !envParam ||
       !isValidEnvironment(envParam) ||

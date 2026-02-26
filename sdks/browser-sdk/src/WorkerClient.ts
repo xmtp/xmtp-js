@@ -34,7 +34,7 @@ export class WorkerClient {
     options?: Omit<ClientOptions, "codecs">,
   ) {
     const { client, env } = await createClient(identifier, options);
-    return new WorkerClient(client, env as XmtpEnv);
+    return new WorkerClient(client, env);
   }
 
   get libxmtpVersion() {
