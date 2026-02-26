@@ -1,5 +1,6 @@
 export * from "./constants";
 export type * from "./types";
+export * from "./utils/createBackend";
 export * from "./utils/errors";
 export * from "./utils/inboxId";
 export type * from "./utils/signer";
@@ -17,7 +18,10 @@ export type {
   Action,
   Actions,
   ApiStats,
+  ArchiveOptions,
   Attachment,
+  Backend,
+  BackendBuilder,
   Consent,
   ConversationDebugInfo,
   ConversationListItem,
@@ -62,6 +66,7 @@ export type {
 } from "@xmtp/node-bindings";
 export {
   ActionStyle,
+  BackupElementSelectionOption,
   ConsentEntityType,
   ConsentState,
   ContentType,

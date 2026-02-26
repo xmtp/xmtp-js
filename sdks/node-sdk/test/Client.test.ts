@@ -4,6 +4,7 @@ import { IdentifierKind } from "@xmtp/node-bindings";
 import { uint8ArrayToHex } from "uint8array-extras";
 import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
+import { createBackend } from "@/index";
 import {
   ClientNotInitializedError,
   SignerUnavailableError,
@@ -37,11 +38,10 @@ describe("Client", () => {
     });
     expect(client2.inboxId).toBe(client.inboxId);
 
-    await expect(
-      createClient(signer, {
-        nonce: 2n,
-      }),
-    ).rejects.toThrow();
+    const client3 = await createClient(signer, {
+      nonce: 2n,
+    });
+    expect(client3.inboxId).not.toEqual(client.inboxId);
   });
 
   it("should create a client without a signer", async () => {
@@ -138,7 +138,7 @@ describe("Client", () => {
     await createRegisteredClient(signer);
     const canMessage = await Client.canMessage(
       [await signer.getIdentifier()],
-      "local",
+      await createBackend({ env: "local" }),
     );
     expect(Object.fromEntries(canMessage)).toEqual({
       [address]: true,

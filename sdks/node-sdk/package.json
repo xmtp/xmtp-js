@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "@xmtp/content-type-primitives": "3.0.0",
-    "@xmtp/node-bindings": "1.10.0-dev.55280fa"
+    "@xmtp/node-bindings": "1.10.0-dev.82e8ff4"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",

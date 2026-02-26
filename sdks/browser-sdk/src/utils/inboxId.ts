@@ -1,10 +1,9 @@
 import init, {
   generateInboxId as wasmGenerateInboxId,
   getInboxIdForIdentifier as wasmGetInboxIdForIdentifier,
+  type Backend,
   type Identifier,
 } from "@xmtp/wasm-bindings";
-import { ApiUrls } from "@/constants";
-import type { XmtpEnv } from "@/types/options";
 
 /**
  * Generates an inbox ID for a given identifier
@@ -22,25 +21,16 @@ export const generateInboxId = async (
 };
 
 /**
- * Gets the inbox ID for a specific identifier and optional environment
+ * Gets the inbox ID for a specific identifier using a Backend
  *
+ * @param backend - The Backend instance for API communication
  * @param identifier - The identifier to get the inbox ID for
- * @param env - Optional XMTP environment configuration (default: "dev")
- * @param gatewayHost - Optional gateway host override
  * @returns Promise that resolves with the inbox ID for the identifier
  */
 export const getInboxIdForIdentifier = async (
+  backend: Backend,
   identifier: Identifier,
-  env?: XmtpEnv,
-  gatewayHost?: string,
 ): Promise<string | undefined> => {
   await init();
-  const host = env ? ApiUrls[env] : ApiUrls.dev;
-  const isSecure = host.startsWith("https");
-  return wasmGetInboxIdForIdentifier(
-    host,
-    gatewayHost ?? null,
-    isSecure,
-    identifier,
-  );
+  return wasmGetInboxIdForIdentifier(backend, identifier);
 };

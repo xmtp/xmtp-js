@@ -91,6 +91,7 @@ self.onmessage = async (
         action,
         result: {
           appVersion: maybeClient.appVersion,
+          env: maybeClient.env,
           inboxId: maybeClient.inboxId,
           installationId: maybeClient.installationId,
           installationIdBytes: maybeClient.installationIdBytes,
@@ -338,7 +339,7 @@ self.onmessage = async (
         break;
       }
       case "client.sendSyncRequest": {
-        await client.sendSyncRequest();
+        await client.sendSyncRequest(data.options, data.serverUrl);
         postMessage({ id, action, result: undefined });
         break;
       }

@@ -1,4 +1,8 @@
-import type { Identifier, KeyPackageStatus } from "@xmtp/wasm-bindings";
+import type {
+  ArchiveOptions,
+  Identifier,
+  KeyPackageStatus,
+} from "@xmtp/wasm-bindings";
 import type { ClientOptions } from "@/types/options";
 import type { SafeSigner } from "@/utils/signer";
 
@@ -8,6 +12,7 @@ export type ClientAction =
       id: string;
       result: {
         appVersion: string;
+        env: string;
         inboxId: string;
         installationId: string;
         installationIdBytes: Uint8Array;
@@ -216,5 +221,8 @@ export type ClientAction =
       action: "client.sendSyncRequest";
       id: string;
       result: undefined;
-      data: undefined;
+      data: {
+        options: ArchiveOptions;
+        serverUrl: string;
+      };
     };

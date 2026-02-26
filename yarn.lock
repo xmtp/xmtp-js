@@ -6238,7 +6238,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@web/rollup-plugin-copy": "npm:^0.5.1"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/wasm-bindings": "npm:1.9.1"
+    "@xmtp/wasm-bindings": "npm:1.10.0-dev.82e8ff4"
     playwright: "npm:^1.58.0"
     rollup: "npm:^4.56.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6325,7 +6325,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
-    "@xmtp/node-bindings": "npm:1.9.1"
+    "@xmtp/node-bindings": "npm:1.10.0-dev.82e8ff4"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.56.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6476,10 +6476,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:1.10.0-dev.55280fa":
-  version: 1.10.0-dev.55280fa
-  resolution: "@xmtp/node-bindings@npm:1.10.0-dev.55280fa"
-  checksum: 10/8dbdfd912b75619d3fef3819344ccd7417cbbf74746d7aad5e67a4abab19b53ae1919b1061dee64258811676d315231a175a5ab17f3c2c4bd2a2ad10864e6e52
+"@xmtp/node-bindings@npm:1.10.0-dev.82e8ff4":
+  version: 1.10.0-dev.82e8ff4
+  resolution: "@xmtp/node-bindings@npm:1.10.0-dev.82e8ff4"
+  checksum: 10/8f4dfdf4246c73e64a22fd830fd6c7637e37b1d59f5441f3ed73e69585d0f7904cb4500eeaf8ffb5c7ee2b435148ee54d1cfc1996a4fac77230d5492e3fc46ff
   languageName: node
   linkType: hard
 
@@ -6494,13 +6494,6 @@ __metadata:
   version: 1.8.0
   resolution: "@xmtp/node-bindings@npm:1.8.0"
   checksum: 10/bd9678d21f5e2ab12350ad12f500d2e7d9b4b7c479e38d4ddc45c5691d226460b2aa024c1eed21934d63ea600103dd0e267d04a4b25972b6c7cb68bc2045a892
-  languageName: node
-  linkType: hard
-
-"@xmtp/node-bindings@npm:1.9.1":
-  version: 1.9.1
-  resolution: "@xmtp/node-bindings@npm:1.9.1"
-  checksum: 10/2393a08c5a8d0bc6a3c18ff7d83010cc0d26fc4a9b3774541f209764e0f0e7201a33c9c5abbca495beaf63e2fd00852c0c05fa150025e524f072957daf06a9b0
   languageName: node
   linkType: hard
 
@@ -6525,7 +6518,7 @@ __metadata:
     "@types/node": "npm:^24.10.9"
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/node-bindings": "npm:1.10.0-dev.55280fa"
+    "@xmtp/node-bindings": "npm:1.10.0-dev.82e8ff4"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.56.0"
@@ -6566,10 +6559,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.9.1":
-  version: 1.9.1
-  resolution: "@xmtp/wasm-bindings@npm:1.9.1"
-  checksum: 10/d2d81a1a7d841f11212e6c6dd02ca875de69c2c831c05484eeab91c9d1b26e12fc8d8817a70e98037f821a88bc9505dbd0550d7f2cab7ed0825ecdd67d8fff98
+"@xmtp/wasm-bindings@npm:1.10.0-dev.82e8ff4":
+  version: 1.10.0-dev.82e8ff4
+  resolution: "@xmtp/wasm-bindings@npm:1.10.0-dev.82e8ff4"
+  checksum: 10/cb7a7cb83ecce28f67f0f3ca34b0ef336823268d869ddb4dab82dda58714a440bbe5d65fd9ec6086dfc749e2983f181d13c07ac332a68d868565e026aad8237f
   languageName: node
   linkType: hard
 

@@ -34,7 +34,8 @@ application instance using your identity.`;
   async run(): Promise<void> {
     const client = await this.initClient();
 
-    const options = client.options ?? {};
+    const options = client.options;
+    const hasNetworkOptions = options && "env" in options;
 
     const properties = {
       address: client.accountIdentifier?.identifier,
@@ -46,17 +47,17 @@ application instance using your identity.`;
     };
 
     const clientOptions = {
-      env: options.env,
-      apiUrl: options.apiUrl,
-      historySyncUrl: options.historySyncUrl,
-      gatewayHost: options.gatewayHost,
-      dbPath: options.dbPath,
-      loggingLevel: options.loggingLevel,
-      structuredLogging: options.structuredLogging,
-      disableAutoRegister: options.disableAutoRegister,
-      disableDeviceSync: options.disableDeviceSync,
-      appVersion: options.appVersion,
-      nonce: options.nonce,
+      env: client.env,
+      apiUrl: hasNetworkOptions ? options.apiUrl : undefined,
+      historySyncUrl: options?.historySyncUrl,
+      gatewayHost: hasNetworkOptions ? options.gatewayHost : undefined,
+      dbPath: options?.dbPath,
+      loggingLevel: options?.loggingLevel,
+      structuredLogging: options?.structuredLogging,
+      disableAutoRegister: options?.disableAutoRegister,
+      disableDeviceSync: options?.disableDeviceSync,
+      appVersion: hasNetworkOptions ? options.appVersion : undefined,
+      nonce: options?.nonce,
     };
 
     if (this.jsonOutput) {
