@@ -52,7 +52,10 @@ export const ConversationsNavbar: React.FC = () => {
   }, [syncAll, startStreams, stopStreams]);
 
   const handleSendSyncRequest = useCallback(async () => {
-    const env = client.env!;
+    const env = client.env;
+    if (!env) {
+      return;
+    }
     const serverUrl = HistorySyncUrls[env];
     await client.sendSyncRequest(
       {
