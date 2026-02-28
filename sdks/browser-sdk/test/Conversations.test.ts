@@ -7,6 +7,14 @@ import { uuid } from "@/utils/uuid";
 import { createRegisteredClient, createSigner, sleep } from "@test/helpers";
 
 describe("Conversations", () => {
+  it("should have a topic", async () => {
+    const { signer } = createSigner();
+    const client = await createRegisteredClient(signer);
+    expect(client.conversations.topic).toBe(
+      `/xmtp/mls/1/w-${client.installationId}/proto`,
+    );
+  });
+
   it("should not have initial conversations", async () => {
     const { signer } = createSigner();
     const client = await createRegisteredClient(signer);

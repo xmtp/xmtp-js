@@ -89,6 +89,10 @@ export class Conversation<ContentTypes = unknown> {
     return nsToDate(this.createdAtNs);
   }
 
+  get topic() {
+    return `/xmtp/mls/1/g-${this.id}/proto`;
+  }
+
   pausedForVersion() {
     return this.#conversation.pausedForVersion() ?? undefined;
   }

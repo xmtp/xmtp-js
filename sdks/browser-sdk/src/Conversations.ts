@@ -7,6 +7,7 @@ import {
   type ListConversationsOptions,
   type DecodedMessage as XmtpDecodedMessage,
 } from "@xmtp/wasm-bindings";
+import type { Client } from "@/Client";
 import type { CodecRegistry } from "@/CodecRegistry";
 import { DecodedMessage } from "@/DecodedMessage";
 import { Dm } from "@/Dm";
@@ -27,6 +28,7 @@ import type { WorkerBridge } from "@/utils/WorkerBridge";
  * This class is not intended to be initialized directly.
  */
 export class Conversations<ContentTypes = unknown> {
+  #client: Client<ContentTypes>;
   #codecRegistry: CodecRegistry;
   #worker: WorkerBridge<ClientWorkerAction>;
 
@@ -37,11 +39,19 @@ export class Conversations<ContentTypes = unknown> {
    * @param codecRegistry - The codec registry instance
    */
   constructor(
+    client: Client<ContentTypes>,
     worker: WorkerBridge<ClientWorkerAction>,
     codecRegistry: CodecRegistry,
   ) {
+    this.#client = client;
     this.#worker = worker;
     this.#codecRegistry = codecRegistry;
+  }
+
+  get topic() {
+    return this.#client.installationId
+      ? `/xmtp/mls/1/w-${this.#client.installationId}/proto`
+      : undefined;
   }
 
   /**

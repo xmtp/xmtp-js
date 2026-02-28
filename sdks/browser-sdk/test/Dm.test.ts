@@ -12,6 +12,15 @@ import { metadataFieldName } from "@/utils/metadata";
 import { createRegisteredClient, createSigner, sleep } from "@test/helpers";
 
 describe("Dm", () => {
+  it("should have a topic", async () => {
+    const { signer: signer1 } = createSigner();
+    const { signer: signer2 } = createSigner();
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const dm = await client1.conversations.createDm(client2.inboxId!);
+    expect(dm.topic).toBe(`/xmtp/mls/1/g-${dm.id}/proto`);
+  });
+
   it("should create a dm", async () => {
     const { signer: signer1 } = createSigner();
     const { signer: signer2 } = createSigner();
