@@ -25,6 +25,15 @@ import {
 } from "@test/helpers";
 
 describe("Group", () => {
+  it("should have a topic", async () => {
+    const { signer: signer1 } = createSigner();
+    const { signer: signer2 } = createSigner();
+    const client1 = await createRegisteredClient(signer1);
+    const client2 = await createRegisteredClient(signer2);
+    const group = await client1.conversations.createGroup([client2.inboxId]);
+    expect(group.topic).toBe(`/xmtp/mls/1/g-${group.id}/proto`);
+  });
+
   it("should create a group", async () => {
     const { signer: signer1 } = createSigner();
     const { signer: signer2 } = createSigner();
