@@ -48,6 +48,10 @@ export class Conversations<ContentTypes = unknown> {
     this.#conversations = conversations;
   }
 
+  get topic() {
+    return `/xmtp/mls/1/w-${this.#client.installationId}/proto`;
+  }
+
   /**
    * Retrieves a conversation by its ID
    *

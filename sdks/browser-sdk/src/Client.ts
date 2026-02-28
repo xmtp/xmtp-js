@@ -59,7 +59,11 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     this.#worker = new WorkerBridge<ClientWorkerAction>(worker, enableLogging);
     this.#options = options;
     this.#codecRegistry = new CodecRegistry([...(options?.codecs ?? [])]);
-    this.#conversations = new Conversations(this.#worker, this.#codecRegistry);
+    this.#conversations = new Conversations(
+      this,
+      this.#worker,
+      this.#codecRegistry,
+    );
     this.#debugInformation = new DebugInformation(this.#worker);
     this.#preferences = new Preferences(this.#worker);
   }

@@ -86,6 +86,10 @@ export class Conversation<ContentTypes = unknown> {
     return this.#metadata;
   }
 
+  get topic() {
+    return `/xmtp/mls/1/g-${this.id}/proto`;
+  }
+
   async lastMessage() {
     const lastMessage = await this.#worker.action("conversation.lastMessage", {
       id: this.#id,
