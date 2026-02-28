@@ -1,5 +1,12 @@
 # @xmtp/node-sdk
 
+## 5.4.0
+
+### Minor Changes
+
+- Added `topic` property to `Conversations` for subscribing to incoming welcomes
+- Added `topic` property to `Conversation` for subscribing to incoming messages
+
 ## 5.3.0
 
 Added `contentType` field to enriched replies.

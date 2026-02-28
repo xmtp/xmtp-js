@@ -6509,7 +6509,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:5.3.0, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@xmtp/node-sdk@npm:5.3.0"
+  dependencies:
+    "@xmtp/content-type-primitives": "npm:3.0.0"
+    "@xmtp/node-bindings": "npm:1.9.1"
+  checksum: 10/22321dbfc58bdc9c477825a9c0a5aecc1e62b9ed24a646004ab0550453bb86d2555c7efe0b037854148109956402675893e6c0973d653a84b820a8ca2c706049
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
