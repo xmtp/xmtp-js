@@ -1,5 +1,12 @@
 # @xmtp/browser-sdk
 
+## 6.4.0
+
+### Minor Changes
+
+- Added `topic` property to `Conversations` for subscribing to incoming welcomes
+- Added `topic` property to `Conversation` for subscribing to incoming messages
+
 ## 6.3.0
 
 Added `contentType` method to enriched replies.
