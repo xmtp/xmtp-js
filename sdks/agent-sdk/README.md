@@ -85,10 +85,15 @@ Subscribe only to what you need using Node’s `EventEmitter` interface. Events 
 
 **Message Events**
 
-- `attachment` – an incoming [remote attachment message](https://docs.xmtp.org/chat-apps/content-types/attachments)
+- `actions` – an incoming [actions message](https://docs.xmtp.org/agents/content-types/actions) (interactive buttons/choices)
+- `attachment` – an incoming [remote attachment message](https://docs.xmtp.org/agents/content-types/attachments#how-remote-attachments-work)
+- `group-update` – an incoming [group update](https://docs.xmtp.org/agents/content-types/group-updates#listen-for-group-updates) (like name change, member update, etc.)
+- `inline-attachment` – an incoming inline attachment (small files sent directly in the message)
+- `intent` – an incoming [intent message](https://docs.xmtp.org/agents/content-types/intents) (user's response to an actions message)
+- `leave-request` – an incoming leave request from a member wanting to leave a group
 - `markdown` – an incoming [markdown-formatted](https://docs.xmtp.org/agents/content-types/markdown) text message
 - `message` – all messages that are not having a [custom content type](https://docs.xmtp.org/agents/content-types/content-types#custom-content-types)
-- `group-update` – an incoming [group update](https://docs.xmtp.org/agents/content-types/group-updates#listen-for-group-updates) (like name change, member update, etc.)
+- `multi-attachment` – an incoming message with multiple [remote attachments](https://docs.xmtp.org/agents/content-types/attachments#how-remote-attachments-work)
 - `reaction` – an incoming [reaction message](https://docs.xmtp.org/agents/content-types/reactions)
 - `read-receipt` – an incoming [read receipt](https://docs.xmtp.org/chat-apps/content-types/read-receipts) notification
 - `reply` – an incoming [reply message](https://docs.xmtp.org/agents/content-types/replies)
