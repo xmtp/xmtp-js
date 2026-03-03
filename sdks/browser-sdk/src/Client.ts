@@ -36,7 +36,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   #installationIdBytes?: Uint8Array;
   #isReady = false;
   #libxmtpVersion?: string;
-  #options?: ClientOptions;
+  #options?: Omit<ClientOptions, "codecs">;
   #preferences: Preferences;
   #signer?: Signer;
   #worker: WorkerBridge<ClientWorkerAction>;
@@ -57,8 +57,9 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       options?.loggingLevel !== undefined &&
       options.loggingLevel !== LogLevel.Off;
     this.#worker = new WorkerBridge<ClientWorkerAction>(worker, enableLogging);
-    this.#options = options;
     this.#codecRegistry = new CodecRegistry([...(options?.codecs ?? [])]);
+    const { codecs: _, ...workerSafeOptions } = options ?? {};
+    this.#options = workerSafeOptions;
     this.#conversations = new Conversations(
       this,
       this.#worker,
