@@ -167,6 +167,16 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   /**
+   * Decodes, decrypts, and persists a raw envelope from a group message stream.
+   *
+   * @param envelopeBytes - Raw protobuf-encoded envelope bytes from the stream
+   * @returns The processed and stored messages
+   */
+  async processStreamedMessage(envelopeBytes: Uint8Array) {
+    return this.#conversation.processStreamedGroupMessage(envelopeBytes);
+  }
+
+  /**
    * Publishes pending messages that were sent optimistically
    *
    * @returns Promise that resolves when publishing is complete
