@@ -1,4 +1,4 @@
-import { Flex, Group, Stack } from "@mantine/core";
+import { Flex, Group, Stack, Text } from "@mantine/core";
 import { Dm } from "@xmtp/browser-sdk";
 import { useMemo } from "react";
 import { DateLabel } from "@/components/DateLabel";
@@ -7,6 +7,7 @@ import { useConversationContext } from "@/contexts/ConversationContext";
 import { nsToDate } from "@/helpers/date";
 import { getMemberAddress } from "@/helpers/xmtp";
 import { useConversation } from "@/hooks/useConversation";
+import type { ReadStatus } from "@/hooks/useReadStatus";
 import { combineProfiles, useAllProfiles } from "@/stores/profiles";
 
 export type MessageContentAlign = "left" | "right";
@@ -15,6 +16,7 @@ export type MessageContentWrapperProps = React.PropsWithChildren<{
   align: MessageContentAlign;
   senderInboxId: string;
   sentAtNs: bigint;
+  readStatus?: ReadStatus;
   stopClickPropagation?: boolean;
 }>;
 
@@ -23,6 +25,7 @@ export const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
   senderInboxId,
   children,
   sentAtNs,
+  readStatus,
   stopClickPropagation = true,
 }) => {
   const { conversationId } = useConversationContext();
@@ -40,7 +43,14 @@ export const MessageContentWrapper: React.FC<MessageContentWrapperProps> = ({
           gap="xs"
           direction={align === "right" ? "row" : "row-reverse"}
           align="center">
-          <DateLabel date={nsToDate(sentAtNs)} />
+          <Group gap={4} align="center">
+            <DateLabel date={nsToDate(sentAtNs)} />
+            {readStatus && (
+              <Text size="xs" c="dimmed">
+                {readStatus === "read" ? "✓✓" : "✓"}
+              </Text>
+            )}
+          </Group>
           {senderMember && (
             <Identity
               address={senderProfile.address}
