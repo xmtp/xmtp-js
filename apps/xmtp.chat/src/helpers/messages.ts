@@ -1,6 +1,7 @@
 import {
   type DecodedMessage,
   type EnrichedReply,
+  type ReadReceipt,
   type Reaction,
   type RemoteAttachment,
 } from "@xmtp/browser-sdk";
@@ -26,6 +27,11 @@ export const isRemoteAttachment = (
 ): m is DecodedMessage<RemoteAttachment> =>
   m.contentType.typeId === "staticRemoteAttachment";
 
+export const isReadReceipt = (
+  m: DecodedMessage,
+): m is DecodedMessage<ReadReceipt> =>
+  m.contentType.typeId === "readReceipt";
+
 export const stringify = (message: DecodedMessage): string => {
   switch (true) {
     case isReaction(message):
@@ -43,9 +49,6 @@ export const stringify = (message: DecodedMessage): string => {
       return jsonStringify(message.content ?? message.fallback);
   }
 };
-
-export const isReadReceipt = (m: DecodedMessage): boolean =>
-  m.contentType.typeId === "readReceipt";
 
 export const isActionable = (message: DecodedMessage) =>
   isText(message) ||
