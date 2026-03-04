@@ -1,7 +1,7 @@
 import {
-  ContentCodec,
+  type ContentCodec,
   contentTypeToString,
-  EncodedContent,
+  type EncodedContent,
 } from "@xmtp/content-type-primitives";
 import {
   ActionStyle,
