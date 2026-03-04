@@ -2,16 +2,18 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { IdentifierKind } from "@xmtp/node-bindings";
 import { Client } from "@/Client";
+import type { NetworkOptions, StorageOptions } from "@/types";
 import { createSigner, createUser, type User } from "@test/helpers";
 
 export const createRegisteredClient = async (
   user: User,
   dbPath?: string | null,
 ) => {
-  return Client.create(createSigner().signer, {
+  const options: NetworkOptions & StorageOptions = {
     env: "local",
     dbPath,
-  });
+  };
+  return Client.create(createSigner().signer, options);
 };
 
 const accountsJsonPath = path.join(import.meta.dirname, "accounts.json");

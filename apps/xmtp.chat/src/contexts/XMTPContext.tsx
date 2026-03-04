@@ -2,7 +2,9 @@ import {
   Client,
   type BuiltInContentTypes,
   type ClientOptions,
+  type NetworkOptions,
   type Signer,
+  type XmtpEnv,
 } from "@xmtp/browser-sdk";
 import {
   createContext,
@@ -20,7 +22,7 @@ export type ContentTypes = BuiltInContentTypes;
 export type InitializeClientOptions = {
   apiUrl?: string;
   dbEncryptionKey?: Uint8Array;
-  env?: ClientOptions["env"];
+  env?: XmtpEnv;
   loggingLevel?: ClientOptions["loggingLevel"];
   signer: Signer;
   gatewayHost?: string;
@@ -122,7 +124,7 @@ export const XMTPProvider: React.FC<XMTPProviderProps> = ({
             dbEncryptionKey,
             appVersion: "xmtp.chat/0",
             gatewayHost,
-          });
+          } as Omit<ClientOptions & NetworkOptions, "codecs">);
           setClient(xmtpClient);
         } catch (e) {
           setClient(undefined);

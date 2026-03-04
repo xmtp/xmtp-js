@@ -153,19 +153,19 @@ export class WorkerConversation {
   }
 
   async addMembersByIdentifiers(identifiers: Identifier[]) {
-    return this.#group.addMembers(identifiers);
+    return this.#group.addMembersByIdentity(identifiers);
   }
 
   async addMembers(inboxIds: string[]) {
-    return this.#group.addMembersByInboxId(inboxIds);
+    return this.#group.addMembers(inboxIds);
   }
 
   async removeMembersByIdentifiers(identifiers: Identifier[]) {
-    return this.#group.removeMembers(identifiers);
+    return this.#group.removeMembersByIdentity(identifiers);
   }
 
   async removeMembers(inboxIds: string[]) {
-    return this.#group.removeMembersByInboxId(inboxIds);
+    return this.#group.removeMembers(inboxIds);
   }
 
   async addAdmin(inboxId: string) {

@@ -5,6 +5,7 @@ import type {
 import type {
   Actions,
   Attachment,
+  Backend,
   DeletedMessage,
   GroupUpdated,
   Intent,
@@ -17,10 +18,16 @@ import type {
   TransactionReference,
   WalletSendCalls,
 } from "@xmtp/wasm-bindings";
-import type { ApiUrls } from "@/constants";
 import type { DecodedMessage } from "@/DecodedMessage";
 
-export type XmtpEnv = keyof typeof ApiUrls;
+export type XmtpEnv =
+  | "local"
+  | "dev"
+  | "production"
+  | "testnet-staging"
+  | "testnet-dev"
+  | "testnet"
+  | "mainnet";
 
 /**
  * Network options
@@ -36,14 +43,28 @@ export type NetworkOptions = {
    */
   apiUrl?: string;
   /**
+   * gatewayHost can be used to override the gateway endpoint
+   */
+  gatewayHost?: string;
+  /**
+   * Custom app version
+   */
+  appVersion?: string;
+};
+
+/**
+ * Device sync options
+ */
+export type DeviceSyncOptions = {
+  /**
    * historySyncUrl can be used to override the `env` flag and connect to a
    * specific endpoint for syncing history
    */
   historySyncUrl?: string | null;
   /**
-   * gatewayHost can be used to override the gateway endpoint
+   * Disable device sync
    */
-  gatewayHost?: string | null;
+  disableDeviceSync?: boolean;
 };
 
 export type ContentOptions = {
@@ -98,17 +119,10 @@ export type OtherOptions = {
    * Disable automatic registration when creating a client
    */
   disableAutoRegister?: boolean;
-  /**
-   * Disable device sync
-   */
-  disableDeviceSync?: boolean;
-  /**
-   * Custom app version
-   */
-  appVersion?: string;
 };
 
-export type ClientOptions = NetworkOptions &
+export type ClientOptions = (NetworkOptions | { backend: Backend }) &
+  DeviceSyncOptions &
   ContentOptions &
   StorageOptions &
   OtherOptions;

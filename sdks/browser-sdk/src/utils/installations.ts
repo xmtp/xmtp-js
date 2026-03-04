@@ -1,11 +1,10 @@
 import init, {
   applySignatureRequest,
   revokeInstallationsSignatureRequest,
+  type Backend,
   type Identifier,
   type SignatureRequestHandle,
 } from "@xmtp/wasm-bindings";
-import { ApiUrls } from "@/constants";
-import type { XmtpEnv } from "@/types/options";
 import type { Signer } from "@/utils/signer";
 
 /**
@@ -17,28 +16,24 @@ import type { Signer } from "@/utils/signer";
  *
  * It is highly recommended to use the `revokeInstallations` function instead.
  *
+ * @param backend - The Backend instance for API communication
  * @param identifier - The identifier to revoke installations for
  * @param inboxId - The inbox ID to revoke installations for
  * @param installationIds - The installation IDs to revoke
- * @param env - Optional XMTP environment configuration (default: "dev")
- * @param gatewayHost - Optional gateway host override
  * @returns The signature text and signature request ID
  */
 export const revokeInstallationsSignatureText = async (
+  backend: Backend,
   identifier: Identifier,
   inboxId: string,
   installationIds: Uint8Array[],
-  env?: XmtpEnv,
-  gatewayHost?: string,
 ): Promise<{
   signatureText: string;
   signatureRequest: SignatureRequestHandle;
 }> => {
   await init();
-  const host = ApiUrls[env ?? "dev"];
   const signatureRequest = revokeInstallationsSignatureRequest(
-    host,
-    gatewayHost ?? null,
+    backend,
     identifier,
     inboxId,
     installationIds,
@@ -50,32 +45,28 @@ export const revokeInstallationsSignatureText = async (
 /**
  * Revokes installations for a given inbox ID
  *
+ * @param backend - The Backend instance for API communication
  * @param signer - The signer to use
  * @param inboxId - The inbox ID to revoke installations for
  * @param installationIds - The installation IDs to revoke
- * @param env - Optional XMTP environment configuration (default: "dev")
- * @param gatewayHost - Optional gateway host override
  * @returns Promise that resolves when the revoke installations operation is complete
  */
 export const revokeInstallations = async (
+  backend: Backend,
   signer: Signer,
   inboxId: string,
   installationIds: Uint8Array[],
-  env?: XmtpEnv,
-  gatewayHost?: string,
 ): Promise<void> => {
   await init();
   const identifier = await signer.getIdentifier();
   const { signatureText, signatureRequest } =
     await revokeInstallationsSignatureText(
+      backend,
       identifier,
       inboxId,
       installationIds,
-      env,
-      gatewayHost,
     );
   const signature = await signer.signMessage(signatureText);
-  const host = ApiUrls[env ?? "dev"];
 
   switch (signer.type) {
     case "EOA":
@@ -91,5 +82,5 @@ export const revokeInstallations = async (
       break;
   }
 
-  await applySignatureRequest(host, gatewayHost ?? null, signatureRequest);
+  await applySignatureRequest(backend, signatureRequest);
 };
