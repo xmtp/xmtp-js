@@ -60,8 +60,7 @@ export const useMessageCount = () => {
 
 export const useMessages = (conversationId: string) => {
   return useStore(inboxStore, (state) => {
-    const messages =
-      state.sortedMessages.get(conversationId) ?? EMPTY_MESSAGES;
+    const messages = state.sortedMessages.get(conversationId) ?? EMPTY_MESSAGES;
     const filtered = messages.filter((m) => !isReadReceipt(m));
     return filtered.length === messages.length ? messages : filtered;
   });
