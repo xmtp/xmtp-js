@@ -103,7 +103,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns The HMAC keys for this conversation
    */
   hmacKeys() {
-    return this.#conversation.getHmacKeys();
+    return this.#conversation.hmacKeys();
   }
 
   /**
@@ -359,7 +359,7 @@ export class Conversation<ContentTypes = unknown> {
    * @returns Promise that resolves with an array of decoded messages
    */
   async messages(options?: ListMessagesOptions) {
-    const messages = await this.#conversation.findEnrichedMessages(options);
+    const messages = await this.#conversation.listEnrichedMessages(options);
     return messages.map(
       (message) =>
         new DecodedMessage<ContentTypes>(this.#codecRegistry, message),
@@ -468,6 +468,6 @@ export class Conversation<ContentTypes = unknown> {
    * (nanoseconds since epoch)
    */
   async lastReadTimes() {
-    return this.#conversation.getLastReadTimes();
+    return this.#conversation.lastReadTimes();
   }
 }

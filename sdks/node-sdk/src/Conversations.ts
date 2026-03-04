@@ -61,8 +61,8 @@ export class Conversations<ContentTypes = unknown> {
    */
   async getConversationById(id: string) {
     try {
-      // findGroupById will throw if group is not found
-      const group = this.#conversations.findGroupById(id);
+      // getConversationById will throw if group is not found
+      const group = this.#conversations.getConversationById(id);
       const metadata = await group.groupMetadata();
       switch (metadata.conversationType()) {
         case ConversationType.Group:
@@ -90,8 +90,8 @@ export class Conversations<ContentTypes = unknown> {
    */
   getDmByInboxId(inboxId: string) {
     try {
-      // findDmByTargetInboxId will throw if group is not found
-      const group = this.#conversations.findDmByTargetInboxId(inboxId);
+      // getDmByInboxId will throw if group is not found
+      const group = this.#conversations.getDmByInboxId(inboxId);
       return new Dm<ContentTypes>(this.#client, this.#codecRegistry, group);
     } catch {
       return undefined;
@@ -122,8 +122,8 @@ export class Conversations<ContentTypes = unknown> {
    */
   getMessageById(id: string) {
     try {
-      // findEnrichedMessageById will throw if message is not found
-      const message = this.#conversations.findEnrichedMessageById(id);
+      // getEnrichedMessageById will throw if message is not found
+      const message = this.#conversations.getEnrichedMessageById(id);
       return new DecodedMessage<ContentTypes>(this.#codecRegistry, message);
     } catch {
       return undefined;
@@ -154,7 +154,10 @@ export class Conversations<ContentTypes = unknown> {
     identifiers: Identifier[],
     options?: CreateGroupOptions,
   ) {
-    const group = await this.#conversations.createGroup(identifiers, options);
+    const group = await this.#conversations.createGroupByIdentity(
+      identifiers,
+      options,
+    );
     const conversation = new Group<ContentTypes>(
       this.#client,
       this.#codecRegistry,
@@ -172,10 +175,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/core-messaging/create-conversations#create-a-new-group-chat
    */
   async createGroup(inboxIds: string[], options?: CreateGroupOptions) {
-    const group = await this.#conversations.createGroupByInboxId(
-      inboxIds,
-      options,
-    );
+    const group = await this.#conversations.createGroup(inboxIds, options);
     const conversation = new Group<ContentTypes>(
       this.#client,
       this.#codecRegistry,
@@ -196,7 +196,10 @@ export class Conversations<ContentTypes = unknown> {
     identifier: Identifier,
     options?: CreateDmOptions,
   ) {
-    const group = await this.#conversations.createDm(identifier, options);
+    const group = await this.#conversations.createDmByIdentity(
+      identifier,
+      options,
+    );
     const conversation = new Dm<ContentTypes>(
       this.#client,
       this.#codecRegistry,
@@ -214,7 +217,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/agents/build-agents/create-conversations#by-inbox-id-1
    */
   async createDm(inboxId: string, options?: CreateDmOptions) {
-    const group = await this.#conversations.createDmByInboxId(inboxId, options);
+    const group = await this.#conversations.createDm(inboxId, options);
     const conversation = new Dm<ContentTypes>(
       this.#client,
       this.#codecRegistry,
@@ -320,7 +323,7 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/list-stream-sync/sync-and-syncall#sync-all-new-welcomes-conversations-messages-and-preferences
    */
   async syncAll(consentStates?: ConsentState[]) {
-    return this.#conversations.syncAllConversations(consentStates);
+    return this.#conversations.syncAll(consentStates);
   }
 
   /**
@@ -573,6 +576,6 @@ export class Conversations<ContentTypes = unknown> {
    * @see https://docs.xmtp.org/chat-apps/push-notifs/push-notifs#get-hmac-keys-for-a-conversation
    */
   hmacKeys() {
-    return this.#conversations.getHmacKeys();
+    return this.#conversations.hmacKeys();
   }
 }
