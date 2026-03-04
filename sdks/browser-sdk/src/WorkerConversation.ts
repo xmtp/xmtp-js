@@ -188,6 +188,10 @@ export class WorkerConversation {
     return this.#group.publishMessages();
   }
 
+  async processStreamedMessage(envelopeBytes: Uint8Array) {
+    return this.#group.processStreamedGroupMessage(envelopeBytes);
+  }
+
   async send(encodedContent: EncodedContent, opts?: SendMessageOpts) {
     return this.#group.send(encodedContent, opts ?? { shouldPush: true });
   }

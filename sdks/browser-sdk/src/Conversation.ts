@@ -141,6 +141,19 @@ export class Conversation<ContentTypes = unknown> {
   }
 
   /**
+   * Decodes, decrypts, and persists a raw envelope from a group message stream.
+   *
+   * @param envelopeBytes - Raw protobuf-encoded envelope bytes from the stream
+   * @returns The processed and stored messages
+   */
+  async processStreamedMessage(envelopeBytes: Uint8Array) {
+    return this.#worker.action("conversation.processStreamedMessage", {
+      id: this.#id,
+      envelopeBytes,
+    });
+  }
+
+  /**
    * Sends a message
    *
    * @param content - The encoded content to send

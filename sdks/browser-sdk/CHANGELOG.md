@@ -1,5 +1,17 @@
 # @xmtp/browser-sdk
 
+## 6.5.0
+
+### Minor Changes
+
+- Added `processStreamedMessage` method to `Conversation` for decoding, decrypting, and persisting raw envelope bytes from a group message stream
+
+## 6.4.1
+
+### Patch Changes
+
+- 49f297e: Marked the "codecs" options as non-enumerable
+
 ## 6.4.0
 
 ### Minor Changes
