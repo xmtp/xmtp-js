@@ -44,6 +44,9 @@ export const stringify = (message: DecodedMessage): string => {
   }
 };
 
+export const isReadReceipt = (m: DecodedMessage): boolean =>
+  m.contentType.typeId === "readReceipt";
+
 export const isActionable = (message: DecodedMessage) =>
   isText(message) ||
   isReaction(message) ||

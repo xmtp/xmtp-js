@@ -6,6 +6,7 @@ import {
 import { useMemo } from "react";
 import { useStore } from "zustand";
 import type { ContentTypes } from "@/contexts/XMTPContext";
+import { isReadReceipt } from "@/helpers/messages";
 import { inboxStore, type ConversationMetadata } from "@/stores/inbox/store";
 
 const EMPTY_METADATA: ConversationMetadata = {};
@@ -58,10 +59,12 @@ export const useMessageCount = () => {
 };
 
 export const useMessages = (conversationId: string) => {
-  return useStore(
-    inboxStore,
-    (state) => state.sortedMessages.get(conversationId) ?? EMPTY_MESSAGES,
-  );
+  return useStore(inboxStore, (state) => {
+    const messages =
+      state.sortedMessages.get(conversationId) ?? EMPTY_MESSAGES;
+    const filtered = messages.filter((m) => !isReadReceipt(m));
+    return filtered.length === messages.length ? messages : filtered;
+  });
 };
 
 export const useLastSentAt = (conversationId: string) => {
