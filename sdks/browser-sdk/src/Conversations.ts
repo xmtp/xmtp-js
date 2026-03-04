@@ -295,7 +295,7 @@ export class Conversations<ContentTypes = unknown> {
   /**
    * Creates a new group conversation with the specified inbox IDs
    *
-   * @param inboxIds - Array of inbox IDs for group members
+   * @param inboxIds - Array of inbox IDs for other group members (the creator is included automatically)
    * @param options - Optional group creation options
    * @returns Promise that resolves with the new group
    */
