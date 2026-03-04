@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 6.4.1
+
+### Patch Changes
+
+- 49f297e: Marked the "codecs" options as non-enumerable
+
 ## 6.4.0
 
 ### Minor Changes
