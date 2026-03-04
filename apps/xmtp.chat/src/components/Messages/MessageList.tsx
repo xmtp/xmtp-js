@@ -1,6 +1,8 @@
 import type { DecodedMessage } from "@xmtp/browser-sdk";
 import { useCallback, useMemo, useRef } from "react";
 import VirtualList, { type VirtualListHandle } from "@/components/VirtualList";
+import { useConversationContext } from "@/contexts/ConversationContext";
+import { useReadStatus } from "@/hooks/useReadStatus";
 import { Message } from "./Message";
 import classes from "./MessageList.module.css";
 
@@ -9,6 +11,8 @@ export type MessageListProps = {
 };
 
 export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+  const { conversationId } = useConversationContext();
+  const { getReadStatus } = useReadStatus(conversationId);
   const virtualListRef = useRef<VirtualListHandle | null>(null);
 
   const messageMap = useMemo(() => {
@@ -42,6 +46,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
           key={message.id}
           message={message}
           scrollToMessage={scrollToMessage}
+          readStatus={getReadStatus(message)}
         />
       )}
     />
