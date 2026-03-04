@@ -778,6 +778,12 @@ self.onmessage = async (
         postMessage({ id, action, result: undefined });
         break;
       }
+      case "conversation.processStreamedMessage": {
+        const group = getGroup(data.id);
+        const result = await group.processStreamedMessage(data.envelopeBytes);
+        postMessage({ id, action, result });
+        break;
+      }
       case "conversation.messages": {
         const group = getGroup(data.id);
         const messages = await group.messages(data.options);

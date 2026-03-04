@@ -8,6 +8,7 @@ import type {
   GroupMember,
   Intent,
   ListMessagesOptions,
+  Message,
   MessageDisappearingSettings,
   MultiRemoteAttachment,
   Reaction,
@@ -48,6 +49,15 @@ export type ConversationAction =
       result: undefined;
       data: {
         id: string;
+      };
+    }
+  | {
+      action: "conversation.processStreamedMessage";
+      id: string;
+      result: Message[];
+      data: {
+        id: string;
+        envelopeBytes: Uint8Array;
       };
     }
   | {

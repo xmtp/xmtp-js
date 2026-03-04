@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 5.5.0
+
+### Minor Changes
+
+- Added `processStreamedMessage` method to `Conversation` for decoding, decrypting, and persisting raw envelope bytes from a group message stream
+
 ## 5.4.0
 
 ### Minor Changes
