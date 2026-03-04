@@ -36,7 +36,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   #installationIdBytes?: Uint8Array;
   #isReady = false;
   #libxmtpVersion?: string;
-  #options?: Omit<ClientOptions, "codecs">;
+  #options?: ClientOptions;
   #preferences: Preferences;
   #signer?: Signer;
   #worker: WorkerBridge<ClientWorkerAction>;
@@ -50,6 +50,19 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @param options - Optional configuration for the client
    */
   constructor(options?: ClientOptions) {
+    /*
+     * The Browser SDK runs XMTP's WASM bindings inside a Web Worker.
+     * The SDK sends options to the worker via postMessage(), which uses the
+     * structured clone algorithm. Codecs contain functions that can't be
+     * cloned, so we mark the codecs property as non-enumerable to exclude
+     * it from serialization.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm#things_that_dont_work_with_structured_clone
+     */
+    Object.defineProperty(options, "codecs", {
+      value: options?.codecs,
+      enumerable: false,
+    });
     const worker = new Worker(new URL("./workers/client", import.meta.url), {
       type: "module",
     });
@@ -58,8 +71,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       options.loggingLevel !== LogLevel.Off;
     this.#worker = new WorkerBridge<ClientWorkerAction>(worker, enableLogging);
     this.#codecRegistry = new CodecRegistry([...(options?.codecs ?? [])]);
-    const { codecs: _, ...workerSafeOptions } = options ?? {};
-    this.#options = workerSafeOptions;
+    this.#options = options;
     this.#conversations = new Conversations(
       this,
       this.#worker,

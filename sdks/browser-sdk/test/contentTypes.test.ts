@@ -1,4 +1,8 @@
-import { contentTypeToString } from "@xmtp/content-type-primitives";
+import {
+  ContentCodec,
+  contentTypeToString,
+  EncodedContent,
+} from "@xmtp/content-type-primitives";
 import {
   ActionStyle,
   ReactionAction,
@@ -1286,6 +1290,51 @@ describe("Content types", () => {
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         `No codec found for content type "${contentTypeToString(testCodec.contentType)}"`,
       );
+    });
+
+    it("should send and receive custom content using an object literal codec", async () => {
+      const { signer: signer1 } = createSigner();
+      const objectCodec: ContentCodec = {
+        contentType: {
+          authorityId: "xmtp.org",
+          typeId: "object-test",
+          versionMajor: 1,
+          versionMinor: 0,
+        },
+        encode(content: Record<string, string>): EncodedContent {
+          return {
+            type: this.contentType,
+            parameters: {},
+            content: new TextEncoder().encode(JSON.stringify(content)),
+          };
+        },
+        decode(content: EncodedContent): Record<string, string> {
+          const decoded = new TextDecoder().decode(content.content);
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          return JSON.parse(decoded);
+        },
+        fallback() {
+          return undefined;
+        },
+        shouldPush() {
+          return false;
+        },
+      };
+      const groupCreator = await createRegisteredClient(signer1, {
+        codecs: [objectCodec],
+      });
+      const group = await groupCreator.conversations.createGroup([]);
+      const customContentId = await group.send(
+        objectCodec.encode({ hello: "world" }),
+      );
+      const messages = await group.messages();
+      expect(messages[0].content).toEqual({ hello: "world" });
+      expect(messages[0].contentType).toEqual(objectCodec.contentType);
+      const message =
+        await groupCreator.conversations.getMessageById(customContentId);
+      expect(message).toBeDefined();
+      expect(message?.content).toEqual({ hello: "world" });
+      expect(message?.contentType).toEqual(objectCodec.contentType);
     });
 
     it("should have undefined content when receiving custom content with decode failure", async () => {
