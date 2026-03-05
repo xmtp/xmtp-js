@@ -1,5 +1,11 @@
 # @xmtp/browser-sdk
 
+## 6.5.1
+
+### Patch Changes
+
+- dee05fd: Marked the "codecs" options as non-enumerable
+
 ## 6.5.0
 
 ### Minor Changes
