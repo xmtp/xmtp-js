@@ -1,4 +1,6 @@
-import type { Identifier } from "@xmtp/wasm-bindings";
+import { IdentifierKind, type Identifier } from "@xmtp/wasm-bindings";
+import { toBytes } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 type SignMessage = (message: string) => Promise<Uint8Array> | Uint8Array;
 type GetIdentifier = () => Promise<Identifier> | Identifier;
@@ -35,6 +37,40 @@ export type SafeSigner =
       chainId: bigint;
       blockNumber?: bigint;
     };
+
+export const createEOASigner = (key = generatePrivateKey()): Signer => {
+  const account = privateKeyToAccount(key);
+  return {
+    type: "EOA",
+    getIdentifier: () => ({
+      identifier: account.address.toLowerCase(),
+      identifierKind: IdentifierKind.Ethereum,
+    }),
+    signMessage: async (message: string) => {
+      const signature = await account.signMessage({ message });
+      return toBytes(signature);
+    },
+  };
+};
+
+export const createSCWSigner = (
+  chainId: bigint,
+  key = generatePrivateKey(),
+): Signer => {
+  const account = privateKeyToAccount(key);
+  return {
+    type: "SCW",
+    getIdentifier: () => ({
+      identifier: account.address.toLowerCase(),
+      identifierKind: IdentifierKind.Ethereum,
+    }),
+    signMessage: async (message: string) => {
+      const signature = await account.signMessage({ message });
+      return toBytes(signature);
+    },
+    getChainId: () => chainId,
+  };
+};
 
 export const toSafeSigner = async (
   signer: Signer,

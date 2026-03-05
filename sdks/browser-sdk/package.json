@@ -82,6 +82,14 @@
     "vite-tsconfig-paths": "^6.0.4",
     "vitest": "^4.0.18"
   },
+  "peerDependencies": {
+    "viem": ">=2"
+  },
+  "peerDependenciesMeta": {
+    "viem": {
+      "optional": true
+    }
+  },
   "engines": {
     "node": ">=22"
   },

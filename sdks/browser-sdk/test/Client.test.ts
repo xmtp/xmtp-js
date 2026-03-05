@@ -6,10 +6,8 @@ import { uuid } from "@/utils/uuid";
 import {
   buildClient,
   createClient,
-  createIdentifier,
   createRegisteredClient,
   createSigner,
-  createUser,
 } from "@test/helpers";
 
 describe("Client", () => {
@@ -26,8 +24,7 @@ describe("Client", () => {
   });
 
   it("should create a client without a signer", async () => {
-    const user = createUser();
-    const identifier = createIdentifier(user);
+    const { identifier } = createSigner();
     const client = await buildClient(identifier);
     expect(client).toBeDefined();
     expect(client.accountIdentifier).toEqual(identifier);

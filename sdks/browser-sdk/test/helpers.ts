@@ -2,14 +2,7 @@ import type {
   ContentCodec,
   EncodedContent,
 } from "@xmtp/content-type-primitives";
-import {
-  IdentifierKind,
-  type ContentTypeId,
-  type Identifier,
-} from "@xmtp/wasm-bindings";
-import { createWalletClient, http, toBytes } from "viem";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { sepolia } from "viem/chains";
+import { type ContentTypeId, type Identifier } from "@xmtp/wasm-bindings";
 import { Client } from "@/Client";
 import type {
   ContentOptions,
@@ -18,7 +11,7 @@ import type {
   OtherOptions,
   StorageOptions,
 } from "@/types/options";
-import type { Signer } from "@/utils/signer";
+import { createEOASigner, type Signer } from "@/utils/signer";
 
 type TestClientOptions = NetworkOptions &
   DeviceSyncOptions &
@@ -29,47 +22,15 @@ type TestClientOptions = NetworkOptions &
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-export const createUser = () => {
-  const key = generatePrivateKey();
-  const account = privateKeyToAccount(key);
-  return {
-    key,
-    account,
-    wallet: createWalletClient({
-      account,
-      chain: sepolia,
-      transport: http(),
-    }),
-  };
-};
-
-export const createIdentifier = (user: User): Identifier => ({
-  identifier: user.account.address.toLowerCase(),
-  identifierKind: IdentifierKind.Ethereum,
-});
-
 export const createSigner = () => {
-  const user = createUser();
-  const identifier = createIdentifier(user);
-  const signer: Signer = {
-    type: "EOA",
-    getIdentifier: () => identifier,
-    signMessage: async (message: string) => {
-      const signature = await user.wallet.signMessage({
-        message,
-      });
-      return toBytes(signature);
-    },
-  };
+  const signer = createEOASigner();
+  const identifier = signer.getIdentifier() as Identifier;
   return {
-    address: user.account.address.toLowerCase(),
+    address: identifier.identifier,
     identifier,
     signer,
-    user,
   };
 };
-
-export type User = ReturnType<typeof createUser>;
 
 export const buildClient = async <ContentCodecs extends ContentCodec[] = []>(
   identifier: Identifier,
