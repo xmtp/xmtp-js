@@ -6,6 +6,7 @@ import {
   MessageContentWrapper,
   type MessageContentAlign,
 } from "@/components/Messages/MessageContentWrapper";
+import { ReadReceiptContent } from "@/components/Messages/ReadReceiptContent";
 
 export type MessageContentWithWrapperProps = {
   align: MessageContentAlign;
@@ -30,6 +31,15 @@ export const MessageContentWithWrapper: React.FC<
     return (
       <IntentContent
         content={message.content as Intent}
+        sentAtNs={message.sentAtNs}
+        senderInboxId={senderInboxId}
+      />
+    );
+  }
+
+  if (message.contentType.typeId === "readReceipt") {
+    return (
+      <ReadReceiptContent
         sentAtNs={message.sentAtNs}
         senderInboxId={senderInboxId}
       />
