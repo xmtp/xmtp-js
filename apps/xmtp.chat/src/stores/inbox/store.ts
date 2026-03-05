@@ -54,6 +54,8 @@ export type InboxState = {
   sortedMessages: Map<ConversationId, DecodedMessage<ContentTypes>[]>;
   // the last attempted sync timestamp
   lastSyncedAt?: bigint;
+  // the last read times for each conversation (inboxId -> nanosecond timestamp)
+  lastReadTimes: Map<ConversationId, Map<InboxId, bigint>>;
 };
 
 export type InboxActions = {
@@ -80,6 +82,7 @@ export type InboxActions = {
   setLastSyncedAt: (timestamp: bigint) => void;
   syncPermissions: (conversationId: string) => Promise<void>;
   syncMembers: (conversationId: string) => Promise<void>;
+  updateLastReadTimes: (conversationId: string) => Promise<void>;
   reset: () => void;
 };
 
@@ -94,6 +97,7 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
     permissions: new Map(),
     sortedConversations: [],
     sortedMessages: new Map(),
+    lastReadTimes: new Map(),
     addConversation: async (conversation: Conversation<ContentTypes>) => {
       const state = get();
       // update conversations state
@@ -474,6 +478,17 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         );
         set({ members: newMembers });
       }
+    },
+    updateLastReadTimes: async (conversationId: string) => {
+      const state = get();
+      const conversation = state.conversations.get(conversationId);
+      if (!conversation) {
+        return;
+      }
+      const times = await conversation.lastReadTimes();
+      const newLastReadTimes = new Map(state.lastReadTimes);
+      newLastReadTimes.set(conversationId, times);
+      set({ lastReadTimes: newLastReadTimes });
     },
     reset: () => {
       set(store.getInitialState());

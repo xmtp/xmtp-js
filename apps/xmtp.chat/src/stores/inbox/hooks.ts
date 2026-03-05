@@ -78,6 +78,15 @@ export const usePermissions = (conversationId: string) => {
   return useStore(inboxStore, (state) => state.permissions.get(conversationId));
 };
 
+const EMPTY_LAST_READ_TIMES = new Map<string, bigint>();
+
+export const useLastReadTimes = (conversationId: string) => {
+  return useStore(
+    inboxStore,
+    (state) => state.lastReadTimes.get(conversationId) ?? EMPTY_LAST_READ_TIMES,
+  );
+};
+
 export const useActions = () => {
   const addConversation = useStore(
     inboxStore,
@@ -109,6 +118,10 @@ export const useActions = () => {
     (state) => state.syncPermissions,
   );
   const syncMembers = useStore(inboxStore, (state) => state.syncMembers);
+  const updateLastReadTimes = useStore(
+    inboxStore,
+    (state) => state.updateLastReadTimes,
+  );
   const reset = useStore(inboxStore, (state) => state.reset);
 
   return {
@@ -124,6 +137,7 @@ export const useActions = () => {
     setLastSyncedAt,
     syncPermissions,
     syncMembers,
+    updateLastReadTimes,
     reset,
   };
 };

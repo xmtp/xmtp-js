@@ -1,24 +1,18 @@
 import type { DecodedMessage } from "@xmtp/browser-sdk";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useClient } from "@/contexts/XMTPContext";
-import { useConversation } from "@/hooks/useConversation";
+import { useActions, useLastReadTimes } from "@/stores/inbox/hooks";
 
 export type ReadStatus = "sent" | "read";
 
 export const useReadStatus = (conversationId: string) => {
-  const { conversation } = useConversation(conversationId);
   const client = useClient();
-  const [lastReadTimes, setLastReadTimes] = useState<Map<string, bigint>>(
-    new Map(),
-  );
+  const lastReadTimes = useLastReadTimes(conversationId);
+  const { updateLastReadTimes } = useActions();
 
   useEffect(() => {
-    const fetchReadTimes = async () => {
-      const times = await conversation.lastReadTimes();
-      setLastReadTimes(times);
-    };
-    void fetchReadTimes();
-  }, [conversation]);
+    void updateLastReadTimes(conversationId);
+  }, [conversationId, updateLastReadTimes]);
 
   const maxOtherReadTime = useMemo(() => {
     let max = 0n;
@@ -39,10 +33,5 @@ export const useReadStatus = (conversationId: string) => {
     };
   }, [maxOtherReadTime, client.inboxId]);
 
-  return {
-    getReadStatus,
-    refreshReadStatus: () => {
-      void conversation.lastReadTimes().then(setLastReadTimes);
-    },
-  };
+  return { getReadStatus };
 };
