@@ -1,5 +1,4 @@
-import { Popover, Stack, Text, UnstyledButton } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { Group, Text } from "@mantine/core";
 import { DateLabel } from "@/components/DateLabel";
 import { IdentityBadge } from "@/components/IdentityBadge";
 import { useConversationContext } from "@/contexts/ConversationContext";
@@ -17,29 +16,20 @@ export const ReadReceiptContent: React.FC<ReadReceiptContentProps> = ({
   senderInboxId,
   sentAtNs,
 }) => {
-  const [opened, { toggle }] = useDisclosure(false);
   const { conversationId } = useConversationContext();
   const { members } = useConversation(conversationId);
   const senderMember = members.get(senderInboxId);
   return (
-    <Popover opened={opened} position="bottom" withArrow>
-      <Popover.Target>
-        <UnstyledButton onClick={toggle}>
-          <Text size="sm" c="dimmed" ta="center">
-            received read receipt
-          </Text>
-        </UnstyledButton>
-      </Popover.Target>
-      <Popover.Dropdown>
-        <Stack gap="xs" align="center">
-          <IdentityBadge
-            address={senderMember ? getMemberAddress(senderMember) : ""}
-            displayName={senderInboxId}
-            tooltip={senderMember ? undefined : MEMBER_NO_LONGER_IN_GROUP}
-          />
-          <DateLabel date={nsToDate(sentAtNs)} align="center" />
-        </Stack>
-      </Popover.Dropdown>
-    </Popover>
+    <>
+      <DateLabel date={nsToDate(sentAtNs)} align="center" padding="sm" />
+      <Group gap="4" wrap="wrap" justify="center">
+        <IdentityBadge
+          address={senderMember ? getMemberAddress(senderMember) : ""}
+          displayName={senderInboxId}
+          tooltip={senderMember ? undefined : MEMBER_NO_LONGER_IN_GROUP}
+        />
+        <Text size="sm">sent a read receipt</Text>
+      </Group>
+    </>
   );
 };
