@@ -65,17 +65,13 @@ The SDK exports `createEOASigner` and `createSCWSigner` helper functions for cre
 npm install viem
 ```
 
-```typescript
-import { createEOASigner, createSCWSigner } from "@xmtp/browser-sdk";
+**Example**
+
+```ts
+import { createEOASigner } from "@xmtp/browser-sdk";
 
 // Create an EOA signer (generates a random key if none provided)
 const eoaSigner = createEOASigner();
-
-// Or provide your own private key
-const eoaSigner2 = createEOASigner("0xabc...");
-
-// Create an SCW signer (chainId is required)
-const scwSigner = createSCWSigner(1n);
 ```
 
 ## Developing
