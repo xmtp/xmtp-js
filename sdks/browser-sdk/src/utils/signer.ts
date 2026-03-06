@@ -54,6 +54,7 @@ export const createEOASigner = (key = generatePrivateKey()): Signer => {
 };
 
 export const createSCWSigner = (
+  scwAddress: string,
   chainId: bigint,
   key = generatePrivateKey(),
 ): Signer => {
@@ -61,7 +62,7 @@ export const createSCWSigner = (
   return {
     type: "SCW",
     getIdentifier: () => ({
-      identifier: account.address.toLowerCase(),
+      identifier: scwAddress.toLowerCase(),
       identifierKind: IdentifierKind.Ethereum,
     }),
     signMessage: async (message: string) => {
