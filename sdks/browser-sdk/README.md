@@ -57,6 +57,23 @@ pnpm install @xmtp/browser-sdk
 yarn add @xmtp/browser-sdk
 ```
 
+## Signer utilities
+
+The SDK exports `createEOASigner` and `createSCWSigner` helper functions for creating XMTP-compatible signers. These require `viem` as a peer dependency, which is optional and only needs to be installed if you use these utilities.
+
+```bash
+npm install viem
+```
+
+**Example**
+
+```ts
+import { createEOASigner } from "@xmtp/browser-sdk";
+
+// Create an EOA signer (generates a random key if none provided)
+const eoaSigner = createEOASigner();
+```
+
 ## Developing
 
 Run `yarn dev` to build the SDK and watch for changes, which will trigger a rebuild.
