@@ -54,19 +54,18 @@ export const createEOASigner = (key = generatePrivateKey()): Signer => {
 };
 
 export const createSCWSigner = (
-  scwAddress: string,
+  address: `0x${string}`,
+  signMessage: (message: string) => Promise<string> | string,
   chainId: bigint,
-  key = generatePrivateKey(),
 ): Signer => {
-  const account = privateKeyToAccount(key);
   return {
     type: "SCW",
     getIdentifier: () => ({
-      identifier: scwAddress.toLowerCase(),
+      identifier: address.toLowerCase(),
       identifierKind: IdentifierKind.Ethereum,
     }),
     signMessage: async (message: string) => {
-      const signature = await account.signMessage({ message });
+      const signature = await signMessage(message);
       return toBytes(signature);
     },
     getChainId: () => chainId,
