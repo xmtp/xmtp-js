@@ -9,6 +9,7 @@ import {
 import type { AgentMiddleware } from "@/core/Agent";
 import type { MessageContext } from "@/core/MessageContext";
 
+/** Generated at module load to guarantee no collision with user-defined action IDs */
 const CANCEL_ACTION_ID = randomUUID();
 
 /** User responds by clicking a button (triggers an intent) */
