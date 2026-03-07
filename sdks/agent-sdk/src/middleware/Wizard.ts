@@ -43,7 +43,11 @@ type WizardCancelHandler<ContentTypes> = (
 ) => Promise<void> | void;
 
 export interface WizardOptions {
-  /** When true, the wizard sends all steps via DM to the user */
+  /**
+   * When true, the wizard sends all steps via DM to the user.
+   * Recommended when the user is expected to enter sensitive information
+   * (e.g. API keys, passwords) to keep it out of group conversations.
+   */
   dm?: boolean;
 }
 
