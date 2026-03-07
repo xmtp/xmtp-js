@@ -55,6 +55,7 @@
     "build": "yarn clean:dist && rollup -c",
     "clean": "rm -rf .turbo && rm -rf node_modules && yarn clean:dist",
     "clean:dist": "rm -rf dist",
+    "demo:actions": "tsx watch src/demo/actions.ts",
     "demo:main": "tsx watch src/demo/main.ts",
     "demo:transactions": "tsx watch src/demo/transactions.ts",
     "fix": "npx prettier --log-level error -w . && npx eslint . --fix",

@@ -1,23 +1,13 @@
-import { loadEnvFile } from "node:process";
 import { isHexString } from "@xmtp/node-sdk";
-import { Agent, AgentError } from "@/core/index";
-import { getTestUrl, logDetails } from "@/debug/log";
+import { AgentError } from "@/core/index";
+import { logDetails } from "@/debug/log";
 import { CommandRouter } from "@/middleware/CommandRouter";
 import { PerformanceMonitor } from "@/middleware/PerformanceMonitor";
 import { createNameResolver } from "@/user";
-import { createSigner, createUser } from "@/user/User";
 import { downloadRemoteAttachment } from "@/util/AttachmentUtil";
+import { getAgent } from "./getAgent";
 
-try {
-  loadEnvFile();
-  console.info(`Loaded keys from ".env" file.`);
-} catch {}
-
-const agent = process.env.XMTP_WALLET_KEY
-  ? await Agent.createFromEnv()
-  : await Agent.create(createSigner(createUser()), {
-      dbPath: null,
-    });
+const agent = await getAgent();
 
 const performanceMonitor = new PerformanceMonitor({
   healthReportInterval: 10_000,
@@ -111,10 +101,6 @@ const errorHandler = (error: unknown) => {
 };
 
 agent.on("unhandledError", errorHandler);
-
-agent.on("start", (ctx) => {
-  console.log(`We are online: ${getTestUrl(ctx.client)}`);
-});
 
 agent.on("stop", (ctx) => {
   performanceMonitor.shutdown();

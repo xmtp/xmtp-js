@@ -1,20 +1,13 @@
-import { loadEnvFile } from "node:process";
 import { validHex } from "@xmtp/node-sdk";
 import { formatUnits, hexToNumber, parseUnits } from "viem";
 import { base } from "viem/chains";
-import { Agent } from "@/core/index";
-import { getTestUrl } from "@/debug/log";
 import { CommandRouter } from "@/middleware/CommandRouter";
 import {
   createERC20TransferCalls,
   getERC20Balance,
   getERC20Decimals,
 } from "@/util/TransactionUtil";
-
-try {
-  loadEnvFile();
-  console.info(`Loaded keys from ".env" file.`);
-} catch {}
+import { getAgent } from "./getAgent";
 
 const CHAIN = base;
 /** USDC Token address on Base chain: https://basescan.org/token/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 */
@@ -25,7 +18,7 @@ const USDC_DECIMALS = await getERC20Decimals({
   tokenAddress: USDC_TOKEN_CONTRACT,
 }).catch(() => 6);
 
-const agent = await Agent.createFromEnv();
+const agent = await getAgent();
 const router = new CommandRouter({ helpCommand: "/help" });
 
 router.command("/my-balance", "Check your USDC balance", async (ctx) => {
@@ -84,12 +77,6 @@ agent.on("transaction-reference", async (ctx) => {
       `Chain ID: [${networkIdDecimal}](https://chainlist.org/chain/${networkIdDecimal})\n` +
       `Transaction Hash: [${reference}](https://basescan.org/tx/${reference})`,
   );
-});
-
-agent.on("start", (ctx) => {
-  console.log(`Address: ${agent.address}`);
-  console.log(`Link: ${getTestUrl(ctx.client)}`);
-  console.log("Agent started. Waiting for messages...");
 });
 
 await agent.start();
