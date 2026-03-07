@@ -8,6 +8,7 @@ import {
   Title,
 } from "@mantine/core";
 import ReactMarkdown, { type Components } from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
 export type MarkdownProps = {
@@ -52,7 +53,7 @@ export const Markdown: React.FC<MarkdownProps> = ({ markdown }) => {
       disallowedElements={["input", "img", "hr"]}
       components={components}
       skipHtml
-      remarkPlugins={[remarkGfm]}>
+      remarkPlugins={[remarkBreaks, remarkGfm]}>
       {markdown}
     </ReactMarkdown>
   );
