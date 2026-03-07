@@ -212,26 +212,20 @@ export class Wizard<ContentTypes = unknown> {
       }
 
       if (isIntent(ctx.message)) {
-        const { actionId } = ctx.message.content!;
-        if (this.#cancelLabel && actionId === CANCEL_ACTION_ID) {
-          await this.#handleCancel(
-            key,
-            ctx as MessageContext<unknown, ContentTypes>,
-          );
+        const intent = ctx.message.content as { actionId: string };
+        if (this.#cancelLabel && intent.actionId === CANCEL_ACTION_ID) {
+          await this.#handleCancel(key, ctx);
           return;
         }
         if (step.type === "select") {
-          session.answers[step.id] = actionId;
-          await this.#advance(
-            key,
-            ctx as MessageContext<unknown, ContentTypes>,
-          );
+          session.answers[step.id] = intent.actionId;
+          await this.#advance(key, ctx);
           return;
         }
       }
 
       if (step.type === "text" && isText(ctx.message)) {
-        session.answers[step.id] = ctx.message.content!;
+        session.answers[step.id] = ctx.message.content as string;
         await this.#advance(key, ctx as MessageContext<unknown, ContentTypes>);
         return;
       }
