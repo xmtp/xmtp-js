@@ -13,27 +13,27 @@ import type { MessageContext } from "@/core/MessageContext";
 const CANCEL_ACTION_ID = randomUUID();
 
 /** User responds by clicking a button (triggers an intent) */
-interface SelectStep {
-  type: "select";
-  id: string;
-  description: string;
-  actions: Action[];
-}
+type SelectStep = {
+  readonly type: "select";
+  readonly id: string;
+  readonly description: string;
+  readonly actions: Action[];
+};
 
 /** User responds by typing a message (sends a text message) */
-interface TextStep {
-  type: "text";
-  id: string;
-  description: string;
-}
+type TextStep = {
+  readonly type: "text";
+  readonly id: string;
+  readonly description: string;
+};
 
 type WizardStep = SelectStep | TextStep;
 
-interface WizardSession {
+type WizardSession = {
   currentStepIndex: number;
-  answers: Record<string, string>;
-  conversation: Conversation;
-}
+  readonly answers: Record<string, string>;
+  readonly conversation: Conversation;
+};
 
 type WizardCompleteHandler<ContentTypes> = (
   answers: Record<string, string>,
@@ -44,21 +44,21 @@ type WizardCancelHandler<ContentTypes> = (
   ctx: MessageContext<unknown, ContentTypes>,
 ) => Promise<void> | void;
 
-export interface WizardCancelOptions {
+export type WizardCancelOptions = {
   /** Custom label for the cancel button (default: "Cancel") */
-  label?: string;
-}
+  readonly label?: string;
+};
 
-export interface WizardOptions {
+export type WizardOptions = {
   /**
    * When true, the wizard sends all steps via DM to the user.
    * Recommended when the user is expected to enter sensitive information
    * (e.g. API keys, passwords) to keep it out of group conversations.
    */
-  dm?: boolean;
+  readonly dm?: boolean;
   /** Enable a cancel button on each select step. Set to `true` for the default label, or pass options to customize. */
-  cancel?: boolean | WizardCancelOptions;
-}
+  readonly cancel?: boolean | WizardCancelOptions;
+};
 
 export class Wizard<ContentTypes = unknown> {
   #id: string;
@@ -121,14 +121,10 @@ export class Wizard<ContentTypes = unknown> {
   }
 
   async start(ctx: MessageContext<unknown, ContentTypes>): Promise<void> {
-    const senderInboxId = ctx.message.senderInboxId;
-
-    let conversation: Conversation;
-    if (this.#dm) {
-      conversation = await ctx.client.conversations.createDm(senderInboxId);
-    } else {
-      conversation = ctx.conversation;
-    }
+    const { senderInboxId } = ctx.message;
+    const conversation = this.#dm
+      ? await ctx.client.conversations.createDm(senderInboxId)
+      : ctx.conversation;
 
     const key = Wizard.sessionKey(conversation.id, senderInboxId);
     this.#sessions.set(key, {
@@ -211,22 +207,22 @@ export class Wizard<ContentTypes = unknown> {
         return;
       }
 
-      if (isIntent(ctx.message)) {
-        const intent = ctx.message.content as { actionId: string };
-        if (this.#cancelLabel && intent.actionId === CANCEL_ACTION_ID) {
+      if (isIntent(ctx.message) && ctx.message.content) {
+        const { actionId } = ctx.message.content;
+        if (this.#cancelLabel && actionId === CANCEL_ACTION_ID) {
           await this.#handleCancel(key, ctx);
           return;
         }
         if (step.type === "select") {
-          session.answers[step.id] = intent.actionId;
+          session.answers[step.id] = actionId;
           await this.#advance(key, ctx);
           return;
         }
       }
 
-      if (step.type === "text" && isText(ctx.message)) {
-        session.answers[step.id] = ctx.message.content as string;
-        await this.#advance(key, ctx as MessageContext<unknown, ContentTypes>);
+      if (step.type === "text" && isText(ctx.message) && ctx.message.content) {
+        session.answers[step.id] = ctx.message.content;
+        await this.#advance(key, ctx);
         return;
       }
 
