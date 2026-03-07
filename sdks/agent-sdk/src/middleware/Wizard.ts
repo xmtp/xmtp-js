@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   isIntent,
   isText,
@@ -8,7 +9,7 @@ import {
 import type { AgentMiddleware } from "@/core/Agent";
 import type { MessageContext } from "@/core/MessageContext";
 
-const CANCEL_ACTION_ID = "d3b07384-d113-4ec6-a1e2-bc1a4f2e8c69";
+const CANCEL_ACTION_ID = randomUUID();
 
 /** User responds by clicking a button (triggers an intent) */
 interface SelectStep {
