@@ -9,7 +9,7 @@ import {
 import type { AgentMiddleware } from "@/core/Agent";
 import type { MessageContext } from "@/core/MessageContext";
 
-/** Generated at module load to guarantee no collision with user-defined action IDs */
+/** The cancel action ID is generated to guarantee no collision with user-defined action IDs */
 const CANCEL_ACTION_ID = randomUUID();
 
 /** User responds by clicking a button (triggers an intent) */
@@ -182,7 +182,8 @@ export class Wizard<ContentTypes = unknown> {
 
     session.currentStepIndex++;
 
-    if (session.currentStepIndex >= this.#steps.length) {
+    const isComplete = session.currentStepIndex >= this.#steps.length;
+    if (isComplete) {
       const answers = { ...session.answers };
       this.#sessions.delete(key);
       await this.#completeHandler?.(answers, ctx);
