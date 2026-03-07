@@ -1,9 +1,7 @@
-import type { Client } from "@xmtp/node-sdk";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { DecodedMessageWithContent } from "@/core/filter";
 import { MessageContext } from "@/core/MessageContext";
 import { Wizard } from "@/middleware/Wizard";
-import { createClient } from "@/util/test";
 
 function createMockMessage(
   content: unknown,
@@ -36,26 +34,26 @@ function createIntentMessage(actionId: string, id = "wizard_step") {
   );
 }
 
-describe("Wizard", () => {
-  let client: Client;
-  const mockConversation = {
-    id: "conv-1",
-    sendActions: vi.fn().mockResolvedValue(""),
-    sendText: vi.fn().mockResolvedValue(""),
-  };
+const mockConversation = {
+  id: "conv-1",
+  sendActions: vi.fn().mockResolvedValue(""),
+  sendText: vi.fn().mockResolvedValue(""),
+};
 
-  beforeEach(async () => {
-    client = await createClient();
+const mockClient = {} as any;
+
+function createCtx(message: DecodedMessageWithContent) {
+  return new MessageContext({
+    message,
+    conversation: mockConversation as any,
+    client: mockClient,
+  });
+}
+
+describe("Wizard", () => {
+  beforeEach(() => {
     vi.clearAllMocks();
   });
-
-  function createCtx(message: DecodedMessageWithContent) {
-    return new MessageContext({
-      message,
-      conversation: mockConversation as any,
-      client: client as any,
-    });
-  }
 
   describe("builder API", () => {
     it("supports chaining select, text, onComplete, and onCancel", () => {
@@ -82,8 +80,7 @@ describe("Wizard", () => {
         ],
       });
 
-      const ctx = createCtx(createTextMessage("trigger"));
-      await wizard.start(ctx);
+      await wizard.start(createCtx(createTextMessage("trigger")));
 
       expect(mockConversation.sendActions).toHaveBeenCalledWith({
         id: "setup_provider",
@@ -94,7 +91,7 @@ describe("Wizard", () => {
           { id: "__wizard_cancel__", label: "Cancel" },
         ],
       });
-      expect(wizard.isActive("conv-1")).toBe(true);
+      expect(wizard.isActive("conv-1", "sender-1")).toBe(true);
     });
 
     it("sends the first text step as a text message", async () => {
@@ -102,13 +99,12 @@ describe("Wizard", () => {
         description: "Enter your username:",
       });
 
-      const ctx = createCtx(createTextMessage("trigger"));
-      await wizard.start(ctx);
+      await wizard.start(createCtx(createTextMessage("trigger")));
 
       expect(mockConversation.sendText).toHaveBeenCalledWith(
         "Enter your username:",
       );
-      expect(wizard.isActive("conv-1")).toBe(true);
+      expect(wizard.isActive("conv-1", "sender-1")).toBe(true);
     });
   });
 
@@ -120,8 +116,7 @@ describe("Wizard", () => {
       });
 
       const next = vi.fn();
-      const ctx = createCtx(createTextMessage("hello"));
-      await wizard.middleware()(ctx, next);
+      await wizard.middleware()(createCtx(createTextMessage("hello")), next);
 
       expect(next).toHaveBeenCalled();
     });
@@ -132,12 +127,13 @@ describe("Wizard", () => {
         actions: [{ id: "a", label: "A" }],
       });
 
-      const ctx = createCtx(createTextMessage("trigger"));
-      await wizard.start(ctx);
+      await wizard.start(createCtx(createTextMessage("trigger")));
 
       const next = vi.fn();
-      const textCtx = createCtx(createTextMessage("random text"));
-      await wizard.middleware()(textCtx, next);
+      await wizard.middleware()(
+        createCtx(createTextMessage("random text")),
+        next,
+      );
 
       expect(next).toHaveBeenCalled();
     });
@@ -161,31 +157,28 @@ describe("Wizard", () => {
       const mw = wizard.middleware();
 
       // Start the wizard
-      const startCtx = createCtx(createTextMessage("trigger"));
-      await wizard.start(startCtx);
-      expect(wizard.isActive("conv-1")).toBe(true);
+      await wizard.start(createCtx(createTextMessage("trigger")));
+      expect(wizard.isActive("conv-1", "sender-1")).toBe(true);
 
       // Step 1: User selects "openai" via intent
-      const intentCtx = createCtx(
-        createIntentMessage("openai", "api-setup_provider"),
+      await mw(
+        createCtx(createIntentMessage("openai", "api-setup_provider")),
+        vi.fn(),
       );
-      await mw(intentCtx, vi.fn());
 
       expect(mockConversation.sendText).toHaveBeenCalledWith(
         "Enter your username:",
       );
 
       // Step 2: User enters username
-      const usernameCtx = createCtx(createTextMessage("john_doe"));
-      await mw(usernameCtx, vi.fn());
+      await mw(createCtx(createTextMessage("john_doe")), vi.fn());
 
       expect(mockConversation.sendText).toHaveBeenCalledWith(
         "Enter your password:",
       );
 
       // Step 3: User enters password
-      const passwordCtx = createCtx(createTextMessage("s3cret"));
-      await mw(passwordCtx, vi.fn());
+      await mw(createCtx(createTextMessage("s3cret")), vi.fn());
 
       expect(completeHandler).toHaveBeenCalledTimes(1);
       const [answers] = completeHandler.mock.calls[0];
@@ -194,7 +187,7 @@ describe("Wizard", () => {
         username: "john_doe",
         password: "s3cret",
       });
-      expect(wizard.isActive("conv-1")).toBe(false);
+      expect(wizard.isActive("conv-1", "sender-1")).toBe(false);
     });
 
     it("cancels on select step when cancel button is pressed", async () => {
@@ -211,20 +204,18 @@ describe("Wizard", () => {
 
       const mw = wizard.middleware();
 
-      // Start the wizard
-      const startCtx = createCtx(createTextMessage("trigger"));
-      await wizard.start(startCtx);
-      expect(wizard.isActive("conv-1")).toBe(true);
+      await wizard.start(createCtx(createTextMessage("trigger")));
+      expect(wizard.isActive("conv-1", "sender-1")).toBe(true);
 
       // Press cancel
-      const cancelCtx = createCtx(
-        createIntentMessage("__wizard_cancel__", "setup_provider"),
+      await mw(
+        createCtx(createIntentMessage("__wizard_cancel__", "setup_provider")),
+        vi.fn(),
       );
-      await mw(cancelCtx, vi.fn());
 
       expect(cancelHandler).toHaveBeenCalledTimes(1);
       expect(completeHandler).not.toHaveBeenCalled();
-      expect(wizard.isActive("conv-1")).toBe(false);
+      expect(wizard.isActive("conv-1", "sender-1")).toBe(false);
     });
 
     it("cancels via intent during a text step", async () => {
@@ -236,19 +227,52 @@ describe("Wizard", () => {
 
       const mw = wizard.middleware();
 
-      // Start the wizard
-      const startCtx = createCtx(createTextMessage("trigger"));
-      await wizard.start(startCtx);
-      expect(wizard.isActive("conv-1")).toBe(true);
+      await wizard.start(createCtx(createTextMessage("trigger")));
+      expect(wizard.isActive("conv-1", "sender-1")).toBe(true);
 
-      // Send cancel intent (from a previous select step's cancel button)
-      const cancelCtx = createCtx(
-        createIntentMessage("__wizard_cancel__", "setup_username"),
+      // Send cancel intent
+      await mw(
+        createCtx(createIntentMessage("__wizard_cancel__", "setup_username")),
+        vi.fn(),
       );
-      await mw(cancelCtx, vi.fn());
 
       expect(cancelHandler).toHaveBeenCalledTimes(1);
-      expect(wizard.isActive("conv-1")).toBe(false);
+      expect(wizard.isActive("conv-1", "sender-1")).toBe(false);
+    });
+
+    it("tracks separate sessions per sender in the same conversation", async () => {
+      const completeHandler = vi.fn();
+      const wizard = new Wizard("setup")
+        .text("name", { description: "Enter name:" })
+        .onComplete(completeHandler);
+
+      const mw = wizard.middleware();
+
+      // Sender 1 starts
+      await wizard.start(createCtx(createTextMessage("trigger")));
+      expect(wizard.isActive("conv-1", "sender-1")).toBe(true);
+
+      // Sender 2 starts (different senderInboxId)
+      const sender2Msg = {
+        ...createTextMessage("trigger"),
+        senderInboxId: "sender-2",
+      } as unknown as DecodedMessageWithContent;
+      await wizard.start(
+        new MessageContext({
+          message: sender2Msg,
+          conversation: mockConversation as any,
+          client: mockClient,
+        }),
+      );
+      expect(wizard.isActive("conv-1", "sender-2")).toBe(true);
+
+      // Sender 1 completes
+      await mw(createCtx(createTextMessage("Alice")), vi.fn());
+
+      expect(completeHandler).toHaveBeenCalledTimes(1);
+      expect(wizard.isActive("conv-1", "sender-1")).toBe(false);
+      // Sender 2 still active
+      expect(wizard.isActive("conv-1", "sender-2")).toBe(true);
     });
   });
 });
