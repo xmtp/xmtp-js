@@ -146,7 +146,9 @@ export class ActionWizard<ContentTypes = unknown> {
   }
 
   isActive(conversationId: string, senderInboxId: string): boolean {
-    return this.#sessions.has(ActionWizard.sessionKey(conversationId, senderInboxId));
+    return this.#sessions.has(
+      ActionWizard.sessionKey(conversationId, senderInboxId),
+    );
   }
 
   async #sendCurrentStep(key: string): Promise<void> {
