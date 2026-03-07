@@ -1,4 +1,10 @@
-import { isIntent, isText, type Action, type Actions } from "@xmtp/node-sdk";
+import {
+  isIntent,
+  isText,
+  type Action,
+  type Actions,
+  type Conversation,
+} from "@xmtp/node-sdk";
 import type { AgentMiddleware } from "@/core/Agent";
 import type { MessageContext } from "@/core/MessageContext";
 
@@ -24,6 +30,7 @@ type WizardStep = SelectStep | TextStep;
 interface WizardSession {
   currentStepIndex: number;
   answers: Record<string, string>;
+  conversation: Conversation;
 }
 
 type WizardCompleteHandler<ContentTypes> = (
@@ -35,15 +42,22 @@ type WizardCancelHandler<ContentTypes> = (
   ctx: MessageContext<unknown, ContentTypes>,
 ) => Promise<void> | void;
 
+export interface WizardOptions {
+  /** When true, the wizard sends all steps via DM to the user */
+  dm?: boolean;
+}
+
 export class Wizard<ContentTypes = unknown> {
   #id: string;
+  #dm: boolean;
   #steps: WizardStep[] = [];
   #sessions = new Map<string, WizardSession>();
   #completeHandler?: WizardCompleteHandler<ContentTypes>;
   #cancelHandler?: WizardCancelHandler<ContentTypes>;
 
-  constructor(id: string) {
+  constructor(id: string, options?: WizardOptions) {
     this.#id = id;
+    this.#dm = options?.dm ?? false;
   }
 
   static sessionKey(conversationId: string, senderInboxId: string): string {
@@ -83,28 +97,29 @@ export class Wizard<ContentTypes = unknown> {
   }
 
   async start(ctx: MessageContext<unknown, ContentTypes>): Promise<void> {
-    const key = Wizard.sessionKey(
-      ctx.conversation.id,
-      ctx.message.senderInboxId,
-    );
+    const senderInboxId = ctx.message.senderInboxId;
+
+    let conversation: Conversation;
+    if (this.#dm) {
+      conversation = await ctx.client.conversations.createDm(senderInboxId);
+    } else {
+      conversation = ctx.conversation;
+    }
+
+    const key = Wizard.sessionKey(conversation.id, senderInboxId);
     this.#sessions.set(key, {
       currentStepIndex: 0,
       answers: {},
+      conversation,
     });
-    await this.#sendCurrentStep(ctx);
+    await this.#sendCurrentStep(key);
   }
 
   isActive(conversationId: string, senderInboxId: string): boolean {
     return this.#sessions.has(Wizard.sessionKey(conversationId, senderInboxId));
   }
 
-  async #sendCurrentStep(
-    ctx: MessageContext<unknown, ContentTypes>,
-  ): Promise<void> {
-    const key = Wizard.sessionKey(
-      ctx.conversation.id,
-      ctx.message.senderInboxId,
-    );
+  async #sendCurrentStep(key: string): Promise<void> {
     const session = this.#sessions.get(key);
     if (!session) return;
 
@@ -117,28 +132,24 @@ export class Wizard<ContentTypes = unknown> {
         description: step.description,
         actions: [...step.actions, { id: CANCEL_ACTION_ID, label: "Cancel" }],
       };
-      await ctx.conversation.sendActions(actions);
+      await session.conversation.sendActions(actions);
     } else {
-      await ctx.conversation.sendText(step.description);
+      await session.conversation.sendText(step.description);
     }
   }
 
   async #handleCancel(
+    key: string,
     ctx: MessageContext<unknown, ContentTypes>,
   ): Promise<void> {
-    const key = Wizard.sessionKey(
-      ctx.conversation.id,
-      ctx.message.senderInboxId,
-    );
     this.#sessions.delete(key);
     await this.#cancelHandler?.(ctx);
   }
 
-  async #advance(ctx: MessageContext<unknown, ContentTypes>): Promise<void> {
-    const key = Wizard.sessionKey(
-      ctx.conversation.id,
-      ctx.message.senderInboxId,
-    );
+  async #advance(
+    key: string,
+    ctx: MessageContext<unknown, ContentTypes>,
+  ): Promise<void> {
     const session = this.#sessions.get(key);
     if (!session) return;
 
@@ -149,7 +160,7 @@ export class Wizard<ContentTypes = unknown> {
       this.#sessions.delete(key);
       await this.#completeHandler?.(answers, ctx);
     } else {
-      await this.#sendCurrentStep(ctx);
+      await this.#sendCurrentStep(key);
     }
   }
 
@@ -176,20 +187,24 @@ export class Wizard<ContentTypes = unknown> {
         const { actionId } = ctx.message.content!;
         if (actionId === CANCEL_ACTION_ID) {
           await this.#handleCancel(
+            key,
             ctx as MessageContext<unknown, ContentTypes>,
           );
           return;
         }
         if (step.type === "select") {
           session.answers[step.id] = actionId;
-          await this.#advance(ctx as MessageContext<unknown, ContentTypes>);
+          await this.#advance(
+            key,
+            ctx as MessageContext<unknown, ContentTypes>,
+          );
           return;
         }
       }
 
       if (step.type === "text" && isText(ctx.message)) {
         session.answers[step.id] = ctx.message.content!;
-        await this.#advance(ctx as MessageContext<unknown, ContentTypes>);
+        await this.#advance(key, ctx as MessageContext<unknown, ContentTypes>);
         return;
       }
 

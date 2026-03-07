@@ -274,5 +274,56 @@ describe("Wizard", () => {
       // Sender 2 still active
       expect(wizard.isActive("conv-1", "sender-2")).toBe(true);
     });
+
+    it("sends wizard steps via DM when dm option is true", async () => {
+      const dmConversation = {
+        id: "dm-conv-1",
+        sendActions: vi.fn().mockResolvedValue(""),
+        sendText: vi.fn().mockResolvedValue(""),
+      };
+
+      const dmClient = {
+        conversations: {
+          createDm: vi.fn().mockResolvedValue(dmConversation),
+        },
+      } as any;
+
+      const wizard = new Wizard("setup", { dm: true })
+        .select("provider", {
+          description: "Select provider",
+          actions: [{ id: "openai", label: "OpenAI" }],
+        })
+        .text("username", { description: "Enter username:" })
+        .onComplete(vi.fn());
+
+      const mw = wizard.middleware();
+
+      // Start from a group conversation — wizard should DM the user
+      const startCtx = new MessageContext({
+        message: createTextMessage("trigger"),
+        conversation: mockConversation as any,
+        client: dmClient,
+      });
+      await wizard.start(startCtx);
+
+      expect(dmClient.conversations.createDm).toHaveBeenCalledWith("sender-1");
+      expect(dmConversation.sendActions).toHaveBeenCalled();
+      expect(mockConversation.sendActions).not.toHaveBeenCalled();
+
+      // Session is keyed by the DM conversation ID
+      expect(wizard.isActive("dm-conv-1", "sender-1")).toBe(true);
+      expect(wizard.isActive("conv-1", "sender-1")).toBe(false);
+
+      // User responds in the DM
+      const dmCtx = new MessageContext({
+        message: createIntentMessage("openai", "setup_provider"),
+        conversation: dmConversation as any,
+        client: dmClient,
+      });
+      await mw(dmCtx, vi.fn());
+
+      // Next step sent via DM
+      expect(dmConversation.sendText).toHaveBeenCalledWith("Enter username:");
+    });
   });
 });
