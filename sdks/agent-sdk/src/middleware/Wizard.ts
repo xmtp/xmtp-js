@@ -68,6 +68,10 @@ export class Wizard<ContentTypes = unknown> {
     return `${conversationId}:${senderInboxId}`;
   }
 
+  static actionSetId(wizardId: string, stepId: string): string {
+    return `${wizardId}_${stepId}`;
+  }
+
   select(
     id: string,
     options: { description: string; actions: Action[] },
@@ -132,7 +136,7 @@ export class Wizard<ContentTypes = unknown> {
 
     if (step.type === "select") {
       const actions: Actions = {
-        id: `${this.#id}_${step.id}`,
+        id: Wizard.actionSetId(this.#id, step.id),
         description: step.description,
         actions: [...step.actions, { id: CANCEL_ACTION_ID, label: "Cancel" }],
       };
