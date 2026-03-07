@@ -19,8 +19,8 @@ const wizard = new ActionWizard("api-setup", { dm: true, cancel: true })
     description: "Enter your API key:",
   })
   .onComplete(async (answers, ctx) => {
-    await ctx.conversation.sendText(
-      `Setup complete!\n` +
+    await ctx.conversation.sendMarkdown(
+      `**Setup complete!**\n\n` +
         `Provider ID: ${answers.provider}\n` +
         `Username: ${answers.username}\n` +
         `API Key: ${answers.apiKey}`,
