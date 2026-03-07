@@ -1,7 +1,6 @@
 import { validHex } from "@xmtp/node-sdk";
 import { formatUnits, hexToNumber, parseUnits } from "viem";
 import { base } from "viem/chains";
-import { getTestUrl } from "@/debug/log";
 import { CommandRouter } from "@/middleware/CommandRouter";
 import {
   createERC20TransferCalls,
@@ -78,12 +77,6 @@ agent.on("transaction-reference", async (ctx) => {
       `Chain ID: [${networkIdDecimal}](https://chainlist.org/chain/${networkIdDecimal})\n` +
       `Transaction Hash: [${reference}](https://basescan.org/tx/${reference})`,
   );
-});
-
-agent.on("start", (ctx) => {
-  console.log(`Address: ${agent.address}`);
-  console.log(`Link: ${getTestUrl(ctx.client)}`);
-  console.log("Agent started. Waiting for messages...");
 });
 
 await agent.start();

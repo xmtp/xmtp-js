@@ -1,6 +1,6 @@
 import { isHexString } from "@xmtp/node-sdk";
 import { AgentError } from "@/core/index";
-import { getTestUrl, logDetails } from "@/debug/log";
+import { logDetails } from "@/debug/log";
 import { CommandRouter } from "@/middleware/CommandRouter";
 import { PerformanceMonitor } from "@/middleware/PerformanceMonitor";
 import { createNameResolver } from "@/user";
@@ -101,10 +101,6 @@ const errorHandler = (error: unknown) => {
 };
 
 agent.on("unhandledError", errorHandler);
-
-agent.on("start", (ctx) => {
-  console.log(`We are online: ${getTestUrl(ctx.client)}`);
-});
 
 agent.on("stop", (ctx) => {
   performanceMonitor.shutdown();

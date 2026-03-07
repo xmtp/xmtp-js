@@ -1,4 +1,3 @@
-import { getTestUrl } from "@/debug/log";
 import { ActionWizard } from "@/middleware/ActionWizard";
 import { getAgent } from "./getAgent";
 
@@ -32,11 +31,5 @@ const wizard = new ActionWizard("api-setup", { dm: true, cancel: true })
   });
 
 agent.use(wizard.middleware());
-
-agent.on("start", (ctx) => {
-  console.log(`Address: ${agent.address}`);
-  console.log(`Link: ${getTestUrl(ctx.client)}`);
-  console.log("Agent started. Waiting for messages...");
-});
 
 await agent.start();
