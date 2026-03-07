@@ -27,29 +27,29 @@ type TextStep = {
   readonly description: string;
 };
 
-type WizardStep = SelectStep | TextStep;
+type ActionWizardStep = SelectStep | TextStep;
 
-type WizardSession = {
+type ActionWizardSession = {
   currentStepIndex: number;
   readonly answers: Record<string, string>;
   readonly conversation: Conversation;
 };
 
-type WizardCompleteHandler<ContentTypes> = (
+type ActionWizardCompleteHandler<ContentTypes> = (
   answers: Record<string, string>,
   ctx: MessageContext<unknown, ContentTypes>,
 ) => Promise<void> | void;
 
-type WizardCancelHandler<ContentTypes> = (
+type ActionWizardCancelHandler<ContentTypes> = (
   ctx: MessageContext<unknown, ContentTypes>,
 ) => Promise<void> | void;
 
-export type WizardCancelOptions = {
+export type ActionWizardCancelOptions = {
   /** Custom label for the cancel button (default: "Cancel") */
   readonly label?: string;
 };
 
-export type WizardOptions = {
+export type ActionWizardOptions = {
   /**
    * When true, the wizard sends all steps via DM to the user.
    * Recommended when the user is expected to enter sensitive information
@@ -57,19 +57,19 @@ export type WizardOptions = {
    */
   readonly dm?: boolean;
   /** Enable a cancel button on each select step. Set to `true` for the default label, or pass options to customize. */
-  readonly cancel?: boolean | WizardCancelOptions;
+  readonly cancel?: boolean | ActionWizardCancelOptions;
 };
 
-export class Wizard<ContentTypes = unknown> {
+export class ActionWizard<ContentTypes = unknown> {
   #id: string;
   #dm: boolean;
   #cancelLabel: string | undefined;
-  #steps: WizardStep[] = [];
-  #sessions = new Map<string, WizardSession>();
-  #completeHandler?: WizardCompleteHandler<ContentTypes>;
-  #cancelHandler?: WizardCancelHandler<ContentTypes>;
+  #steps: ActionWizardStep[] = [];
+  #sessions = new Map<string, ActionWizardSession>();
+  #completeHandler?: ActionWizardCompleteHandler<ContentTypes>;
+  #cancelHandler?: ActionWizardCancelHandler<ContentTypes>;
 
-  constructor(id: string, options?: WizardOptions) {
+  constructor(id: string, options?: ActionWizardOptions) {
     this.#id = id;
     this.#dm = options?.dm ?? false;
     if (options?.cancel) {
@@ -110,12 +110,12 @@ export class Wizard<ContentTypes = unknown> {
     return this;
   }
 
-  onComplete(handler: WizardCompleteHandler<ContentTypes>): this {
+  onComplete(handler: ActionWizardCompleteHandler<ContentTypes>): this {
     this.#completeHandler = handler;
     return this;
   }
 
-  onCancel(handler: WizardCancelHandler<ContentTypes>): this {
+  onCancel(handler: ActionWizardCancelHandler<ContentTypes>): this {
     this.#cancelHandler = handler;
     return this;
   }
@@ -126,7 +126,7 @@ export class Wizard<ContentTypes = unknown> {
       ? await ctx.client.conversations.createDm(senderInboxId)
       : ctx.conversation;
 
-    const key = Wizard.sessionKey(conversation.id, senderInboxId);
+    const key = ActionWizard.sessionKey(conversation.id, senderInboxId);
     this.#sessions.set(key, {
       currentStepIndex: 0,
       answers: {},
@@ -136,7 +136,7 @@ export class Wizard<ContentTypes = unknown> {
   }
 
   isActive(conversationId: string, senderInboxId: string): boolean {
-    return this.#sessions.has(Wizard.sessionKey(conversationId, senderInboxId));
+    return this.#sessions.has(ActionWizard.sessionKey(conversationId, senderInboxId));
   }
 
   async #sendCurrentStep(key: string): Promise<void> {
@@ -151,7 +151,7 @@ export class Wizard<ContentTypes = unknown> {
         ? [...step.actions, { id: CANCEL_ACTION_ID, label: this.#cancelLabel }]
         : step.actions;
       const actions: Actions = {
-        id: Wizard.stepKey(this.#id, step.id),
+        id: ActionWizard.stepKey(this.#id, step.id),
         description: step.description,
         actions: stepActions,
       };
@@ -190,7 +190,7 @@ export class Wizard<ContentTypes = unknown> {
 
   middleware(): AgentMiddleware<ContentTypes> {
     return async (ctx, next) => {
-      const key = Wizard.sessionKey(
+      const key = ActionWizard.sessionKey(
         ctx.conversation.id,
         ctx.message.senderInboxId,
       );

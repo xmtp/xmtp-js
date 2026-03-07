@@ -1,3 +1,3 @@
 export * from "./CommandRouter";
 export * from "./PerformanceMonitor";
-export * from "./Wizard";
+export * from "./ActionWizard";
