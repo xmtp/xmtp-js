@@ -71,7 +71,7 @@ describe("Wizard", () => {
   });
 
   describe("start", () => {
-    it("sends the first select step as actions with a cancel button", async () => {
+    it("sends select step without cancel button by default", async () => {
       const wizard = new Wizard("setup").select("provider", {
         description: "Select provider",
         actions: [
@@ -83,7 +83,28 @@ describe("Wizard", () => {
       await wizard.start(createCtx(createTextMessage("trigger")));
 
       expect(mockConversation.sendActions).toHaveBeenCalledWith({
-        id: "setup_provider",
+        id: "setup:provider",
+        description: "Select provider",
+        actions: [
+          { id: "openai", label: "OpenAI" },
+          { id: "anthropic", label: "Anthropic" },
+        ],
+      });
+    });
+
+    it("sends select step with cancel button when cancel is enabled", async () => {
+      const wizard = new Wizard("setup", { cancel: true }).select("provider", {
+        description: "Select provider",
+        actions: [
+          { id: "openai", label: "OpenAI" },
+          { id: "anthropic", label: "Anthropic" },
+        ],
+      });
+
+      await wizard.start(createCtx(createTextMessage("trigger")));
+
+      expect(mockConversation.sendActions).toHaveBeenCalledWith({
+        id: "setup:provider",
         description: "Select provider",
         actions: [
           { id: "openai", label: "OpenAI" },
@@ -91,7 +112,26 @@ describe("Wizard", () => {
           { id: "__wizard_cancel__", label: "Cancel" },
         ],
       });
-      expect(wizard.isActive("conv-1", "sender-1")).toBe(true);
+    });
+
+    it("uses custom cancel label when provided", async () => {
+      const wizard = new Wizard("setup", {
+        cancel: { label: "Abort" },
+      }).select("provider", {
+        description: "Select provider",
+        actions: [{ id: "openai", label: "OpenAI" }],
+      });
+
+      await wizard.start(createCtx(createTextMessage("trigger")));
+
+      expect(mockConversation.sendActions).toHaveBeenCalledWith({
+        id: "setup:provider",
+        description: "Select provider",
+        actions: [
+          { id: "openai", label: "OpenAI" },
+          { id: "__wizard_cancel__", label: "Abort" },
+        ],
+      });
     });
 
     it("sends the first text step as a text message", async () => {
@@ -162,7 +202,7 @@ describe("Wizard", () => {
 
       // Step 1: User selects "openai" via intent
       await mw(
-        createCtx(createIntentMessage("openai", "api-setup_provider")),
+        createCtx(createIntentMessage("openai", "api-setup:provider")),
         vi.fn(),
       );
 
@@ -194,7 +234,7 @@ describe("Wizard", () => {
       const cancelHandler = vi.fn();
       const completeHandler = vi.fn();
 
-      const wizard = new Wizard("setup")
+      const wizard = new Wizard("setup", { cancel: true })
         .select("provider", {
           description: "Select provider",
           actions: [{ id: "openai", label: "OpenAI" }],
@@ -209,7 +249,7 @@ describe("Wizard", () => {
 
       // Press cancel
       await mw(
-        createCtx(createIntentMessage("__wizard_cancel__", "setup_provider")),
+        createCtx(createIntentMessage("__wizard_cancel__", "setup:provider")),
         vi.fn(),
       );
 
@@ -221,7 +261,7 @@ describe("Wizard", () => {
     it("cancels via intent during a text step", async () => {
       const cancelHandler = vi.fn();
 
-      const wizard = new Wizard("setup")
+      const wizard = new Wizard("setup", { cancel: true })
         .text("username", { description: "Enter username:" })
         .onCancel(cancelHandler);
 
@@ -232,12 +272,41 @@ describe("Wizard", () => {
 
       // Send cancel intent
       await mw(
-        createCtx(createIntentMessage("__wizard_cancel__", "setup_username")),
+        createCtx(createIntentMessage("__wizard_cancel__", "setup:username")),
         vi.fn(),
       );
 
       expect(cancelHandler).toHaveBeenCalledTimes(1);
       expect(wizard.isActive("conv-1", "sender-1")).toBe(false);
+    });
+
+    it("does not handle cancel intents when cancel is disabled", async () => {
+      const cancelHandler = vi.fn();
+      const completeHandler = vi.fn();
+
+      const wizard = new Wizard("setup")
+        .select("provider", {
+          description: "Select provider",
+          actions: [{ id: "openai", label: "OpenAI" }],
+        })
+        .onComplete(completeHandler)
+        .onCancel(cancelHandler);
+
+      const mw = wizard.middleware();
+
+      await wizard.start(createCtx(createTextMessage("trigger")));
+
+      // Without cancel enabled, a __wizard_cancel__ intent is treated
+      // as a regular selection (this can't happen in practice since
+      // no cancel button is rendered)
+      await mw(
+        createCtx(createIntentMessage("__wizard_cancel__", "setup:provider")),
+        vi.fn(),
+      );
+
+      expect(cancelHandler).not.toHaveBeenCalled();
+      // Wizard completed because it treated the intent as a selection
+      expect(completeHandler).toHaveBeenCalledTimes(1);
     });
 
     it("tracks separate sessions per sender in the same conversation", async () => {
@@ -316,7 +385,7 @@ describe("Wizard", () => {
 
       // User responds in the DM
       const dmCtx = new MessageContext({
-        message: createIntentMessage("openai", "setup_provider"),
+        message: createIntentMessage("openai", "setup:provider"),
         conversation: dmConversation as any,
         client: dmClient,
       });

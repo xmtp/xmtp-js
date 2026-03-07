@@ -42,6 +42,11 @@ type WizardCancelHandler<ContentTypes> = (
   ctx: MessageContext<unknown, ContentTypes>,
 ) => Promise<void> | void;
 
+export interface WizardCancelOptions {
+  /** Custom label for the cancel button (default: "Cancel") */
+  label?: string;
+}
+
 export interface WizardOptions {
   /**
    * When true, the wizard sends all steps via DM to the user.
@@ -49,11 +54,14 @@ export interface WizardOptions {
    * (e.g. API keys, passwords) to keep it out of group conversations.
    */
   dm?: boolean;
+  /** Enable a cancel button on each select step. Set to `true` for the default label, or pass options to customize. */
+  cancel?: boolean | WizardCancelOptions;
 }
 
 export class Wizard<ContentTypes = unknown> {
   #id: string;
   #dm: boolean;
+  #cancelLabel: string | undefined;
   #steps: WizardStep[] = [];
   #sessions = new Map<string, WizardSession>();
   #completeHandler?: WizardCompleteHandler<ContentTypes>;
@@ -62,14 +70,20 @@ export class Wizard<ContentTypes = unknown> {
   constructor(id: string, options?: WizardOptions) {
     this.#id = id;
     this.#dm = options?.dm ?? false;
+    if (options?.cancel) {
+      this.#cancelLabel =
+        typeof options.cancel === "object"
+          ? (options.cancel.label ?? "Cancel")
+          : "Cancel";
+    }
   }
 
   static sessionKey(conversationId: string, senderInboxId: string): string {
     return `${conversationId}:${senderInboxId}`;
   }
 
-  static actionSetId(wizardId: string, stepId: string): string {
-    return `${wizardId}_${stepId}`;
+  static stepKey(wizardId: string, stepId: string): string {
+    return `${wizardId}:${stepId}`;
   }
 
   select(
@@ -135,10 +149,13 @@ export class Wizard<ContentTypes = unknown> {
     if (!step) return;
 
     if (step.type === "select") {
+      const stepActions = this.#cancelLabel
+        ? [...step.actions, { id: CANCEL_ACTION_ID, label: this.#cancelLabel }]
+        : step.actions;
       const actions: Actions = {
-        id: Wizard.actionSetId(this.#id, step.id),
+        id: Wizard.stepKey(this.#id, step.id),
         description: step.description,
-        actions: [...step.actions, { id: CANCEL_ACTION_ID, label: "Cancel" }],
+        actions: stepActions,
       };
       await session.conversation.sendActions(actions);
     } else {
@@ -193,7 +210,7 @@ export class Wizard<ContentTypes = unknown> {
 
       if (isIntent(ctx.message)) {
         const { actionId } = ctx.message.content!;
-        if (actionId === CANCEL_ACTION_ID) {
+        if (this.#cancelLabel && actionId === CANCEL_ACTION_ID) {
           await this.#handleCancel(
             key,
             ctx as MessageContext<unknown, ContentTypes>,
