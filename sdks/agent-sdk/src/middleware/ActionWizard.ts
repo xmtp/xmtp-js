@@ -60,6 +60,16 @@ export type ActionWizardOptions = {
   readonly cancel?: boolean | ActionWizardCancelOptions;
 };
 
+/**
+ * Multi-step interactive wizard using XMTP actions and intents.
+ *
+ * Supports two step types:
+ * - **select** — presents action buttons, the user responds by clicking one (triggers an intent)
+ * - **text** — prompts the user for free-text input
+ *
+ * The wizard activates when a user sends `/{id}` (e.g. `/api-setup`).
+ * Sending the command again while a session is active restarts the wizard from the first step.
+ */
 export class ActionWizard<ContentTypes = unknown> {
   #id: string;
   #dm: boolean;
@@ -194,6 +204,14 @@ export class ActionWizard<ContentTypes = unknown> {
         ctx.conversation.id,
         ctx.message.senderInboxId,
       );
+      if (isText(ctx.message) && ctx.message.content === `/${this.#id}`) {
+        if (this.#sessions.has(key)) {
+          await this.#handleCancel(key, ctx);
+        }
+        await this.start(ctx);
+        return;
+      }
+
       const session = this.#sessions.get(key);
 
       if (!session) {
