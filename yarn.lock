@@ -6777,6 +6777,7 @@ __metadata:
     react-dom: "npm:^19.2.3"
     react-markdown: "npm:^10.1.0"
     react-router: "npm:^7.12.0"
+    remark-breaks: "npm:^4.0.0"
     remark-gfm: "npm:^4.0.1"
     typescript: "npm:^5.9.3"
     uint8array-extras: "npm:^1.5.0"
@@ -10906,6 +10907,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mdast-util-newline-to-break@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "mdast-util-newline-to-break@npm:2.0.0"
+  dependencies:
+    "@types/mdast": "npm:^4.0.0"
+    mdast-util-find-and-replace: "npm:^3.0.0"
+  checksum: 10/2300312c02501458854129e776cbbf6daafa6b7675a54a634f9a3c76055b0466081ad9eebde6bc655030e868fd7c183352acd856bcd265b3ea96f214c4f7fd7b
+  languageName: node
+  linkType: hard
+
 "mdast-util-phrasing@npm:^4.0.0":
   version: 4.1.0
   resolution: "mdast-util-phrasing@npm:4.1.0"
@@ -13138,6 +13149,17 @@ __metadata:
   dependencies:
     "@pnpm/npm-conf": "npm:^3.0.2"
   checksum: 10/36cf27fca6419e4d92c27419c5a333aea1d9dec62f7fb812fa8d8d95dcfa4124e57f22bb944512f5f97ae0e0cda90c28b3a5f0e7ace0b5620d84a8b6b2cab862
+  languageName: node
+  linkType: hard
+
+"remark-breaks@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "remark-breaks@npm:4.0.0"
+  dependencies:
+    "@types/mdast": "npm:^4.0.0"
+    mdast-util-newline-to-break: "npm:^2.0.0"
+    unified: "npm:^11.0.0"
+  checksum: 10/6841b88ea4995ec9d469bb10f8272ce264466ffd706a85a931fd6d451dc81440916bd62118d62f10b7c61704b740e7eda4c0c8bee62dc27e8a02ee2766af1bf2
   languageName: node
   linkType: hard
 
