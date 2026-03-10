@@ -25,6 +25,7 @@ type TextStep = {
   readonly type: "text";
   readonly id: string;
   readonly description: string;
+  readonly isMarkdown: boolean;
 };
 
 type ActionWizardStep = SelectStep | TextStep;
@@ -111,11 +112,15 @@ export class ActionWizard<ContentTypes = unknown> {
     return this;
   }
 
-  text(id: string, options: { description: string }): this {
+  text(
+    id: string,
+    options: { description: string; isMarkdown?: boolean },
+  ): this {
     this.#steps.push({
       type: "text",
       id,
       description: options.description,
+      isMarkdown: options.isMarkdown ?? false,
     });
     return this;
   }
@@ -168,6 +173,8 @@ export class ActionWizard<ContentTypes = unknown> {
         actions: stepActions,
       };
       await session.conversation.sendActions(actions);
+    } else if (step.isMarkdown) {
+      await session.conversation.sendMarkdown(step.description);
     } else {
       await session.conversation.sendText(step.description);
     }

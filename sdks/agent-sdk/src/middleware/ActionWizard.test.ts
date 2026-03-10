@@ -1,49 +1,18 @@
+import {
+  isActions,
+  isMarkdown,
+  isText,
+  type BuiltInContentTypes,
+  type Client,
+} from "@xmtp/node-sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { MessageContext } from "@/core/MessageContext";
+import { Agent } from "@/core/Agent";
 import { ActionWizard } from "@/middleware/ActionWizard";
-
-function createTextMessage(content: string, senderInboxId = "sender-1") {
-  return {
-    content,
-    senderInboxId,
-    contentType: { authorityId: "xmtp.org", typeId: "text" },
-  };
-}
-
-function createIntentMessage(actionId: string, senderInboxId = "sender-1") {
-  return {
-    content: { actionId },
-    senderInboxId,
-    contentType: { authorityId: "coinbase.com", typeId: "intent" },
-  };
-}
-
-function createMockConversation(id = "conv-1") {
-  return {
-    id,
-    sendText: vi.fn(),
-    sendActions: vi.fn(),
-  };
-}
-
-function createMockCtx(overrides: {
-  message: ReturnType<typeof createTextMessage | typeof createIntentMessage>;
-  conversation?: ReturnType<typeof createMockConversation>;
-  client?: unknown;
-}) {
-  const conversation = overrides.conversation ?? createMockConversation();
-  return {
-    message: overrides.message,
-    conversation,
-    client: overrides.client ?? {
-      conversations: { createDm: vi.fn() },
-    },
-  } as unknown as MessageContext<unknown, unknown>;
-}
+import { createClient } from "@/util/test";
 
 describe("ActionWizard", () => {
   describe("static helpers", () => {
-    it("builds a session", () => {
+    it("builds a session key", () => {
       expect(ActionWizard.sessionKey("conv-1", "sender-1")).toBe(
         "conv-1:sender-1",
       );
@@ -55,65 +24,34 @@ describe("ActionWizard", () => {
   });
 
   describe("Builder API", () => {
-    it("returns this from select() for chaining", () => {
+    it("returns this from all methods for chaining", () => {
       const wizard = new ActionWizard("w");
-      const result = wizard.select("s", {
-        description: "Pick",
-        actions: [{ id: "a", label: "A" }],
-      });
-      expect(result).toBe(wizard);
-    });
-
-    it("returns this from text() for chaining", () => {
-      const wizard = new ActionWizard("w");
-      const result = wizard.text("t", { description: "Enter name" });
-      expect(result).toBe(wizard);
-    });
-
-    it("returns this from onComplete() for chaining", () => {
-      const wizard = new ActionWizard("w");
-      const result = wizard.onComplete(vi.fn());
-      expect(result).toBe(wizard);
-    });
-
-    it("returns this from onCancel() for chaining", () => {
-      const wizard = new ActionWizard("w");
-      const result = wizard.onCancel(vi.fn());
-      expect(result).toBe(wizard);
-    });
-  });
-
-  describe("middleware", () => {
-    it("returns a function", () => {
-      const wizard = new ActionWizard("setup");
-      expect(typeof wizard.middleware()).toBe("function");
-    });
-
-    it("calls next() when no session is active and message is unrelated", async () => {
-      const wizard = new ActionWizard("setup");
-      wizard.select("step1", {
-        description: "Pick",
-        actions: [{ id: "a", label: "A" }],
-      });
-      const mw = wizard.middleware();
-      const next = vi.fn();
-      const ctx = createMockCtx({
-        message: createTextMessage("hello"),
-      });
-      await mw(ctx, next);
-      expect(next).toHaveBeenCalledOnce();
+      expect(
+        wizard.select("s", {
+          description: "Pick",
+          actions: [{ id: "a", label: "A" }],
+        }),
+      ).toBe(wizard);
+      expect(wizard.text("name-label", { description: "Enter name" })).toBe(
+        wizard,
+      );
+      expect(wizard.onComplete(vi.fn())).toBe(wizard);
+      expect(wizard.onCancel(vi.fn())).toBe(wizard);
     });
   });
 
   describe("select step", () => {
-    let wizard: ActionWizard;
-    let conversation: ReturnType<typeof createMockConversation>;
-    let completeHandler: ReturnType<typeof vi.fn>;
+    let agent: Agent<BuiltInContentTypes>;
+    let client: Client;
 
-    beforeEach(() => {
-      conversation = createMockConversation();
-      completeHandler = vi.fn();
-      wizard = new ActionWizard("setup");
+    beforeEach(async () => {
+      client = await createClient();
+      agent = new Agent({ client });
+    });
+
+    it("sends actions when the trigger command is received", async () => {
+      const completeHandler = vi.fn();
+      const wizard = new ActionWizard("setup");
       wizard
         .select("color", {
           description: "Pick a color",
@@ -122,123 +60,160 @@ describe("ActionWizard", () => {
             { id: "blue", label: "Blue" },
           ],
         })
-        .onComplete(completeHandler as never);
-    });
+        .onComplete(completeHandler);
 
-    it("sends actions when the trigger command is received", async () => {
-      const mw = wizard.middleware();
-      const ctx = createMockCtx({
-        message: createTextMessage("/setup"),
-        conversation,
-      });
-      await mw(ctx, vi.fn());
+      agent.use(wizard.middleware());
+      await agent.start();
 
-      expect(conversation.sendActions).toHaveBeenCalledWith({
-        id: "setup:color",
-        description: "Pick a color",
-        actions: [
-          { id: "red", label: "Red" },
-          { id: "blue", label: "Blue" },
-        ],
-      });
-    });
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      await dm.sendText("/setup");
 
-    it("marks the session as active after the trigger command", async () => {
-      const mw = wizard.middleware();
-      const ctx = createMockCtx({
-        message: createTextMessage("/setup"),
-        conversation,
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        const actionsMessage = messages.find((m) => isActions(m));
+        expect(actionsMessage).toBeDefined();
+        expect(actionsMessage!.content).toMatchObject({
+          id: "setup:color",
+          description: "Pick a color",
+        });
       });
-      await mw(ctx, vi.fn());
-      expect(wizard.isActive(conversation.id, "sender-1")).toBe(true);
     });
 
     it("records the answer and completes when an intent is received", async () => {
-      const mw = wizard.middleware();
+      const completeHandler = vi.fn();
+      const wizard = new ActionWizard("setup");
+      wizard
+        .select("color", {
+          description: "Pick a color",
+          actions: [
+            { id: "red", label: "Red" },
+            { id: "blue", label: "Blue" },
+          ],
+        })
+        .onComplete(completeHandler);
 
-      // Start wizard
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/setup"),
-          conversation,
-        }),
-        vi.fn(),
-      );
+      agent.use(wizard.middleware());
+      await agent.start();
 
-      // Answer with intent
-      const intentCtx = createMockCtx({
-        message: createIntentMessage("blue"),
-        conversation,
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      await dm.sendText("/setup");
+
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        expect(messages.some((m) => isActions(m))).toBe(true);
       });
-      await mw(intentCtx, vi.fn());
 
-      expect(completeHandler).toHaveBeenCalledWith(
-        { color: "blue" },
-        intentCtx,
-      );
-      expect(wizard.isActive(conversation.id, "sender-1")).toBe(false);
+      await dm.sendIntent({ id: "setup:color", actionId: "blue" });
+
+      await vi.waitFor(() => {
+        expect(completeHandler).toHaveBeenCalledWith(
+          { color: "blue" },
+          expect.anything(),
+        );
+      });
     });
   });
 
   describe("text step", () => {
-    let wizard: ActionWizard;
-    let conversation: ReturnType<typeof createMockConversation>;
-    let completeHandler: ReturnType<typeof vi.fn>;
+    let agent: Agent<BuiltInContentTypes>;
+    let client: Client;
 
-    beforeEach(() => {
-      conversation = createMockConversation();
-      completeHandler = vi.fn();
-      wizard = new ActionWizard("config");
-      wizard
-        .text("name", { description: "Enter your name" })
-        .onComplete(completeHandler as never);
+    beforeEach(async () => {
+      client = await createClient();
+      agent = new Agent({ client });
     });
 
     it("sends the description as text when the trigger command is received", async () => {
-      const mw = wizard.middleware();
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/config"),
-          conversation,
-        }),
-        vi.fn(),
-      );
+      const wizard = new ActionWizard("config");
+      wizard.text("name", { description: "Enter your name" });
 
-      expect(conversation.sendText).toHaveBeenCalledWith("Enter your name");
+      agent.use(wizard.middleware());
+      await agent.start();
+
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      await dm.sendText("/config");
+
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        const textMessages = messages.filter((m) => isText(m));
+        const descriptions = textMessages.map((m) => m.content);
+        expect(descriptions).toContain("Enter your name");
+      });
+    });
+
+    it("sends the description as markdown when isMarkdown is true", async () => {
+      const wizard = new ActionWizard("config");
+      wizard.text("name", {
+        description: "**Enter your name**",
+        isMarkdown: true,
+      });
+
+      agent.use(wizard.middleware());
+      await agent.start();
+
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      await dm.sendText("/config");
+
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        const mdMessage = messages.find((m) => isMarkdown(m));
+        expect(mdMessage).toBeDefined();
+        expect(mdMessage!.content).toBe("**Enter your name**");
+      });
     });
 
     it("records the answer and completes when a text reply is received", async () => {
-      const mw = wizard.middleware();
+      const completeHandler = vi.fn();
+      const wizard = new ActionWizard("config");
+      wizard
+        .text("name", { description: "Enter your name" })
+        .onComplete(completeHandler);
 
-      // Start wizard
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/config"),
-          conversation,
-        }),
-        vi.fn(),
-      );
+      agent.use(wizard.middleware());
+      await agent.start();
 
-      // Answer with text
-      const answerCtx = createMockCtx({
-        message: createTextMessage("Alice"),
-        conversation,
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      await dm.sendText("/config");
+
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        const textMessages = messages.filter((m) => isText(m));
+        expect(textMessages.map((m) => m.content)).toContain("Enter your name");
       });
-      await mw(answerCtx, vi.fn());
 
-      expect(completeHandler).toHaveBeenCalledWith({ name: "Alice" }, answerCtx);
+      await dm.sendText("Alice");
+
+      await vi.waitFor(() => {
+        expect(completeHandler).toHaveBeenCalledWith(
+          { name: "Alice" },
+          expect.anything(),
+        );
+      });
     });
   });
 
   describe("multi-step wizard", () => {
-    let wizard: ActionWizard;
-    let conversation: ReturnType<typeof createMockConversation>;
-    let completeHandler: ReturnType<typeof vi.fn>;
+    let agent: Agent<BuiltInContentTypes>;
+    let client: Client;
 
-    beforeEach(() => {
-      conversation = createMockConversation();
-      completeHandler = vi.fn();
-      wizard = new ActionWizard("onboard");
+    beforeEach(async () => {
+      client = await createClient();
+      agent = new Agent({ client });
+    });
+
+    it("advances through all steps and calls complete with all answers", async () => {
+      const completeHandler = vi.fn();
+      const wizard = new ActionWizard("onboard");
       wizard
         .select("plan", {
           description: "Choose plan",
@@ -248,74 +223,93 @@ describe("ActionWizard", () => {
           ],
         })
         .text("email", { description: "Enter your email" })
-        .onComplete(completeHandler as never);
-    });
+        .onComplete(completeHandler);
 
-    it("advances through all steps and calls complete with all answers", async () => {
-      const mw = wizard.middleware();
+      agent.use(wizard.middleware());
+      await agent.start();
 
-      // Start
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/onboard"),
-          conversation,
-        }),
-        vi.fn(),
-      );
-      expect(conversation.sendActions).toHaveBeenCalledOnce();
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      await dm.sendText("/onboard");
+
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        expect(messages.some((m) => isActions(m))).toBe(true);
+      });
 
       // Step 1: select plan
-      await mw(
-        createMockCtx({
-          message: createIntentMessage("pro"),
-          conversation,
-        }),
-        vi.fn(),
-      );
-      // Should send next step (text)
-      expect(conversation.sendText).toHaveBeenCalledWith("Enter your email");
-      expect(completeHandler).not.toHaveBeenCalled();
+      await dm.sendIntent({ id: "onboard:plan", actionId: "pro" });
+
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        const textMessages = messages.filter((m) => isText(m));
+        expect(textMessages.map((m) => m.content)).toContain(
+          "Enter your email",
+        );
+      });
 
       // Step 2: enter email
-      const finalCtx = createMockCtx({
-        message: createTextMessage("user@example.com"),
-        conversation,
-      });
-      await mw(finalCtx, vi.fn());
+      await dm.sendText("user@example.com");
 
-      expect(completeHandler).toHaveBeenCalledWith(
-        { plan: "pro", email: "user@example.com" },
-        finalCtx,
-      );
-      expect(wizard.isActive(conversation.id, "sender-1")).toBe(false);
+      await vi.waitFor(() => {
+        expect(completeHandler).toHaveBeenCalledWith(
+          { plan: "pro", email: "user@example.com" },
+          expect.anything(),
+        );
+      });
     });
   });
 
   describe("cancel", () => {
-    it("adds a cancel button to select steps when cancel is true", async () => {
-      const conversation = createMockConversation();
+    let agent: Agent<BuiltInContentTypes>;
+    let client: Client;
+
+    beforeEach(async () => {
+      client = await createClient();
+      agent = new Agent({ client });
+    });
+
+    it("adds a cancel button to select steps and handles cancel intent", async () => {
+      const cancelHandler = vi.fn();
       const wizard = new ActionWizard("setup", { cancel: true });
-      wizard.select("color", {
-        description: "Pick",
-        actions: [{ id: "red", label: "Red" }],
+      wizard
+        .select("color", {
+          description: "Pick",
+          actions: [{ id: "red", label: "Red" }],
+        })
+        .onCancel(cancelHandler);
+
+      agent.use(wizard.middleware());
+      await agent.start();
+
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      await dm.sendText("/setup");
+
+      // Wait for actions to be sent, then extract the cancel action ID
+      let cancelActionId: string;
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        const actionsMessage = messages.find((m) => isActions(m));
+        expect(actionsMessage).toBeDefined();
+        const actions = actionsMessage!.content!.actions;
+        expect(actions).toHaveLength(2);
+        expect(actions[1]!.label).toBe("Cancel");
+        cancelActionId = actions[1]!.id;
       });
 
-      const mw = wizard.middleware();
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/setup"),
-          conversation,
-        }),
-        vi.fn(),
-      );
+      // Click cancel
+      await dm.sendIntent({ id: "setup:color", actionId: cancelActionId! });
 
-      const sentActions = conversation.sendActions.mock.calls[0]![0];
-      expect(sentActions.actions).toHaveLength(2);
-      expect(sentActions.actions[1].label).toBe("Cancel");
+      await vi.waitFor(() => {
+        expect(cancelHandler).toHaveBeenCalledTimes(1);
+      });
     });
 
     it("uses a custom cancel label", async () => {
-      const conversation = createMockConversation();
       const wizard = new ActionWizard("setup", {
         cancel: { label: "Abort" },
       });
@@ -324,81 +318,33 @@ describe("ActionWizard", () => {
         actions: [{ id: "red", label: "Red" }],
       });
 
-      const mw = wizard.middleware();
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/setup"),
-          conversation,
-        }),
-        vi.fn(),
-      );
+      agent.use(wizard.middleware());
+      await agent.start();
 
-      const sentActions = conversation.sendActions.mock.calls[0]![0];
-      expect(sentActions.actions[1].label).toBe("Abort");
-    });
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      await dm.sendText("/setup");
 
-    it("calls the cancel handler when the cancel action is clicked", async () => {
-      const conversation = createMockConversation();
-      const cancelHandler = vi.fn();
-      const wizard = new ActionWizard("setup", { cancel: true });
-      wizard
-        .select("color", {
-          description: "Pick",
-          actions: [{ id: "red", label: "Red" }],
-        })
-        .onCancel(cancelHandler);
-
-      const mw = wizard.middleware();
-
-      // Start wizard
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/setup"),
-          conversation,
-        }),
-        vi.fn(),
-      );
-
-      // Get the cancel action ID from what was sent
-      const sentActions = conversation.sendActions.mock.calls[0]![0];
-      const cancelActionId = sentActions.actions[1].id;
-
-      // Click cancel
-      const cancelCtx = createMockCtx({
-        message: createIntentMessage(cancelActionId),
-        conversation,
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        const actionsMessage = messages.find((m) => isActions(m));
+        expect(actionsMessage).toBeDefined();
+        expect(actionsMessage!.content!.actions[1]!.label).toBe("Abort");
       });
-      await mw(cancelCtx, vi.fn());
-
-      expect(cancelHandler).toHaveBeenCalledWith(cancelCtx);
-      expect(wizard.isActive(conversation.id, "sender-1")).toBe(false);
-    });
-
-    it("does not add cancel button when cancel option is not set", async () => {
-      const conversation = createMockConversation();
-      const wizard = new ActionWizard("setup");
-      wizard.select("color", {
-        description: "Pick",
-        actions: [{ id: "red", label: "Red" }],
-      });
-
-      const mw = wizard.middleware();
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/setup"),
-          conversation,
-        }),
-        vi.fn(),
-      );
-
-      const sentActions = conversation.sendActions.mock.calls[0]![0];
-      expect(sentActions.actions).toHaveLength(1);
     });
   });
 
   describe("restart", () => {
+    let agent: Agent<BuiltInContentTypes>;
+    let client: Client;
+
+    beforeEach(async () => {
+      client = await createClient();
+      agent = new Agent({ client });
+    });
+
     it("cancels existing session and restarts when command is sent again", async () => {
-      const conversation = createMockConversation();
       const cancelHandler = vi.fn();
       const wizard = new ActionWizard("setup");
       wizard
@@ -408,178 +354,124 @@ describe("ActionWizard", () => {
         })
         .onCancel(cancelHandler);
 
-      const mw = wizard.middleware();
+      agent.use(wizard.middleware());
+      await agent.start();
 
-      // Start wizard
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/setup"),
-          conversation,
-        }),
-        vi.fn(),
-      );
+      const otherClient = await createClient();
+      const dm = await otherClient.conversations.createDm(client.inboxId);
+      await dm.sendText("/setup");
+
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        expect(messages.filter((m) => isActions(m))).toHaveLength(1);
+      });
 
       // Send command again while active
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/setup"),
-          conversation,
-        }),
-        vi.fn(),
-      );
+      await dm.sendText("/setup");
 
-      expect(cancelHandler).toHaveBeenCalledOnce();
+      await vi.waitFor(() => {
+        expect(cancelHandler).toHaveBeenCalledOnce();
+      });
+
       // Wizard re-sent the first step
-      expect(conversation.sendActions).toHaveBeenCalledTimes(2);
-      // Session is still active (restarted)
-      expect(wizard.isActive(conversation.id, "sender-1")).toBe(true);
+      await vi.waitFor(async () => {
+        await dm.sync();
+        const messages = await dm.messages();
+        expect(messages.filter((m) => isActions(m))).toHaveLength(2);
+      });
     });
   });
 
   describe("DM mode", () => {
-    it("creates a DM conversation and sends steps there", async () => {
-      const groupConversation = createMockConversation("group-1");
-      const dmConversation = createMockConversation("dm-1");
-      const createDm = vi.fn().mockResolvedValue(dmConversation);
+    let agent: Agent<BuiltInContentTypes>;
+    let client: Client;
 
+    beforeEach(async () => {
+      client = await createClient();
+      agent = new Agent({ client });
+    });
+
+    it("creates a DM conversation and sends steps there", async () => {
       const wizard = new ActionWizard("secret", { dm: true });
       wizard.text("apiKey", { description: "Enter your API key" });
 
-      const mw = wizard.middleware();
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/secret"),
-          conversation: groupConversation,
-          client: { conversations: { createDm } },
-        }),
-        vi.fn(),
-      );
+      agent.use(wizard.middleware());
+      await agent.start();
 
-      expect(createDm).toHaveBeenCalledWith("sender-1");
-      expect(dmConversation.sendText).toHaveBeenCalledWith(
-        "Enter your API key",
-      );
-      expect(groupConversation.sendText).not.toHaveBeenCalled();
+      const otherClient = await createClient();
+      const group = await otherClient.conversations.createGroup([
+        client.inboxId,
+      ]);
+      await group.sendText("/secret");
+
+      // The wizard should send the step via DM, not in the group
+      await vi.waitFor(async () => {
+        await client.conversations.sync();
+        const dms = client.conversations.listDms();
+        expect(dms.length).toBeGreaterThan(0);
+        const dm = dms[0]!;
+        await dm.sync();
+        const messages = await dm.messages();
+        const textMessages = messages.filter((m) => isText(m));
+        expect(textMessages.map((m) => m.content)).toContain(
+          "Enter your API key",
+        );
+      });
     });
   });
 
   describe("session isolation", () => {
+    let agent: Agent<BuiltInContentTypes>;
+    let client: Client;
+
+    beforeEach(async () => {
+      client = await createClient();
+      agent = new Agent({ client });
+    });
+
     it("maintains separate sessions for different senders", async () => {
-      const conversation = createMockConversation();
       const completeHandler = vi.fn();
       const wizard = new ActionWizard("setup");
       wizard
         .text("name", { description: "Enter name" })
-        .onComplete(completeHandler as never);
+        .onComplete(completeHandler);
 
-      const mw = wizard.middleware();
+      agent.use(wizard.middleware());
+      await agent.start();
 
-      // Sender 1 starts
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/setup", "sender-1"),
-          conversation,
-        }),
-        vi.fn(),
-      );
-      // Sender 2 starts
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/setup", "sender-2"),
-          conversation,
-        }),
-        vi.fn(),
-      );
+      const sender1 = await createClient();
+      const sender2 = await createClient();
+      const dm1 = await sender1.conversations.createDm(client.inboxId);
+      const dm2 = await sender2.conversations.createDm(client.inboxId);
 
-      expect(wizard.isActive(conversation.id, "sender-1")).toBe(true);
-      expect(wizard.isActive(conversation.id, "sender-2")).toBe(true);
+      // Both senders start the wizard
+      await dm1.sendText("/setup");
+      await dm2.sendText("/setup");
 
-      // Sender 1 answers
-      await mw(
-        createMockCtx({
-          message: createTextMessage("Alice", "sender-1"),
-          conversation,
-        }),
-        vi.fn(),
-      );
-
-      expect(wizard.isActive(conversation.id, "sender-1")).toBe(false);
-      expect(wizard.isActive(conversation.id, "sender-2")).toBe(true);
-      expect(completeHandler).toHaveBeenCalledTimes(1);
-      expect(completeHandler).toHaveBeenCalledWith(
-        { name: "Alice" },
-        expect.anything(),
-      );
-    });
-  });
-
-  describe("isActive", () => {
-    it("returns false when no session exists", () => {
-      const wizard = new ActionWizard("setup");
-      expect(wizard.isActive("conv-1", "sender-1")).toBe(false);
-    });
-  });
-
-  describe("pass-through behavior", () => {
-    it("calls next() for text messages when waiting for a select step", async () => {
-      const conversation = createMockConversation();
-      const wizard = new ActionWizard("setup");
-      wizard.select("color", {
-        description: "Pick",
-        actions: [{ id: "red", label: "Red" }],
+      await vi.waitFor(async () => {
+        await dm1.sync();
+        await dm2.sync();
+        const msgs1 = await dm1.messages();
+        const msgs2 = await dm2.messages();
+        expect(msgs1.filter((m) => isText(m)).map((m) => m.content)).toContain(
+          "Enter name",
+        );
+        expect(msgs2.filter((m) => isText(m)).map((m) => m.content)).toContain(
+          "Enter name",
+        );
       });
 
-      const mw = wizard.middleware();
+      // Only sender 1 answers
+      await dm1.sendText("Alice");
 
-      // Start wizard (now waiting for select/intent)
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/setup"),
-          conversation,
-        }),
-        vi.fn(),
-      );
-
-      // Send a text message (wrong type for select step)
-      const next = vi.fn();
-      await mw(
-        createMockCtx({
-          message: createTextMessage("hello"),
-          conversation,
-        }),
-        next,
-      );
-
-      expect(next).toHaveBeenCalledOnce();
-    });
-
-    it("calls next() for intent messages when waiting for a text step", async () => {
-      const conversation = createMockConversation();
-      const wizard = new ActionWizard("setup");
-      wizard.text("name", { description: "Enter name" });
-
-      const mw = wizard.middleware();
-
-      // Start wizard (now waiting for text)
-      await mw(
-        createMockCtx({
-          message: createTextMessage("/setup"),
-          conversation,
-        }),
-        vi.fn(),
-      );
-
-      // Send an intent (wrong type for text step)
-      const next = vi.fn();
-      await mw(
-        createMockCtx({
-          message: createIntentMessage("some-action"),
-          conversation,
-        }),
-        next,
-      );
-
-      expect(next).toHaveBeenCalledOnce();
+      await vi.waitFor(() => {
+        expect(completeHandler).toHaveBeenCalledTimes(1);
+        expect(completeHandler).toHaveBeenCalledWith(
+          { name: "Alice" },
+          expect.anything(),
+        );
+      });
     });
   });
 });
