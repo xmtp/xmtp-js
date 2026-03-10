@@ -73,8 +73,7 @@ describe("ActionWizard", () => {
         await dm.sync();
         const messages = await dm.messages();
         const actionsMessage = messages.find((m) => isActions(m));
-        expect(actionsMessage).toBeDefined();
-        expect(actionsMessage!.content).toMatchObject({
+        expect(actionsMessage?.content).toMatchObject({
           id: "setup:color",
           description: "Pick a color",
         });
@@ -147,7 +146,7 @@ describe("ActionWizard", () => {
       });
     });
 
-    it("sends the description as markdown when isMarkdown is true", async () => {
+    it("can send the description as markdown", async () => {
       const wizard = new ActionWizard("config");
       wizard.text("name", {
         description: "**Enter your name**",
@@ -165,8 +164,7 @@ describe("ActionWizard", () => {
         await dm.sync();
         const messages = await dm.messages();
         const mdMessage = messages.find((m) => isMarkdown(m));
-        expect(mdMessage).toBeDefined();
-        expect(mdMessage!.content).toBe("**Enter your name**");
+        expect(mdMessage?.content).toBe("**Enter your name**");
       });
     });
 
@@ -289,20 +287,19 @@ describe("ActionWizard", () => {
       await dm.sendText("/setup");
 
       // Wait for actions to be sent, then extract the cancel action ID
-      let cancelActionId: string;
+      let cancelActionId = "";
       await vi.waitFor(async () => {
         await dm.sync();
         const messages = await dm.messages();
         const actionsMessage = messages.find((m) => isActions(m));
-        expect(actionsMessage).toBeDefined();
-        const actions = actionsMessage!.content!.actions;
+        const actions = actionsMessage?.content?.actions ?? [];
         expect(actions).toHaveLength(2);
-        expect(actions[1]!.label).toBe("Cancel");
-        cancelActionId = actions[1]!.id;
+        expect(actions[1]?.label).toBe("Cancel");
+        cancelActionId = actions[1]?.id ?? "";
       });
 
       // Click cancel
-      await dm.sendIntent({ id: "setup:color", actionId: cancelActionId! });
+      await dm.sendIntent({ id: "setup:color", actionId: cancelActionId });
 
       await vi.waitFor(() => {
         expect(cancelHandler).toHaveBeenCalledTimes(1);
@@ -329,8 +326,7 @@ describe("ActionWizard", () => {
         await dm.sync();
         const messages = await dm.messages();
         const actionsMessage = messages.find((m) => isActions(m));
-        expect(actionsMessage).toBeDefined();
-        expect(actionsMessage!.content!.actions[1]!.label).toBe("Abort");
+        expect(actionsMessage?.content?.actions[1]?.label).toBe("Abort");
       });
     });
   });
@@ -410,9 +406,9 @@ describe("ActionWizard", () => {
         await client.conversations.sync();
         const dms = client.conversations.listDms();
         expect(dms.length).toBeGreaterThan(0);
-        const dm = dms[0]!;
-        await dm.sync();
-        const messages = await dm.messages();
+        const dm = dms[0];
+        await dm?.sync();
+        const messages = (await dm?.messages()) ?? [];
         const textMessages = messages.filter((m) => isText(m));
         expect(textMessages.map((m) => m.content)).toContain(
           "Enter your API key",
