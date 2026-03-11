@@ -14,26 +14,26 @@ const CANCEL_ACTION_ID = randomUUID();
 
 /** User responds by clicking a button (triggers an intent) */
 type SelectStep = {
-  readonly type: "select";
-  readonly id: string;
-  readonly description: string;
-  readonly actions: Action[];
+  type: "select";
+  id: string;
+  description: string;
+  actions: Action[];
 };
 
 /** User responds by typing a message (sends a text message) */
 type TextStep = {
-  readonly type: "text";
-  readonly id: string;
-  readonly description: string;
-  readonly isMarkdown: boolean;
+  type: "text";
+  id: string;
+  description: string;
+  isMarkdown: boolean;
 };
 
 type ActionWizardStep = SelectStep | TextStep;
 
 type ActionWizardSession = {
   currentStepIndex: number;
-  readonly answers: Record<string, string>;
-  readonly conversation: Conversation;
+  answers: Record<string, string>;
+  conversation: Conversation;
 };
 
 type ActionWizardCompleteHandler<ContentTypes> = (
@@ -47,7 +47,7 @@ type ActionWizardCancelHandler<ContentTypes> = (
 
 export type ActionWizardCancelOptions = {
   /** Custom label for the cancel button (default: "Cancel") */
-  readonly label?: string;
+  label?: string;
 };
 
 export type ActionWizardOptions = {
@@ -56,9 +56,9 @@ export type ActionWizardOptions = {
    * Recommended when the user is expected to enter sensitive information
    * (e.g. API keys, passwords) to keep it out of group conversations.
    */
-  readonly dm?: boolean;
+  dm?: boolean;
   /** Enable a cancel button on each select step. Set to `true` for the default label, or pass options to customize. */
-  readonly cancel?: boolean | ActionWizardCancelOptions;
+  cancel?: boolean | ActionWizardCancelOptions;
 };
 
 /**
