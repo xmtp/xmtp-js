@@ -1,6 +1,7 @@
 import { type ContentCodec } from "@xmtp/content-type-primitives";
 import {
   Backend,
+  BackupElementSelectionOption,
   LogLevel,
   type ArchiveMetadata,
   type ArchiveOptions,
@@ -10,6 +11,7 @@ import {
   type InboxState,
 } from "@xmtp/wasm-bindings";
 import { CodecRegistry } from "@/CodecRegistry";
+import { HistorySyncUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
@@ -832,35 +834,62 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
+   * Get the default archive options (consent and messages)
+   */
+  #getDefaultArchiveOptions(): ArchiveOptions {
+    return {
+      elements: [
+        BackupElementSelectionOption.Consent,
+        BackupElementSelectionOption.Messages,
+      ],
+      excludeDisappearingMessages: false,
+    };
+  }
+
+  /**
+   * Get the default server URL based on the environment
+   */
+  #getDefaultServerUrl(): string {
+    const env = this.#env ?? "dev";
+    return HistorySyncUrls[env];
+  }
+
+  /**
    * Send a sync request to other devices on the network
    *
-   * @param options - Archive options specifying what to sync
-   * @param serverUrl - The server URL for the sync request
+   * @param options - Archive options specifying what to sync (defaults to consent and messages)
+   * @param serverUrl - The server URL for the sync request (defaults to environment-specific URL)
    * @returns Promise that resolves when the sync request is sent
    */
-  async sendSyncRequest(options: ArchiveOptions, serverUrl: string) {
+  async sendSyncRequest(options?: ArchiveOptions, serverUrl?: string) {
+    const resolvedOptions = options ?? this.#getDefaultArchiveOptions();
+    const resolvedServerUrl = serverUrl ?? this.#getDefaultServerUrl();
+
     return this.#worker.action("client.sendSyncRequest", {
-      options,
-      serverUrl,
+      options: resolvedOptions,
+      serverUrl: resolvedServerUrl,
     });
   }
 
   /**
    * Send a sync archive to the sync group
    *
-   * @param options - Archive options specifying what to sync
-   * @param serverUrl - The server URL for the sync archive
    * @param pin - The pin used for reference when importing
+   * @param options - Archive options specifying what to sync (defaults to consent and messages)
+   * @param serverUrl - The server URL for the sync archive (defaults to environment-specific URL)
    * @returns Promise that resolves when the sync archive is sent
    */
   async sendSyncArchive(
-    options: ArchiveOptions,
-    serverUrl: string,
     pin: string,
+    options?: ArchiveOptions,
+    serverUrl?: string,
   ) {
+    const resolvedOptions = options ?? this.#getDefaultArchiveOptions();
+    const resolvedServerUrl = serverUrl ?? this.#getDefaultServerUrl();
+
     return this.#worker.action("client.sendSyncArchive", {
-      options,
-      serverUrl,
+      options: resolvedOptions,
+      serverUrl: resolvedServerUrl,
       pin,
     });
   }
@@ -897,16 +926,18 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   /**
    * Export archive data to bytes for later restoration
    *
-   * @param opts - Archive options specifying what to include
    * @param key - Encryption key for the archive
+   * @param opts - Archive options specifying what to include (defaults to consent and messages)
    * @returns Promise that resolves with the archive data as bytes
    */
   async createArchive(
-    opts: ArchiveOptions,
     key: Uint8Array,
+    opts?: ArchiveOptions,
   ): Promise<Uint8Array> {
+    const resolvedOpts = opts ?? this.#getDefaultArchiveOptions();
+
     return this.#worker.action("client.createArchive", {
-      opts,
+      opts: resolvedOpts,
       key,
     });
   }

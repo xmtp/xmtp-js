@@ -2,6 +2,7 @@ import { type ContentCodec } from "@xmtp/content-type-primitives";
 import {
   applySignatureRequest,
   Backend,
+  BackupElementSelectionOption,
   fetchInboxStatesByInboxIds,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
@@ -17,6 +18,7 @@ import {
   type SignatureRequestHandle,
 } from "@xmtp/node-bindings";
 import { CodecRegistry } from "@/CodecRegistry";
+import { HistorySyncUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
@@ -965,38 +967,69 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
+   * Get the default archive options (consent and messages)
+   */
+  #getDefaultArchiveOptions(): ArchiveOptions {
+    return {
+      elements: [
+        BackupElementSelectionOption.Consent,
+        BackupElementSelectionOption.Messages,
+      ],
+      excludeDisappearingMessages: false,
+    };
+  }
+
+  /**
+   * Get the default server URL based on the environment
+   */
+  #getDefaultServerUrl(): string {
+    const env = this.env;
+    return HistorySyncUrls[env];
+  }
+
+  /**
    * Send a sync request to other devices on the network
    *
-   * @param options - Archive options specifying what to sync
-   * @param serverUrl - The server URL for the sync request
+   * @param options - Archive options specifying what to sync (defaults to consent and messages)
+   * @param serverUrl - The server URL for the sync request (defaults to environment-specific URL)
    * @returns Promise that resolves when the sync request is sent
    */
-  async sendSyncRequest(options: ArchiveOptions, serverUrl: string) {
+  async sendSyncRequest(options?: ArchiveOptions, serverUrl?: string) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
 
-    return this.#client.deviceSync().sendSyncRequest(options, serverUrl);
+    const resolvedOptions = options ?? this.#getDefaultArchiveOptions();
+    const resolvedServerUrl = serverUrl ?? this.#getDefaultServerUrl();
+
+    return this.#client
+      .deviceSync()
+      .sendSyncRequest(resolvedOptions, resolvedServerUrl);
   }
 
   /**
    * Send a sync archive to the sync group
    *
-   * @param options - Archive options specifying what to sync
-   * @param serverUrl - The server URL for the sync archive
    * @param pin - The pin used for reference when importing
+   * @param options - Archive options specifying what to sync (defaults to consent and messages)
+   * @param serverUrl - The server URL for the sync archive (defaults to environment-specific URL)
    * @returns Promise that resolves when the sync archive is sent
    */
   async sendSyncArchive(
-    options: ArchiveOptions,
-    serverUrl: string,
     pin: string,
+    options?: ArchiveOptions,
+    serverUrl?: string,
   ) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
 
-    return this.#client.deviceSync().sendSyncArchive(options, serverUrl, pin);
+    const resolvedOptions = options ?? this.#getDefaultArchiveOptions();
+    const resolvedServerUrl = serverUrl ?? this.#getDefaultServerUrl();
+
+    return this.#client
+      .deviceSync()
+      .sendSyncArchive(resolvedOptions, resolvedServerUrl, pin);
   }
 
   /**
