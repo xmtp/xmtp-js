@@ -1067,16 +1067,18 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * Archive application elements to file for later restoration
    *
    * @param path - The file path to save the archive
-   * @param opts - Archive options specifying what to include
    * @param key - Encryption key for the archive
+   * @param opts - Archive options specifying what to include (defaults to consent and messages)
    * @returns Promise that resolves when the archive is created
    */
-  async createArchive(path: string, opts: ArchiveOptions, key: Uint8Array) {
+  async createArchive(path: string, key: Uint8Array, opts?: ArchiveOptions) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
 
-    return this.#client.deviceSync().createArchive(path, opts, key);
+    const resolvedOpts = opts ?? this.#getDefaultArchiveOptions();
+
+    return this.#client.deviceSync().createArchive(path, resolvedOpts, key);
   }
 
   /**
