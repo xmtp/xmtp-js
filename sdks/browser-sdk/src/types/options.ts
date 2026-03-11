@@ -57,11 +57,6 @@ export type NetworkOptions = {
  */
 export type DeviceSyncOptions = {
   /**
-   * historySyncUrl can be used to override the `env` flag and connect to a
-   * specific endpoint for syncing history
-   */
-  historySyncUrl?: string | null;
-  /**
    * Disable device sync
    */
   disableDeviceSync?: boolean;

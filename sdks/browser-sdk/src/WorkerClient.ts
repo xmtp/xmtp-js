@@ -195,4 +195,24 @@ export class WorkerClient {
   async sendSyncRequest(options: ArchiveOptions, serverUrl: string) {
     return this.#client.device_sync().sendSyncRequest(options, serverUrl);
   }
+
+  async sendSyncArchive(
+    options: ArchiveOptions,
+    serverUrl: string,
+    pin: string,
+  ) {
+    return this.#client.device_sync().sendSyncArchive(options, serverUrl, pin);
+  }
+
+  async processSyncArchive(archivePin?: string) {
+    return this.#client.device_sync().processSyncArchive(archivePin);
+  }
+
+  listAvailableArchives(daysCutoff: number) {
+    return this.#client.device_sync().listAvailableArchives(BigInt(daysCutoff));
+  }
+
+  async syncAllDeviceSyncGroups() {
+    return this.#client.device_sync().syncAllDeviceSyncGroups();
+  }
 }

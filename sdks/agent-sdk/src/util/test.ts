@@ -30,7 +30,6 @@ export const createClient = async <ContentCodecs extends ContentCodec[] = []>(
   return Client.create<ContentCodecs>(signer, {
     ...options,
     dbPath,
-    historySyncUrl: undefined,
     disableDeviceSync: true,
     env: "local",
   } as Omit<ClientOptions & NetworkOptions, "codecs"> & {

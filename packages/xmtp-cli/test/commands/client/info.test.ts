@@ -17,7 +17,6 @@ interface ClientInfoOutput {
   options: {
     env: string;
     apiUrl?: string;
-    historySyncUrl?: string;
     gatewayHost?: string;
     dbPath: string;
     loggingLevel?: string;

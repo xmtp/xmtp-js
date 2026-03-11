@@ -14,7 +14,6 @@ import { createWalletClient, http, toBytes } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { Client } from "@/Client";
-import { HistorySyncUrls } from "@/constants";
 import type {
   ContentOptions,
   DeviceSyncOptions,
@@ -116,7 +115,6 @@ export const createClient = async <ContentCodecs extends ContentCodec[] = []>(
     ...opts,
     disableAutoRegister: true,
     dbPath: dbPath,
-    historySyncUrl: HistorySyncUrls.local,
   });
   return client;
 };
@@ -145,7 +143,6 @@ export const createRegisteredClient = async <
   return Client.create<ContentCodecs>(signer, {
     ...opts,
     dbPath,
-    historySyncUrl: HistorySyncUrls.local,
   });
 };
 

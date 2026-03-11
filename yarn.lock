@@ -6413,7 +6413,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@web/rollup-plugin-copy": "npm:^0.5.1"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/wasm-bindings": "npm:1.10.0-dev.2334796"
+    "@xmtp/wasm-bindings": "npm:1.10.0-rc2"
     playwright: "npm:^1.58.0"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6663,6 +6663,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/node-bindings@npm:1.10.0-rc2":
+  version: 1.10.0-rc2
+  resolution: "@xmtp/node-bindings@npm:1.10.0-rc2"
+  checksum: 10/0b59078e6c0e4d0072a4de087730d6e86f06431b89d74dc68266b2ced3a3a80c09e07650a0c53dc963921556ae2508aa180211322b20b122c7a35418a871b6f0
+  languageName: node
+  linkType: hard
+
 "@xmtp/node-bindings@npm:1.6.8":
   version: 1.6.8
   resolution: "@xmtp/node-bindings@npm:1.6.8"
@@ -6698,7 +6705,7 @@ __metadata:
     "@types/node": "npm:^24.10.9"
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/node-bindings": "npm:1.10.0-dev.2334796"
+    "@xmtp/node-bindings": "npm:1.10.0-rc2"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
@@ -6739,10 +6746,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.10.0-dev.2334796":
-  version: 1.10.0-dev.2334796
-  resolution: "@xmtp/wasm-bindings@npm:1.10.0-dev.2334796"
-  checksum: 10/46c88e7de737aca960f340018a2deb1d208575e401a9e573a5c0ec357cb4c748e3f03f39a4f61fa9a087bb230320a2deb5c6341640d9ebdb880a452ef15b15ea
+"@xmtp/wasm-bindings@npm:1.10.0-rc2":
+  version: 1.10.0-rc2
+  resolution: "@xmtp/wasm-bindings@npm:1.10.0-rc2"
+  checksum: 10/f1bb061ab505abd5b72e236b6dbb710b363387a6fdfd0fb26a88f36ea862588603f6001d6d2ba48044c08afaf43d8a3d4afbcee1efbc3177f7bd3a9bafa8d838
   languageName: node
   linkType: hard
 

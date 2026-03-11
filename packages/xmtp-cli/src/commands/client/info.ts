@@ -49,7 +49,6 @@ application instance using your identity.`;
     const clientOptions = {
       env: client.env,
       apiUrl: hasNetworkOptions ? options.apiUrl : undefined,
-      historySyncUrl: options?.historySyncUrl,
       gatewayHost: hasNetworkOptions ? options.gatewayHost : undefined,
       dbPath: options?.dbPath,
       loggingLevel: options?.loggingLevel,

@@ -829,7 +829,8 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
-   * Send a sync request to other devices on the network
+   * Manually trigger a device sync request to sync records from another
+   * active device using this inbox
    *
    * @param options - Archive options specifying what to sync
    * @param serverUrl - The server URL for the sync request
@@ -840,5 +841,64 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       options,
       serverUrl,
     });
+  }
+
+  /**
+   * Send a sync archive to the history sync server for another device
+   * to process
+   *
+   * @param options - Archive options specifying what to sync
+   * @param serverUrl - The server URL for the sync request
+   * @param pin - The pin to use for the sync archive
+   * @returns Promise that resolves when the sync archive is sent
+   */
+  async sendSyncArchive(
+    options: ArchiveOptions,
+    serverUrl: string,
+    pin: string,
+  ) {
+    return this.#worker.action("client.sendSyncArchive", {
+      options,
+      serverUrl,
+      pin,
+    });
+  }
+
+  /**
+   * Process a sync archive from the sync group
+   *
+   * If no pin is provided, it will process the last archive sent.
+   *
+   * @param archivePin - Optional pin to identify the specific archive to process
+   * @returns Promise that resolves when the archive is processed
+   */
+  async processSyncArchive(archivePin?: string) {
+    return this.#worker.action("client.processSyncArchive", {
+      archivePin,
+    });
+  }
+
+  /**
+   * List available sync archives from other devices
+   *
+   * You may need to sync the device sync groups before calling this
+   * method to see recently uploaded archives.
+   *
+   * @param daysCutoff - Number of days to look back for archives
+   * @returns Array of available archive information
+   */
+  async listAvailableArchives(daysCutoff: number) {
+    return this.#worker.action("client.listAvailableArchives", {
+      daysCutoff,
+    });
+  }
+
+  /**
+   * Sync all device sync groups for this client
+   *
+   * @returns Summary of the sync operation
+   */
+  async syncAllDeviceSyncGroups() {
+    return this.#worker.action("client.syncAllDeviceSyncGroups", {});
   }
 }

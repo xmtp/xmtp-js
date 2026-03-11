@@ -65,13 +65,6 @@ export type NetworkOptions = {
  */
 export type DeviceSyncOptions = {
   /**
-   * historySyncUrl can be used to override the `env` flag and connect to a
-   * specific endpoint for syncing history
-   *
-   * @see https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync
-   */
-  historySyncUrl?: string | null;
-  /**
    * Disable device sync
    */
   disableDeviceSync?: boolean;
