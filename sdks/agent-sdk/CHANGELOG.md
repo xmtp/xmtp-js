@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 2.2.1
+
+### Patch Changes
+
+- 4f801a9: Added Wizard middleware for multi-step setup flows
+
 ## 2.2.0
 
 ### Minor Changes
