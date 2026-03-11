@@ -415,6 +415,106 @@ describe("ActionWizard", () => {
         );
       });
     });
+
+    it("completes a text step wizard via DM when triggered from a group", async () => {
+      const completeHandler = vi.fn();
+      const wizard = new ActionWizard("secret", { dm: true });
+      wizard
+        .text("apiKey", { description: "Enter your API key" })
+        .onComplete(completeHandler);
+
+      agent.use(wizard.middleware());
+      await agent.start();
+
+      const otherClient = await createClient();
+      const group = await otherClient.conversations.createGroup([
+        client.inboxId,
+      ]);
+      await group.sendText("/secret");
+
+      // Wait for the DM step to arrive, then reply in the DM
+      await vi.waitFor(async () => {
+        await otherClient.conversations.sync();
+        const dms = otherClient.conversations.listDms();
+        expect(dms.length).toBeGreaterThan(0);
+        const dm = dms[0];
+        await dm?.sync();
+        const messages = (await dm?.messages()) ?? [];
+        const textMessages = messages.filter((m) => isText(m));
+        expect(textMessages.map((m) => m.content)).toContain(
+          "Enter your API key",
+        );
+      });
+
+      const dm = otherClient.conversations.listDms()[0]!;
+      await dm.sendText("sk-12345");
+
+      await vi.waitFor(() => {
+        expect(completeHandler).toHaveBeenCalledWith(
+          { apiKey: "sk-12345" },
+          expect.anything(),
+        );
+      });
+    });
+
+    it("completes a multi-step wizard entirely via DM", async () => {
+      const completeHandler = vi.fn();
+      const wizard = new ActionWizard("onboard", { dm: true });
+      wizard
+        .select("plan", {
+          description: "Choose plan",
+          actions: [
+            { id: "free", label: "Free" },
+            { id: "pro", label: "Pro" },
+          ],
+        })
+        .text("email", { description: "Enter your email" })
+        .onComplete(completeHandler);
+
+      agent.use(wizard.middleware());
+      await agent.start();
+
+      const otherClient = await createClient();
+      const group = await otherClient.conversations.createGroup([
+        client.inboxId,
+      ]);
+      await group.sendText("/onboard");
+
+      // Wait for the select step to arrive in the DM
+      await vi.waitFor(async () => {
+        await otherClient.conversations.sync();
+        const dms = otherClient.conversations.listDms();
+        expect(dms.length).toBeGreaterThan(0);
+        const dm = dms[0];
+        await dm?.sync();
+        const messages = (await dm?.messages()) ?? [];
+        expect(messages.some((m) => isActions(m))).toBe(true);
+      });
+
+      // Step 1: select plan in the DM
+      const dm = otherClient.conversations.listDms()[0];
+      await dm?.sendIntent({ id: "onboard:plan", actionId: "pro" });
+
+      // Wait for step 2 to arrive in the DM
+      await vi.waitFor(async () => {
+        await dm?.sync();
+        const messages = await dm?.messages();
+        const textMessages = messages?.filter((m) => isText(m));
+        expect(textMessages?.map((m) => m.content)).toContain(
+          "Enter your email",
+        );
+      });
+
+      // Step 2: enter email in the DM
+      await dm?.sendText("user@example.com");
+
+      await vi.waitFor(() => {
+        expect(completeHandler).toHaveBeenCalledWith(
+          { plan: "pro", email: "user@example.com" },
+          expect.anything(),
+        );
+      });
+    });
   });
 
   describe("session isolation", () => {
