@@ -24,6 +24,13 @@
     "test:teardown": "./dev/down",
     "typecheck": "FORCE_COLOR=1 turbo run typecheck"
   },
+  "resolutions": {
+    "@isaacs/brace-expansion": ">=5.0.1",
+    "ajv": ">=6.14.0 <7.0.0",
+    "bn.js": ">=5.2.3",
+    "rollup": ">=4.59.0",
+    "serialize-javascript": ">=7.0.4"
+  },
   "dependencies": {
     "@changesets/changelog-git": "^0.2.1",
     "@changesets/cli": "^2.29.8"
@@ -43,13 +50,6 @@
     "turbo": "^2.7.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.1"
-  },
-  "resolutions": {
-    "ajv": ">=6.14.0",
-    "bn.js": ">=5.2.3",
-    "rollup": ">=4.59.0",
-    "serialize-javascript": ">=7.0.4",
-    "@isaacs/brace-expansion": ">=5.0.1"
   },
   "packageManager": "yarn@4.10.3",
   "engines": {
