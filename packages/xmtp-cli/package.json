@@ -95,7 +95,7 @@
     "@oclif/plugin-legacy": "^2.0.27",
     "@types/node": "^24.10.9",
     "execa": "^9.6.1",
-    "oclif": "^4.22.70",
+    "oclif": "^4.22.81",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
