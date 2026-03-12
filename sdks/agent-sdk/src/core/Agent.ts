@@ -169,7 +169,11 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       return this.#errors;
     },
   });
-  #defaultErrorHandler: AgentErrorMiddleware<ContentTypes> = (currentError) => {
+  #defaultErrorHandler: AgentErrorMiddleware<ContentTypes> = (
+    currentError,
+    _ctx,
+    next,
+  ) => {
     const emittedError =
       currentError instanceof Error
         ? currentError
@@ -179,6 +183,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
             currentError,
           );
     this.emit("unhandledError", emittedError);
+    next();
   };
   #isLocked: boolean = false;
 
