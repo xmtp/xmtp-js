@@ -319,18 +319,24 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   /**
+   * Closes all existing streams and schedules a restart.
+   */
+  async #restart() {
+    await this.#stopStreams();
+    this.#isLocked = false;
+    queueMicrotask(() => this.start());
+  }
+
+  /**
    * Closes all existing streams and restarts the streaming system.
    */
   async #handleStreamError(error: unknown) {
-    await this.#stopStreams();
-
     const recovered = await this.#runErrorChain(error, {
       client: this.#client,
     });
 
     if (recovered) {
-      this.#isLocked = false;
-      queueMicrotask(() => this.start());
+      await this.#restart();
     }
   }
 
@@ -395,7 +401,11 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
             ),
             new ClientContext({ client: this.#client }),
           );
-          if (!recovered) await this.stop();
+          if (recovered) {
+            await this.#restart();
+          } else {
+            await this.stop();
+          }
         },
       });
 
@@ -474,7 +484,11 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
             ),
             new ClientContext({ client: this.#client }),
           );
-          if (!recovered) await this.stop();
+          if (recovered) {
+            await this.#restart();
+          } else {
+            await this.stop();
+          }
         },
       });
 
