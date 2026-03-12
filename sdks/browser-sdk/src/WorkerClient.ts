@@ -211,8 +211,8 @@ export class WorkerClient {
     return this.#client.device_sync().processSyncArchive(archivePin);
   }
 
-  listAvailableArchives(daysCutoff: bigint): AvailableArchiveInfo[] {
-    return this.#client.device_sync().listAvailableArchives(daysCutoff);
+  listAvailableArchives(daysCutoff: number): AvailableArchiveInfo[] {
+    return this.#client.device_sync().listAvailableArchives(BigInt(daysCutoff));
   }
 
   async createArchive(

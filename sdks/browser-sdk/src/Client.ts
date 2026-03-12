@@ -916,7 +916,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @returns Promise that resolves with array of available archive information
    */
   async listAvailableArchives(
-    daysCutoff: bigint,
+    daysCutoff: number,
   ): Promise<AvailableArchiveInfo[]> {
     return this.#worker.action("client.listAvailableArchives", {
       daysCutoff,

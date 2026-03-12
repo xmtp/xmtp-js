@@ -252,7 +252,7 @@ export type ClientAction =
       id: string;
       result: AvailableArchiveInfo[];
       data: {
-        daysCutoff: bigint;
+        daysCutoff: number;
       };
     }
   | {
