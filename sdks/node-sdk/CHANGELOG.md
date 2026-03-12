@@ -1,5 +1,29 @@
 # @xmtp/node-sdk
 
+## 6.0.0
+
+### BREAKING CHANGES
+
+Automatic sending of sync requests for past messages on new installations has been removed. XMTP SDKs no longer automatically send sync requests on new clients.
+This change gives you explicit control over when sync requests are sent, avoiding unexpected network activity during client initialization.
+You must now call `sendSyncRequest()` explicitly after creating a client on a new installation to trigger a history sync.
+To learn more, see [Control history sync](https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync#control-history-sync)
+
+### Minor Changes 
+
+- Fixed a performance issue that could cause slowdowns in apps with many conversations or heavy use of disappearing messages.
+
+- Manual history sync archive management
+  - These methods give you fine-grained control over history sync archives. Use them when you need to push data to a new installation proactively, inspect what's available before syncing, or process a specific archive by pin.
+    - `sendSyncArchive(pin, options?, serverUrl?)`: Send an archive to the sync group without waiting for a request from another installation
+    - `listAvailableArchives(daysCutoff)`: List archives available for import from the sync group
+    - `processSyncArchive(archivePin?)`: Process an available archive from the sync group
+    - `syncAllDeviceSyncGroups()`: Sync all device sync groups from the network
+  - To learn more, see [Control history sync](https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync#control-history-sync)
+- Upcoming deprecation of `preferences.sync()`. In a future release, `preferences.sync()` will be deprecated. Use `syncAllDeviceSyncGroups()` instead to sync device sync groups from the network. To learn more, see [Sync device sync groups](https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync#sync-device-sync-groups)
+
+
+
 ## 5.5.0
 
 ### Minor Changes
