@@ -3,8 +3,9 @@ import { setTimeout } from "node:timers/promises";
 import { Agent } from "@/core/index";
 import { createSigner, createUser } from "@/user/User";
 
-const TOXIPROXY_API = "http://localhost:8475";
 const PROXY_NAME = "node-go";
+const TOXIPROXY_API = "http://localhost:8475";
+const TOXIPROXY_PORT = "6010";
 
 /** Turn the proxy server to the backend on or off. */
 async function enableBackend(isEnabled: boolean) {
@@ -13,7 +14,7 @@ async function enableBackend(isEnabled: boolean) {
     method: "POST",
     body: JSON.stringify({
       name: PROXY_NAME,
-      listen: "[::]:6010",
+      listen: `[::]:${TOXIPROXY_PORT}`,
       upstream: "node:5556",
       enabled: isEnabled,
     }),
@@ -21,11 +22,11 @@ async function enableBackend(isEnabled: boolean) {
   if (!res.ok) throw new Error(`Failed to toggle backend: ${await res.text()}`);
 }
 
-async function createAgent() {
+async function createToxicAgent() {
   await enableBackend(true);
   const agent = await Agent.create(createSigner(createUser()), {
     env: "local",
-    apiUrl: "http://localhost:6010",
+    apiUrl: `http://localhost:${TOXIPROXY_PORT}`,
     dbPath: null,
     disableDeviceSync: true,
   });
@@ -39,7 +40,7 @@ async function createAgent() {
 }
 
 console.log("Scenario: Streams break while agent is running");
-const agent = await createAgent();
+const agent = await createToxicAgent();
 
 await agent.start();
 console.log("Agent started");
