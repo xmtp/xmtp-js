@@ -60,6 +60,7 @@ services:
 
   toxiproxy:
     image: ghcr.io/shopify/toxiproxy:2.12.0
+    pull_policy: never
     ports:
       - 8475:8474
       - 6010:6010
