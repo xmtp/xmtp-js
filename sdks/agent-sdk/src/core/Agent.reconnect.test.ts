@@ -69,7 +69,7 @@ describe("Agent reconnect", () => {
 
     await enableBackend(false);
 
-    const [error] = await errored;
+    const [error] = (await errored) as [unknown];
     expect(error).toBeInstanceOf(Error);
 
     await agent.stop();
