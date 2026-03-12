@@ -32,7 +32,7 @@ async function createAgent() {
 
   agent.errors.use((error, _ctx, next) => {
     console.error("Error occured", error);
-    next();
+    void next();
   });
 
   return agent;

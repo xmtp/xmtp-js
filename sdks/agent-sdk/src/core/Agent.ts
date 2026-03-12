@@ -183,7 +183,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
             currentError,
           );
     this.emit("unhandledError", emittedError);
-    next();
+    void next();
   };
   #isLocked: boolean = false;
 
