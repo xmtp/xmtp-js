@@ -331,7 +331,8 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     this.#isLocked = true;
     try {
       await this.#stopStreams();
-      void this.start();
+      this.#isLocked = false;
+      await this.start();
     } catch (error) {
       // Log and emit the restart failure so it can be observed by callers.
       // eslint-disable-next-line no-console
@@ -339,9 +340,8 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       if (typeof (this as unknown as EventEmitter).emit === "function") {
         (this as unknown as EventEmitter).emit("error", error);
       }
-    } finally {
-      this.#isLocked = false;
     }
+    // Lock released before start() or on early return above
   }
 
   /**
