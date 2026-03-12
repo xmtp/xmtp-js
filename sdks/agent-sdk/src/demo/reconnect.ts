@@ -32,7 +32,7 @@ async function createToxicAgent() {
   });
 
   agent.errors.use((error, _ctx, next) => {
-    console.error("Error occured", error);
+    console.error("Error occurred", error);
     void next();
   });
 
