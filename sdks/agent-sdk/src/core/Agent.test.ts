@@ -145,7 +145,7 @@ describe("Agent", () => {
       expect(startSpy).toHaveBeenCalledTimes(1);
     });
 
-    it("should restart after a startup failure when error middleware signals recovery", async () => {
+    it("should auto-restart after a startup failure", async () => {
       const startupError = new Error("Stream setup failed");
       const originalStream = client.conversations.stream.bind(
         client.conversations,
@@ -160,10 +160,6 @@ describe("Agent", () => {
           }
           return originalStream(...args);
         });
-
-      agent.errors.use((_error, _ctx, next) => {
-        void next(); // signal recovery so restart is attempted
-      });
 
       const startSpy = vi.fn();
       agent.on("start", startSpy);

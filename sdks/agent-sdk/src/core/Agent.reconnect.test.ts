@@ -61,26 +61,17 @@ describe("Agent reconnect", () => {
     await agent.stop();
   });
 
-  it("should stop when no error middleware signals recovery", async () => {
-    await enableBackend(true);
-    const agent = await Agent.create(createSigner(createUser()), {
-      env: "local",
-      apiUrl: "http://localhost:6010",
-      dbPath: null,
-      disableDeviceSync: true,
-    });
-
-    // Override the default error handler: don't call next()
-    agent.errors.use(() => {});
-
+  it("should emit unhandledError on stream disconnect", async () => {
+    const agent = await createToxicAgent();
     await agent.start();
 
-    const stopped = once(agent, "stop");
+    const errored = once(agent, "unhandledError");
 
     await enableBackend(false);
-    await stopped;
 
-    // Agent stopped, did not reconnect
-    expect(true).toBe(true);
+    const [error] = await errored;
+    expect(error).toBeInstanceOf(Error);
+
+    await agent.stop();
   });
 });
