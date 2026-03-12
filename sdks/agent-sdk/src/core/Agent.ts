@@ -644,7 +644,6 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
     this.emit("stop", new ClientContext({ client: this.#client }));
 
-    this.#client.close();
     this.#isLocked = false;
   }
 
