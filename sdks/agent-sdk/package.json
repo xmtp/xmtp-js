@@ -57,7 +57,7 @@
     "clean:dist": "rm -rf dist",
     "demo:actions": "tsx watch src/demo/actions.ts",
     "demo:main": "tsx watch src/demo/main.ts",
-    "demo:reconnect": "tsx src/demo/reconnect.ts",
+    "demo:reconnect": "XMTP_FORCE_DEBUG_LEVEL=Error tsx src/demo/reconnect.ts",
     "demo:transactions": "tsx watch src/demo/transactions.ts",
     "fix": "npx prettier --log-level error -w . && npx eslint . --fix",
     "gen:keys": "tsx src/bin/generateKeys.ts",

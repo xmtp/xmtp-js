@@ -322,9 +322,11 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
    * Closes all existing streams and schedules a restart.
    */
   async #restart() {
+    if (this.#isLocked) return;
+    this.#isLocked = true;
     await this.#stopStreams();
     this.#isLocked = false;
-    queueMicrotask(() => this.start());
+    void this.start();
   }
 
   /**
@@ -642,6 +644,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
 
     this.emit("stop", new ClientContext({ client: this.#client }));
 
+    this.#client.close();
     this.#isLocked = false;
   }
 
