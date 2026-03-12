@@ -329,9 +329,19 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   async #restart() {
     if (this.#isLocked) return;
     this.#isLocked = true;
-    await this.#stopStreams();
-    this.#isLocked = false;
-    void this.start();
+    try {
+      await this.#stopStreams();
+      void this.start();
+    } catch (error) {
+      // Log and emit the restart failure so it can be observed by callers.
+      // eslint-disable-next-line no-console
+      console.error("Agent restart failed during stream shutdown:", error);
+      if (typeof (this as unknown as EventEmitter).emit === "function") {
+        (this as unknown as EventEmitter).emit("error", error);
+      }
+    } finally {
+      this.#isLocked = false;
+    }
   }
 
   /**
