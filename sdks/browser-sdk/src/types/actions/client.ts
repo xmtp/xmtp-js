@@ -1,5 +1,8 @@
 import type {
+  ArchiveMetadata,
   ArchiveOptions,
+  AvailableArchiveInfo,
+  GroupSyncSummary,
   Identifier,
   KeyPackageStatus,
 } from "@xmtp/wasm-bindings";
@@ -225,4 +228,63 @@ export type ClientAction =
         options: ArchiveOptions;
         serverUrl: string;
       };
+    }
+  | {
+      action: "client.sendSyncArchive";
+      id: string;
+      result: undefined;
+      data: {
+        options: ArchiveOptions;
+        serverUrl: string;
+        pin: string;
+      };
+    }
+  | {
+      action: "client.processSyncArchive";
+      id: string;
+      result: undefined;
+      data: {
+        archivePin?: string | null;
+      };
+    }
+  | {
+      action: "client.listAvailableArchives";
+      id: string;
+      result: AvailableArchiveInfo[];
+      data: {
+        daysCutoff: number;
+      };
+    }
+  | {
+      action: "client.createArchive";
+      id: string;
+      result: Uint8Array;
+      data: {
+        opts: ArchiveOptions;
+        key: Uint8Array;
+      };
+    }
+  | {
+      action: "client.importArchive";
+      id: string;
+      result: undefined;
+      data: {
+        data: Uint8Array;
+        key: Uint8Array;
+      };
+    }
+  | {
+      action: "client.archiveMetadata";
+      id: string;
+      result: ArchiveMetadata;
+      data: {
+        data: Uint8Array;
+        key: Uint8Array;
+      };
+    }
+  | {
+      action: "client.syncAllDeviceSyncGroups";
+      id: string;
+      result: GroupSyncSummary;
+      data: undefined;
     };

@@ -2,18 +2,23 @@ import { type ContentCodec } from "@xmtp/content-type-primitives";
 import {
   applySignatureRequest,
   Backend,
+  BackupElementSelectionOption,
   fetchInboxStatesByInboxIds,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
   revokeInstallationsSignatureRequest,
   verifySignedWithPublicKey as verifySignedWithPublicKeyBinding,
+  type ArchiveMetadata,
   type ArchiveOptions,
+  type AvailableArchiveInfo,
+  type GroupSyncSummary,
   type Identifier,
   type InboxState,
   type Client as NodeClient,
   type SignatureRequestHandle,
 } from "@xmtp/node-bindings";
 import { CodecRegistry } from "@/CodecRegistry";
+import { HistorySyncUrls } from "@/constants";
 import { Conversations } from "@/Conversations";
 import { DebugInformation } from "@/DebugInformation";
 import { Preferences } from "@/Preferences";
@@ -962,17 +967,165 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
+   * Get the default archive options (consent and messages)
+   */
+  #getDefaultArchiveOptions(): ArchiveOptions {
+    return {
+      elements: [
+        BackupElementSelectionOption.Consent,
+        BackupElementSelectionOption.Messages,
+      ],
+      excludeDisappearingMessages: false,
+    };
+  }
+
+  /**
+   * Get the default server URL based on the environment
+   */
+  #getDefaultServerUrl(): string {
+    const env = this.env;
+    return HistorySyncUrls[env];
+  }
+
+  /**
    * Send a sync request to other devices on the network
    *
-   * @param options - Archive options specifying what to sync
-   * @param serverUrl - The server URL for the sync request
+   * @param options - Archive options specifying what to sync (defaults to consent and messages)
+   * @param serverUrl - The server URL for the sync request (defaults to environment-specific URL)
    * @returns Promise that resolves when the sync request is sent
    */
-  async sendSyncRequest(options: ArchiveOptions, serverUrl: string) {
+  async sendSyncRequest(options?: ArchiveOptions, serverUrl?: string) {
     if (!this.#client) {
       throw new ClientNotInitializedError();
     }
 
-    return this.#client.deviceSync().sendSyncRequest(options, serverUrl);
+    const resolvedOptions = options ?? this.#getDefaultArchiveOptions();
+    const resolvedServerUrl = serverUrl ?? this.#getDefaultServerUrl();
+
+    return this.#client
+      .deviceSync()
+      .sendSyncRequest(resolvedOptions, resolvedServerUrl);
+  }
+
+  /**
+   * Send a sync archive to the sync group
+   *
+   * @param pin - The pin used for reference when importing
+   * @param options - Archive options specifying what to sync (defaults to consent and messages)
+   * @param serverUrl - The server URL for the sync archive (defaults to environment-specific URL)
+   * @returns Promise that resolves when the sync archive is sent
+   */
+  async sendSyncArchive(
+    pin: string,
+    options?: ArchiveOptions,
+    serverUrl?: string,
+  ) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    const resolvedOptions = options ?? this.#getDefaultArchiveOptions();
+    const resolvedServerUrl = serverUrl ?? this.#getDefaultServerUrl();
+
+    return this.#client
+      .deviceSync()
+      .sendSyncArchive(resolvedOptions, resolvedServerUrl, pin);
+  }
+
+  /**
+   * Process a sync archive that matches the pin given
+   *
+   * @param archivePin - Optional pin to match. If not provided, processes the last archive sent
+   * @returns Promise that resolves when the archive is processed
+   */
+  async processSyncArchive(archivePin?: string | null) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.deviceSync().processSyncArchive(archivePin);
+  }
+
+  /**
+   * List the archives available for import in the sync group
+   *
+   * You may need to manually sync the sync group before calling
+   * this function to see recently uploaded archives.
+   *
+   * @param daysCutoff - Number of days to look back for archives
+   * @returns Array of available archive information
+   */
+  listAvailableArchives(daysCutoff: number): AvailableArchiveInfo[] {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.deviceSync().listAvailableArchives(daysCutoff);
+  }
+
+  /**
+   * Archive application elements to file for later restoration
+   *
+   * @param path - The file path to save the archive
+   * @param key - Encryption key for the archive
+   * @param opts - Archive options specifying what to include (defaults to consent and messages)
+   * @returns Promise that resolves when the archive is created
+   */
+  async createArchive(path: string, key: Uint8Array, opts?: ArchiveOptions) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    const resolvedOpts = opts ?? this.#getDefaultArchiveOptions();
+
+    return this.#client.deviceSync().createArchive(path, resolvedOpts, key);
+  }
+
+  /**
+   * Import a previous archive from a file
+   *
+   * @param path - The file path to the archive
+   * @param key - Encryption key for the archive
+   * @returns Promise that resolves when the archive is imported
+   */
+  async importArchive(path: string, key: Uint8Array) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.deviceSync().importArchive(path, key);
+  }
+
+  /**
+   * Load the metadata for an archive to see what it contains
+   *
+   * Reads only the metadata without loading the entire file, so this function is quick.
+   *
+   * @param path - The file path to the archive
+   * @param key - Encryption key for the archive
+   * @returns Promise that resolves with the archive metadata
+   */
+  async archiveMetadata(
+    path: string,
+    key: Uint8Array,
+  ): Promise<ArchiveMetadata> {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.deviceSync().archiveMetadata(path, key);
+  }
+
+  /**
+   * Manually sync all device sync groups
+   *
+   * @returns Promise that resolves with a summary of the sync operation
+   */
+  async syncAllDeviceSyncGroups(): Promise<GroupSyncSummary> {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.deviceSync().syncAllDeviceSyncGroups();
   }
 }

@@ -1,7 +1,10 @@
 import {
   verifySignedWithPublicKey,
+  type ArchiveMetadata,
   type ArchiveOptions,
+  type AvailableArchiveInfo,
   type Client,
+  type GroupSyncSummary,
   type Identifier,
   type KeyPackageStatus,
   type SignatureRequestHandle,
@@ -194,5 +197,43 @@ export class WorkerClient {
 
   async sendSyncRequest(options: ArchiveOptions, serverUrl: string) {
     return this.#client.device_sync().sendSyncRequest(options, serverUrl);
+  }
+
+  async sendSyncArchive(
+    options: ArchiveOptions,
+    serverUrl: string,
+    pin: string,
+  ) {
+    return this.#client.device_sync().sendSyncArchive(options, serverUrl, pin);
+  }
+
+  async processSyncArchive(archivePin?: string | null) {
+    return this.#client.device_sync().processSyncArchive(archivePin);
+  }
+
+  listAvailableArchives(daysCutoff: number): AvailableArchiveInfo[] {
+    return this.#client.device_sync().listAvailableArchives(BigInt(daysCutoff));
+  }
+
+  async createArchive(
+    opts: ArchiveOptions,
+    key: Uint8Array,
+  ): Promise<Uint8Array> {
+    return this.#client.device_sync().createArchive(opts, key);
+  }
+
+  async importArchive(data: Uint8Array, key: Uint8Array) {
+    return this.#client.device_sync().importArchive(data, key);
+  }
+
+  async archiveMetadata(
+    data: Uint8Array,
+    key: Uint8Array,
+  ): Promise<ArchiveMetadata> {
+    return this.#client.device_sync().archiveMetadata(data, key);
+  }
+
+  async syncAllDeviceSyncGroups(): Promise<GroupSyncSummary> {
+    return this.#client.device_sync().syncAllDeviceSyncGroups();
   }
 }

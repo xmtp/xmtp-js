@@ -343,6 +343,41 @@ self.onmessage = async (
         postMessage({ id, action, result: undefined });
         break;
       }
+      case "client.sendSyncArchive": {
+        await client.sendSyncArchive(data.options, data.serverUrl, data.pin);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "client.processSyncArchive": {
+        await client.processSyncArchive(data.archivePin);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "client.listAvailableArchives": {
+        const result = client.listAvailableArchives(data.daysCutoff);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "client.createArchive": {
+        const result = await client.createArchive(data.opts, data.key);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "client.importArchive": {
+        await client.importArchive(data.data, data.key);
+        postMessage({ id, action, result: undefined });
+        break;
+      }
+      case "client.archiveMetadata": {
+        const result = await client.archiveMetadata(data.data, data.key);
+        postMessage({ id, action, result });
+        break;
+      }
+      case "client.syncAllDeviceSyncGroups": {
+        const result = await client.syncAllDeviceSyncGroups();
+        postMessage({ id, action, result });
+        break;
+      }
       /**
        * Debug information actions
        */
