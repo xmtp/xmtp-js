@@ -330,7 +330,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   /**
-   * Closes all existing streams and restarts the streaming system.
+   * Schedules the restart of the streaming services when error middleware recovered.
    */
   async #handleStreamError(error: unknown) {
     const recovered = await this.#runErrorChain(error, {
