@@ -502,6 +502,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       this.emit("start", new ClientContext({ client: this.#client }));
       this.#isLocked = false;
     } catch (error) {
+      this.#isLocked = false;
       await this.#handleStreamError(error);
     }
   }
