@@ -40,6 +40,17 @@ In a future release, `preferences.sync()` will be deprecated. Use `syncAllDevice
 
 To learn more, see [Sync device sync groups](https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync#sync-device-sync-groups)
 
+### Archive-based backups
+
+Support archive-based backups to give your users an easy and durable way to back up their XMTP conversations, messages, and consent preferences from one app installation and import them into another.
+
+This feature includes three core methods:
+- `createArchive` — Create an encrypted archive
+- `archiveMetadata` — Read metadata from an archive before importing
+- `importArchive` — Import an archive into the current installation
+
+To learn more, see [Support archive-based backups.](https://docs.xmtp.org/chat-apps/list-stream-sync/archive-backups#1-create-the-archive)
+
 ## 6.5.0
 
 ### Minor Changes
