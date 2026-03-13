@@ -184,7 +184,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           );
     this.emit("unhandledError", emittedError);
     if (currentError instanceof AgentStreamingError) {
-      next();
+      void next();
     }
   };
   #isLocked: boolean = false;

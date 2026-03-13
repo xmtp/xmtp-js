@@ -43,7 +43,7 @@ export const logDetails = async <ContentTypes>(agent: Agent<ContentTypes>) => {
   const clientsByAddress = client.accountIdentifier?.identifier;
   const inboxId = client.inboxId;
   const installationId = client.installationId;
-  const env = client.options?.env;
+  const env = client.env;
 
   const urls = [`http://xmtp.chat/${env}/dm/${clientsByAddress}`];
 
@@ -86,7 +86,7 @@ export const logDetails = async <ContentTypes>(agent: Agent<ContentTypes>) => {
  */
 export const getTestUrl = <ContentTypes>(client: Client<ContentTypes>) => {
   const address = client.accountIdentifier?.identifier;
-  const env = client.options?.env;
+  const env = client.env;
   return `http://xmtp.chat/${env}/dm/${address}`;
 };
 
@@ -103,7 +103,7 @@ export const getInstallationInfo = async <ContentTypes>(
   const myInboxId = client.inboxId;
   const myInstallationId = client.installationId;
 
-  const env = client.options?.env;
+  const env = client.env;
   const gatewayHost =
     client.options && "gatewayHost" in client.options
       ? client.options.gatewayHost
