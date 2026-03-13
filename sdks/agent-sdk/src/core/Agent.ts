@@ -256,7 +256,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           : `0x${XMTP_DB_ENCRYPTION_KEY}`
         : undefined;
 
-    const validEnvs: XmtpEnv[] = [
+    const validEnvs = [
       "local",
       "dev",
       "production",
@@ -264,7 +264,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       "testnet-dev",
       "testnet",
       "mainnet",
-    ];
+    ] as const;
     if (XMTP_ENV && validEnvs.includes(XMTP_ENV as XmtpEnv)) {
       initializedOptions.env = XMTP_ENV as XmtpEnv;
     }
