@@ -6442,7 +6442,7 @@ __metadata:
     "@oclif/plugin-not-found": "npm:^3.2.74"
     "@oclif/plugin-warn-if-update-available": "npm:^3.1.55"
     "@types/node": "npm:^24.10.9"
-    "@xmtp/node-sdk": "npm:5.4.0"
+    "@xmtp/node-sdk": "npm:6.0.0"
     execa: "npm:^9.6.1"
     oclif: "npm:^4.22.70"
     tsx: "npm:^4.21.0"
@@ -6713,7 +6713,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:6.0.0, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
