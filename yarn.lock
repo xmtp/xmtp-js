@@ -6387,7 +6387,7 @@ __metadata:
     "@types/node": "npm:^24.10.9"
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@xmtp/content-type-primitives": "npm:3.0.1"
-    "@xmtp/node-sdk": "npm:5.4.0"
+    "@xmtp/node-sdk": "npm:6.0.0"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
@@ -6684,13 +6684,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-bindings@npm:1.9.1":
-  version: 1.9.1
-  resolution: "@xmtp/node-bindings@npm:1.9.1"
-  checksum: 10/2393a08c5a8d0bc6a3c18ff7d83010cc0d26fc4a9b3774541f209764e0f0e7201a33c9c5abbca495beaf63e2fd00852c0c05fa150025e524f072957daf06a9b0
-  languageName: node
-  linkType: hard
-
 "@xmtp/node-sdk@npm:4.6.0":
   version: 4.6.0
   resolution: "@xmtp/node-sdk@npm:4.6.0"
@@ -6700,16 +6693,6 @@ __metadata:
     "@xmtp/content-type-text": "npm:^2.0.2"
     "@xmtp/node-bindings": "npm:1.6.8"
   checksum: 10/f8b5e8d74bd0f505a893ce5a3f570b588629b40a76c5693fb66608692ec869d3db7e19eb7d81202eeffec1217be1f195a5949d53b5f06a14567c2f878ada5dc0
-  languageName: node
-  linkType: hard
-
-"@xmtp/node-sdk@npm:5.4.0":
-  version: 5.4.0
-  resolution: "@xmtp/node-sdk@npm:5.4.0"
-  dependencies:
-    "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/node-bindings": "npm:1.9.1"
-  checksum: 10/161c128ed44d0048869093d88d487cb82ad0eb152297d79d048d5a446f86277f85dca26d7aec5647e4bc3398ba59cb4ea678f81d9a86925733f3ae511754f4d1
   languageName: node
   linkType: hard
 
