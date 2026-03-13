@@ -1,6 +1,6 @@
 import { once } from "node:events";
 import { setTimeout } from "node:timers/promises";
-import { createToxicAgent, enableBackend } from "../core/Agent.reconnect.test";
+import { createToxicAgent, enableBackend } from "@/core/Agent.reconnect.test";
 
 console.log("Scenario: Streams break while agent is running");
 const agent = await createToxicAgent();
