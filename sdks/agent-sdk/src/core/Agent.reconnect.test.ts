@@ -8,7 +8,7 @@ const PROXY_NAME = "node-go";
 const TOXIPROXY_API = "http://localhost:8475";
 const TOXIPROXY_PORT = "6010";
 
-async function enableBackend(enabled: boolean) {
+export async function enableBackend(enabled: boolean) {
   const res = await fetch(`${TOXIPROXY_API}/proxies/${PROXY_NAME}`, {
     method: "POST",
     body: JSON.stringify({
@@ -21,7 +21,7 @@ async function enableBackend(enabled: boolean) {
   if (!res.ok) throw new Error(`Failed to toggle proxy: ${await res.text()}`);
 }
 
-async function createToxicAgent() {
+export async function createToxicAgent() {
   await enableBackend(true);
   return Agent.create(createSigner(createUser()), {
     env: "local",
