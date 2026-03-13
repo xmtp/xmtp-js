@@ -169,7 +169,11 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       return this.#errors;
     },
   });
-  #defaultErrorHandler: AgentErrorMiddleware<ContentTypes> = (currentError) => {
+  #defaultErrorHandler: AgentErrorMiddleware<ContentTypes> = (
+    currentError,
+    _ctx,
+    next,
+  ) => {
     const emittedError =
       currentError instanceof Error
         ? currentError
@@ -179,6 +183,9 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
             currentError,
           );
     this.emit("unhandledError", emittedError);
+    if (currentError instanceof AgentStreamingError) {
+      next();
+    }
   };
   #isLocked: boolean = false;
 
@@ -387,15 +394,13 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           }
         },
         onError: async (error) => {
-          const recovered = await this.#runErrorChain(
+          await this.#handleStreamError(
             new AgentStreamingError(
               1002,
               "Error occured during conversation streaming.",
               error,
             ),
-            new ClientContext({ client: this.#client }),
           );
-          if (!recovered) await this.stop();
         },
       });
 
@@ -466,22 +471,26 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           }
         },
         onError: async (error) => {
-          const recovered = await this.#runErrorChain(
+          await this.#handleStreamError(
             new AgentStreamingError(
               1004,
               "Error occured during message streaming.",
               error,
             ),
-            new ClientContext({ client: this.#client }),
           );
-          if (!recovered) await this.stop();
         },
       });
 
       this.emit("start", new ClientContext({ client: this.#client }));
       this.#isLocked = false;
     } catch (error) {
-      await this.#handleStreamError(error);
+      await this.#handleStreamError(
+        new AgentStreamingError(
+          1005,
+          "Error occurred during stream setup.",
+          error,
+        ),
+      );
     }
   }
 
