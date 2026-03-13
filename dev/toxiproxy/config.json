@@ -1,0 +1,26 @@
+[
+  {
+    "name": "node-go",
+    "listen": "[::]:6010",
+    "upstream": "node:5556",
+    "enabled": true
+  },
+  {
+    "name": "grpc-web",
+    "listen": "[::]:6020",
+    "upstream": "node-web:5557",
+    "enabled": true
+  },
+  {
+    "name": "history-server",
+    "listen": "[::]:6030",
+    "upstream": "history-server:5558",
+    "enabled": true
+  },
+  {
+    "name": "upload-service",
+    "listen": "[::]:6040",
+    "upstream": "upload-service:3000",
+    "enabled": true
+  }
+]

@@ -57,3 +57,21 @@ services:
     platform: linux/amd64
     ports:
       - 5558:5558
+
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.12.0
+    pull_policy: never
+    ports:
+      - 8475:8474
+      - 6010:6010
+      - 6020:6020
+      - 6030:6030
+      - 6040:6040
+    depends_on:
+      - node
+      - node-web
+      - history-server
+      - upload-service
+    build:
+      context: ../
+      dockerfile: ./dev/toxiproxy/Dockerfile
