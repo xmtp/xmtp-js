@@ -6391,6 +6391,7 @@ __metadata:
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
+    ts-retry-promise: "npm:^0.8.1"
     tsx: "npm:^4.21.0"
     typescript: "npm:^5.9.3"
     viem: "npm:^2.37.6"
@@ -14489,6 +14490,13 @@ __metadata:
   peerDependencies:
     typescript: ">=4.8.4"
   checksum: 10/d6b2b3b6caad8d2f4ddc0c3785d22bb1a6041773335a1c71d73a5d67d11d993763fe8e4faefc4a4d03bb42b26c6126bbcf2e34826baed1def5369d0ebad358fa
+  languageName: node
+  linkType: hard
+
+"ts-retry-promise@npm:^0.8.1":
+  version: 0.8.1
+  resolution: "ts-retry-promise@npm:0.8.1"
+  checksum: 10/ceb7890c42bea35f4deb2ceba50b27a602df370cbf0cd796e1340cb2f8d21b7d47265cecc825992e5690efee72167a0d59ceb44cbe957dd78d93ad301113315c
   languageName: node
   linkType: hard
 

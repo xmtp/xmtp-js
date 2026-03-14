@@ -50,6 +50,7 @@ import { filter } from "@/core/filter";
 import { getInstallationInfo } from "@/debug";
 import { getValidLogLevels, parseLogLevel } from "@/debug/log";
 import { createSigner, createUser } from "@/user/User";
+import { retry } from "ts-retry-promise";
 import { AgentError, AgentStreamingError } from "./AgentError";
 import { ClientContext } from "./ClientContext";
 import { ConversationContext } from "./ConversationContext";
@@ -188,7 +189,9 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
   };
   #isLocked: boolean = false;
+  #isRestarting: boolean = false;
   #stopped: boolean = false;
+  #streamOptions?: AgentStreamingOptions;
 
   constructor({ client }: AgentOptions<ContentTypes>) {
     super();
@@ -327,9 +330,12 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   /**
-   * Closes all existing streams and restarts the streaming system.
+   * Closes all existing streams and restarts with exponential backoff.
    */
   async #handleStreamError(error: unknown) {
+    if (this.#isRestarting) return;
+    this.#isRestarting = true;
+
     await this.#stopStreams();
 
     const recovered = await this.#runErrorChain(error, {
@@ -337,9 +343,168 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     });
 
     if (recovered && !this.#stopped) {
-      this.#isLocked = false;
-      queueMicrotask(() => this.start());
+      try {
+        await this.#retryStreams();
+        this.emit("start", new ClientContext({ client: this.#client }));
+        this.#isLocked = false;
+      } catch {
+        this.#isLocked = false;
+      }
     }
+
+    this.#isRestarting = false;
+  }
+
+  async #retryStreams() {
+    return retry(
+      async () => {
+        await this.#stopStreams();
+        await this.#setupStreams(this.#streamOptions);
+      },
+      {
+        retries: 10,
+        delay: 1000,
+        backoff: "EXPONENTIAL",
+        maxBackOff: 30_000,
+        timeout: "INFINITELY",
+        retryIf: () => !this.#stopped,
+      },
+    );
+  }
+
+  async #setupStreams(options?: AgentStreamingOptions) {
+    this.#conversationsStream = await this.#client.conversations.stream({
+      ...options,
+      onValue: async (conversation) => {
+        try {
+          if (!conversation) {
+            return;
+          }
+          this.emit(
+            "conversation",
+            new ConversationContext<ContentTypes, Conversation<ContentTypes>>(
+              {
+                conversation,
+                client: this.#client,
+              },
+            ),
+          );
+          if (conversation instanceof Group) {
+            this.emit(
+              "group",
+              new ConversationContext<ContentTypes, Group<ContentTypes>>({
+                conversation,
+                client: this.#client,
+              }),
+            );
+          } else if (conversation instanceof Dm) {
+            this.emit(
+              "dm",
+              new ConversationContext<ContentTypes, Dm<ContentTypes>>({
+                conversation,
+                client: this.#client,
+              }),
+            );
+          }
+        } catch (error) {
+          const recovered = await this.#runErrorChain(
+            new AgentError(
+              1001,
+              "Emitted value from conversation stream caused an error.",
+              error,
+            ),
+            new ClientContext({ client: this.#client }),
+          );
+          if (!recovered) await this.stop();
+        }
+      },
+      onError: async (error) => {
+        await this.#handleStreamError(
+          new AgentStreamingError(
+            1002,
+            "Error occured during conversation streaming.",
+            error,
+          ),
+        );
+      },
+    });
+
+    this.#messageStream = await this.#client.conversations.streamAllMessages({
+      ...options,
+      onValue: async (message) => {
+        // this case should not happen,
+        // but we must handle it for proper types
+        if (!(message instanceof DecodedMessage)) {
+          return;
+        }
+        try {
+          switch (true) {
+            case isActions(message):
+              await this.#processMessage(message, "actions");
+              break;
+            case isAttachment(message):
+              await this.#processMessage(message, "inline-attachment");
+              break;
+            case isIntent(message):
+              await this.#processMessage(message, "intent");
+              break;
+            case isGroupUpdated(message):
+              await this.#processMessage(message, "group-update");
+              break;
+            case isLeaveRequest(message):
+              await this.#processMessage(message, "leave-request");
+              break;
+            case isMultiRemoteAttachment(message):
+              await this.#processMessage(message, "multi-attachment");
+              break;
+            case isRemoteAttachment(message):
+              await this.#processMessage(message, "attachment");
+              break;
+            case isReaction(message):
+              await this.#processMessage(message, "reaction");
+              break;
+            case isReadReceipt(message):
+              await this.#processMessage(message, "read-receipt");
+              break;
+            case isReply(message):
+              await this.#processMessage(message, "reply");
+              break;
+            case isTransactionReference(message):
+              await this.#processMessage(message, "transaction-reference");
+              break;
+            case isWalletSendCalls(message):
+              await this.#processMessage(message, "wallet-send-calls");
+              break;
+            case isMarkdown(message):
+              await this.#processMessage(message, "markdown");
+              break;
+            case isText(message):
+              await this.#processMessage(message, "text");
+              break;
+            default:
+              await this.#processMessage(message);
+              break;
+          }
+        } catch (error) {
+          const recovered = await this.#runErrorChain(error, {
+            client: this.#client,
+          });
+          if (!recovered) {
+            await this.stop();
+          }
+          this.#isLocked = false;
+        }
+      },
+      onError: async (error) => {
+        await this.#handleStreamError(
+          new AgentStreamingError(
+            1004,
+            "Error occured during message streaming.",
+            error,
+          ),
+        );
+      },
+    });
   }
 
   async start(options?: AgentStreamingOptions) {
@@ -347,142 +512,11 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       return;
 
     this.#stopped = false;
+    this.#streamOptions = options;
     this.#isLocked = true;
 
     try {
-      this.#conversationsStream = await this.#client.conversations.stream({
-        ...options,
-        onValue: async (conversation) => {
-          try {
-            if (!conversation) {
-              return;
-            }
-            this.emit(
-              "conversation",
-              new ConversationContext<ContentTypes, Conversation<ContentTypes>>(
-                {
-                  conversation,
-                  client: this.#client,
-                },
-              ),
-            );
-            if (conversation instanceof Group) {
-              this.emit(
-                "group",
-                new ConversationContext<ContentTypes, Group<ContentTypes>>({
-                  conversation,
-                  client: this.#client,
-                }),
-              );
-            } else if (conversation instanceof Dm) {
-              this.emit(
-                "dm",
-                new ConversationContext<ContentTypes, Dm<ContentTypes>>({
-                  conversation,
-                  client: this.#client,
-                }),
-              );
-            }
-          } catch (error) {
-            const recovered = await this.#runErrorChain(
-              new AgentError(
-                1001,
-                "Emitted value from conversation stream caused an error.",
-                error,
-              ),
-              new ClientContext({ client: this.#client }),
-            );
-            if (!recovered) await this.stop();
-          }
-        },
-        onError: async (error) => {
-          await this.#handleStreamError(
-            new AgentStreamingError(
-              1002,
-              "Error occured during conversation streaming.",
-              error,
-            ),
-          );
-        },
-      });
-
-      this.#messageStream = await this.#client.conversations.streamAllMessages({
-        ...options,
-        onValue: async (message) => {
-          // this case should not happen,
-          // but we must handle it for proper types
-          if (!(message instanceof DecodedMessage)) {
-            return;
-          }
-          try {
-            switch (true) {
-              case isActions(message):
-                await this.#processMessage(message, "actions");
-                break;
-              case isAttachment(message):
-                await this.#processMessage(message, "inline-attachment");
-                break;
-              case isIntent(message):
-                await this.#processMessage(message, "intent");
-                break;
-              case isGroupUpdated(message):
-                await this.#processMessage(message, "group-update");
-                break;
-              case isLeaveRequest(message):
-                await this.#processMessage(message, "leave-request");
-                break;
-              case isMultiRemoteAttachment(message):
-                await this.#processMessage(message, "multi-attachment");
-                break;
-              case isRemoteAttachment(message):
-                await this.#processMessage(message, "attachment");
-                break;
-              case isReaction(message):
-                await this.#processMessage(message, "reaction");
-                break;
-              case isReadReceipt(message):
-                await this.#processMessage(message, "read-receipt");
-                break;
-              case isReply(message):
-                await this.#processMessage(message, "reply");
-                break;
-              case isTransactionReference(message):
-                await this.#processMessage(message, "transaction-reference");
-                break;
-              case isWalletSendCalls(message):
-                await this.#processMessage(message, "wallet-send-calls");
-                break;
-              case isMarkdown(message):
-                await this.#processMessage(message, "markdown");
-                break;
-              case isText(message):
-                await this.#processMessage(message, "text");
-                break;
-              default:
-                await this.#processMessage(message);
-                break;
-            }
-          } catch (error) {
-            const recovered = await this.#runErrorChain(error, {
-              client: this.#client,
-            });
-            if (!recovered) {
-              await this.stop();
-            }
-            this.#isLocked = false;
-          }
-        },
-        onError: async (error) => {
-          await this.#handleStreamError(
-            new AgentStreamingError(
-              1004,
-              "Error occured during message streaming.",
-              error,
-            ),
-          );
-        },
-      });
-
+      await this.#setupStreams(options);
       this.emit("start", new ClientContext({ client: this.#client }));
       this.#isLocked = false;
     } catch (error) {
