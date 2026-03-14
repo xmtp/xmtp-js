@@ -188,6 +188,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     }
   };
   #isLocked: boolean = false;
+  #stopped: boolean = false;
 
   constructor({ client }: AgentOptions<ContentTypes>) {
     super();
@@ -335,7 +336,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       client: this.#client,
     });
 
-    if (recovered) {
+    if (recovered && !this.#stopped) {
       this.#isLocked = false;
       queueMicrotask(() => this.start());
     }
@@ -345,6 +346,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     if (this.#isLocked || this.#conversationsStream || this.#messageStream)
       return;
 
+    this.#stopped = false;
     this.#isLocked = true;
 
     try {
@@ -631,6 +633,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
   }
 
   async stop() {
+    this.#stopped = true;
     this.#isLocked = true;
 
     await this.#stopStreams();
