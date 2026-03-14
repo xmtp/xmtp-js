@@ -336,21 +336,23 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     if (this.#isRestarting) return;
     this.#isRestarting = true;
 
-    await this.#stopStreams();
+    try {
+      await this.#stopStreams();
 
-    const recovered = await this.#runErrorChain(error, {
-      client: this.#client,
-    });
+      const recovered = await this.#runErrorChain(error, {
+        client: this.#client,
+      });
 
-    if (recovered && !this.#stopped) {
-      await this.#retryStreams();
-      this.emit("start", new ClientContext({ client: this.#client }));
-      this.#isLocked = false;
-    } else {
-      this.#isLocked = false;
+      if (recovered && !this.#stopped) {
+        await this.#retryStreams();
+        this.emit("start", new ClientContext({ client: this.#client }));
+        this.#isLocked = false;
+      } else {
+        this.#isLocked = false;
+      }
+    } finally {
+      this.#isRestarting = false;
     }
-
-    this.#isRestarting = false;
   }
 
   async #retryStreams() {
