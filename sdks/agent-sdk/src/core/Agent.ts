@@ -4,7 +4,7 @@ import path from "node:path";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import {
   Client,
-  DecodedMessage,
+  type DecodedMessage,
   Dm,
   Group,
   IdentifierKind,
