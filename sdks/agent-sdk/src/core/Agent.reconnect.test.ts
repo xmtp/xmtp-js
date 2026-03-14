@@ -36,7 +36,9 @@ describe("Agent reconnect", () => {
     const agent = await createToxicAgent();
     await agent.start();
 
-    const reconnected = once(agent, "start");
+    const reconnected = once(agent, "start", {
+      signal: AbortSignal.timeout(10000),
+    });
 
     await enableBackend(false);
     await setTimeout(5000);
@@ -51,7 +53,9 @@ describe("Agent reconnect", () => {
 
     await enableBackend(false);
 
-    const started = once(agent, "start");
+    const started = once(agent, "start", {
+      signal: AbortSignal.timeout(10000),
+    });
     void agent.start();
 
     await setTimeout(5000);
@@ -65,7 +69,9 @@ describe("Agent reconnect", () => {
     const agent = await createToxicAgent();
     await agent.start();
 
-    const errored = once(agent, "unhandledError");
+    const errored = once(agent, "unhandledError", {
+      signal: AbortSignal.timeout(10000),
+    });
 
     await enableBackend(false);
 
