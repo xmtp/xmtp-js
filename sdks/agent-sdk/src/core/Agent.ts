@@ -428,11 +428,6 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     this.#messageStream = await this.#client.conversations.streamAllMessages({
       ...options,
       onValue: async (message) => {
-        // this case should not happen,
-        // but we must handle it for proper types
-        if (!(message instanceof DecodedMessage)) {
-          return;
-        }
         try {
           switch (true) {
             case isActions(message):
