@@ -343,13 +343,9 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
     });
 
     if (recovered && !this.#stopped) {
-      try {
-        await this.#retryStreams();
-        this.emit("start", new ClientContext({ client: this.#client }));
-        this.#isLocked = false;
-      } catch {
-        this.#isLocked = false;
-      }
+      await this.#retryStreams();
+      this.emit("start", new ClientContext({ client: this.#client }));
+      this.#isLocked = false;
     } else {
       this.#isLocked = false;
     }
