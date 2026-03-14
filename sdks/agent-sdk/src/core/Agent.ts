@@ -46,11 +46,11 @@ import {
   type XmtpEnv,
 } from "@xmtp/node-sdk";
 import { version as appVersion } from "~/package.json";
+import { retry } from "ts-retry-promise";
 import { filter } from "@/core/filter";
 import { getInstallationInfo } from "@/debug";
 import { getValidLogLevels, parseLogLevel } from "@/debug/log";
 import { createSigner, createUser } from "@/user/User";
-import { retry } from "ts-retry-promise";
 import { AgentError, AgentStreamingError } from "./AgentError";
 import { ClientContext } from "./ClientContext";
 import { ConversationContext } from "./ConversationContext";
@@ -382,12 +382,10 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
           }
           this.emit(
             "conversation",
-            new ConversationContext<ContentTypes, Conversation<ContentTypes>>(
-              {
-                conversation,
-                client: this.#client,
-              },
-            ),
+            new ConversationContext<ContentTypes, Conversation<ContentTypes>>({
+              conversation,
+              client: this.#client,
+            }),
           );
           if (conversation instanceof Group) {
             this.emit(
@@ -422,7 +420,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         await this.#handleStreamError(
           new AgentStreamingError(
             1002,
-            "Error occured during conversation streaming.",
+            "Error occurred during conversation streaming.",
             error,
           ),
         );
@@ -499,7 +497,7 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
         await this.#handleStreamError(
           new AgentStreamingError(
             1004,
-            "Error occured during message streaming.",
+            "Error occurred during message streaming.",
             error,
           ),
         );
