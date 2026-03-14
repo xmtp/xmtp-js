@@ -145,6 +145,35 @@ describe("Agent", () => {
       expect(startSpy).toHaveBeenCalledTimes(1);
     });
 
+    it("should auto-restart after a startup failure", async () => {
+      const startupError = new Error("Stream setup failed");
+      const originalStream = client.conversations.stream.bind(
+        client.conversations,
+      );
+      let callCount = 0;
+      const streamSpy = vi
+        .spyOn(client.conversations, "stream")
+        .mockImplementation(async (...args) => {
+          callCount++;
+          if (callCount === 1) {
+            throw startupError;
+          }
+          return originalStream(...args);
+        });
+
+      const startSpy = vi.fn();
+      agent.on("start", startSpy);
+
+      void agent.start();
+
+      await vi.waitFor(() => {
+        expect(startSpy).toHaveBeenCalledTimes(1);
+      });
+
+      streamSpy.mockRestore();
+      await agent.stop();
+    });
+
     it("should filter messages from the agent itself (same senderInboxId)", async () => {
       const textEventSpy = vi.fn();
       const unknownMessageSpy = vi.fn();
