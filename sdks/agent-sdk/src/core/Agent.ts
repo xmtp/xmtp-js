@@ -350,6 +350,8 @@ export class Agent<ContentTypes = unknown> extends EventEmitter<
       } catch {
         this.#isLocked = false;
       }
+    } else {
+      this.#isLocked = false;
     }
 
     this.#isRestarting = false;
