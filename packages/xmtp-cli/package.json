@@ -88,7 +88,7 @@
     "@oclif/plugin-help": "^6.2.37",
     "@oclif/plugin-not-found": "^3.2.74",
     "@oclif/plugin-warn-if-update-available": "^3.1.55",
-    "@xmtp/node-sdk": "5.4.0",
+    "@xmtp/node-sdk": "6.0.0",
     "viem": "^2.44.4"
   },
   "devDependencies": {

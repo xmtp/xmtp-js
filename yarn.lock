@@ -6387,7 +6387,7 @@ __metadata:
     "@types/node": "npm:^24.10.9"
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@xmtp/content-type-primitives": "npm:3.0.1"
-    "@xmtp/node-sdk": "npm:5.4.0"
+    "@xmtp/node-sdk": "npm:6.0.0"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
@@ -6414,7 +6414,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@web/rollup-plugin-copy": "npm:^0.5.1"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/wasm-bindings": "npm:1.10.0-dev.2334796"
+    "@xmtp/wasm-bindings": "npm:1.10.0"
     playwright: "npm:^1.58.0"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6443,7 +6443,7 @@ __metadata:
     "@oclif/plugin-not-found": "npm:^3.2.74"
     "@oclif/plugin-warn-if-update-available": "npm:^3.1.55"
     "@types/node": "npm:^24.10.9"
-    "@xmtp/node-sdk": "npm:5.4.0"
+    "@xmtp/node-sdk": "npm:6.0.0"
     execa: "npm:^9.6.1"
     oclif: "npm:^4.22.70"
     tsx: "npm:^4.21.0"
@@ -6657,6 +6657,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@xmtp/node-bindings@npm:1.10.0":
+  version: 1.10.0
+  resolution: "@xmtp/node-bindings@npm:1.10.0"
+  checksum: 10/63ab1b66c0f837f030d12a7c6ead06ee68cdf48cca091aaea35614d6d61fd6b86d11562dc553444de4641f0b970098a74b0f01c9501dd64160c9f975b6dec601
+  languageName: node
+  linkType: hard
+
 "@xmtp/node-bindings@npm:1.10.0-dev.2334796":
   version: 1.10.0-dev.2334796
   resolution: "@xmtp/node-bindings@npm:1.10.0-dev.2334796"
@@ -6690,7 +6697,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/node-sdk@npm:5.4.0, @xmtp/node-sdk@workspace:sdks/node-sdk":
+"@xmtp/node-sdk@npm:6.0.0, @xmtp/node-sdk@workspace:sdks/node-sdk":
   version: 0.0.0-use.local
   resolution: "@xmtp/node-sdk@workspace:sdks/node-sdk"
   dependencies:
@@ -6699,7 +6706,7 @@ __metadata:
     "@types/node": "npm:^24.10.9"
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/node-bindings": "npm:1.10.0-dev.2334796"
+    "@xmtp/node-bindings": "npm:1.10.0"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
@@ -6740,10 +6747,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.10.0-dev.2334796":
-  version: 1.10.0-dev.2334796
-  resolution: "@xmtp/wasm-bindings@npm:1.10.0-dev.2334796"
-  checksum: 10/46c88e7de737aca960f340018a2deb1d208575e401a9e573a5c0ec357cb4c748e3f03f39a4f61fa9a087bb230320a2deb5c6341640d9ebdb880a452ef15b15ea
+"@xmtp/wasm-bindings@npm:1.10.0":
+  version: 1.10.0
+  resolution: "@xmtp/wasm-bindings@npm:1.10.0"
+  checksum: 10/09e5767fb46387195524f7299255c08745a283c97a00b88a91278de34f63893f35a6b98f5b22d634782eca67345558c1927d433078f8e34b8946db1132d5cf26
   languageName: node
   linkType: hard
 

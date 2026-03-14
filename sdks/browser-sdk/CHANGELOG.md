@@ -1,5 +1,57 @@
 # @xmtp/browser-sdk
 
+## 7.0.0
+
+This release includes a performance fix, a breaking change to history sync, and new methods for manual archive management. Update as soon as possible to take advantage of these enhancements and fixes.
+
+### Performance improvement
+
+Fixed a performance issue that could cause slowdowns in apps with many conversations or heavy use of disappearing messages.
+
+### History sync is now manual
+
+**THIS IS A BREAKING CHANGE.**
+
+Automatic sending of sync requests on new installations has been removed. XMTP SDKs no longer automatically send sync requests on new clients.
+
+This change gives you explicit control over when sync requests are sent, avoiding unexpected network activity during client initialization.
+
+You must now call `sendSyncRequest()` explicitly after creating a client on a new installation to trigger a history sync.
+
+To learn more, see [Control history sync](https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync#control-history-sync)
+
+### Manual history sync archive management
+
+These methods give you fine-grained control over history sync archives. Use them when you need to push data to a new installation proactively, inspect what's available before syncing, or process a specific archive by pin.
+
+- `sendSyncArchive(pin, options?, serverUrl?)`: Send an archive to the sync group without waiting for a request from another installation
+
+- `listAvailableArchives(daysCutoff)`: List archives available for import from the sync group
+
+- `processSyncArchive(archivePin?)`: Process an available archive from the sync group
+
+- `syncAllDeviceSyncGroups()`: Sync all device sync groups from the network
+
+To learn more, see [Control history sync](https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync#control-history-sync)
+
+### Upcoming deprecation of `preferences.sync()`
+
+In a future release, `preferences.sync()` will be deprecated. Use `syncAllDeviceSyncGroups()` instead to sync device sync groups from the network.
+
+To learn more, see [Sync device sync groups](https://docs.xmtp.org/chat-apps/list-stream-sync/history-sync#sync-device-sync-groups)
+
+### Archive-based backups
+
+Support archive-based backups to give your users an easy and durable way to back up their XMTP conversations, messages, and consent preferences from one app installation and import them into another.
+
+This feature includes three core methods:
+
+- `createArchive` — Create an encrypted archive
+- `archiveMetadata` — Read metadata from an archive before importing
+- `importArchive` — Import an archive into the current installation
+
+To learn more, see [Support archive-based backups.](https://docs.xmtp.org/chat-apps/list-stream-sync/archive-backups#1-create-the-archive)
+
 ## 6.5.0
 
 ### Minor Changes
