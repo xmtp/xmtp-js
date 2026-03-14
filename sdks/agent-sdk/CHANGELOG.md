@@ -1,5 +1,11 @@
 # @xmtp/agent-sdk
 
+## 2.3.0
+
+### Minor Changes
+
+- 3557ccb: Added restart on error for streams in Agent SDK
+
 ## 2.2.1
 
 ### Patch Changes
