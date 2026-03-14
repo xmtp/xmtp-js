@@ -4,7 +4,6 @@ import path from "node:path";
 import type { ContentCodec } from "@xmtp/content-type-primitives";
 import {
   Client,
-  type DecodedMessage,
   Dm,
   Group,
   IdentifierKind,
@@ -30,6 +29,7 @@ import {
   type Conversation,
   type CreateDmOptions,
   type CreateGroupOptions,
+  type DecodedMessage,
   type EnrichedReply,
   type GroupUpdated,
   type HexString,
