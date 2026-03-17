@@ -127,7 +127,9 @@ jobs:
       - name: Log resolved dependency version
         run: |
           echo "### Resolved Dependency" >> $GITHUB_STEP_SUMMARY
-          yarn why ${{ fromJSON(env.SDK_DEPS)[inputs.prerelease_sdk] }} >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          yarn --no-color why ${{ fromJSON(env.SDK_DEPS)[inputs.prerelease_sdk] }} >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         if: ${{ !inputs.disable_audit }}
         run: npm audit signatures
