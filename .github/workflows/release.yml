@@ -111,12 +111,25 @@ jobs:
         run: corepack enable
       - name: Update npm to latest
         run: npm install -g npm@latest
+      - name: Log prerelease details
+        run: |
+          echo "### Prerelease Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target SDK**: ${{ inputs.prerelease_sdk }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Based on**: ${{ fromJSON(env.SDK_DEPS)[inputs.prerelease_sdk] }}@${{ inputs.prerelease_dependency_version || 'unchanged' }}" >> $GITHUB_STEP_SUMMARY          
+          echo "- **Target Version**: ${{ inputs.prerelease_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version Tag**: ${{ inputs.prerelease_tag }}" >> $GITHUB_STEP_SUMMARY
       - name: Update dependency version
         if: ${{ github.event.inputs.prerelease_dependency_version != '' }}
         working-directory: ./sdks/${{ inputs.prerelease_sdk }}
         run: yarn add ${{ fromJSON(env.SDK_DEPS)[inputs.prerelease_sdk] }}@${{ inputs.prerelease_dependency_version }}
       - name: Install dependencies
         run: yarn
+      - name: Log resolved dependency version
+        run: |
+          echo "### Resolved Dependency" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          YARN_ENABLE_COLORS=false yarn why ${{ fromJSON(env.SDK_DEPS)[inputs.prerelease_sdk] }} >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         if: ${{ !inputs.disable_audit }}
         run: npm audit signatures
