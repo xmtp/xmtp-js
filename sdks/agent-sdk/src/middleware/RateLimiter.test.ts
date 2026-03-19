@@ -90,25 +90,22 @@ describe("RateLimiter", () => {
       expect(next).toHaveBeenCalledTimes(2);
     });
 
-    it("uses a sliding window, not a fixed window", async () => {
+    it("resets count when window expires", async () => {
       const limiter = new RateLimiter({ maxMessages: 2, windowMs: 10_000 });
       const mw = limiter.middleware();
       const next = vi.fn();
 
-      // t=0: first message
+      // t=0: first and second message
       await mw(mockContext("sender-a") as never, next);
-
-      // t=6s: second message
-      vi.advanceTimersByTime(6_000);
       await mw(mockContext("sender-a") as never, next);
       expect(next).toHaveBeenCalledTimes(2);
 
-      // t=6s: third should be blocked (both messages within 10s window)
+      // t=0: third should be blocked
       await mw(mockContext("sender-a") as never, next);
       expect(next).toHaveBeenCalledTimes(2);
 
-      // t=11s: first message expired, one slot free
-      vi.advanceTimersByTime(5_000);
+      // t=10s: window expired, count resets
+      vi.advanceTimersByTime(10_000);
       await mw(mockContext("sender-a") as never, next);
       expect(next).toHaveBeenCalledTimes(3);
     });
@@ -151,6 +148,25 @@ describe("RateLimiter", () => {
       expect(ctx.sendTextReply).toHaveBeenCalledWith(
         "You're sending messages too quickly. Please wait a moment.",
       );
+    });
+
+    it("replies only once per window to avoid DOS amplification", async () => {
+      const limiter = new RateLimiter({
+        maxMessages: 1,
+        windowMs: 10_000,
+        behavior: "reply",
+      });
+      const mw = limiter.middleware();
+      const next = vi.fn();
+      const ctx = mockContext("sender-a");
+
+      await mw(ctx as never, next); // allowed
+      await mw(ctx as never, next); // blocked, reply sent
+      await mw(ctx as never, next); // blocked, no reply (already replied this window)
+      await mw(ctx as never, next); // blocked, no reply
+
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(ctx.sendTextReply).toHaveBeenCalledTimes(1);
     });
 
     it("sends custom reply text when configured", async () => {

@@ -23,13 +23,19 @@ export interface RateLimiterConfig {
  * agent.use(limiter.middleware());
  * ```
  */
+interface SenderWindow {
+  count: number;
+  windowStart: number;
+  replied: boolean;
+}
+
 export class RateLimiter<ContentTypes = unknown> {
   #maxMessages: number;
   #windowMs: number;
   #behavior: "drop" | "reply";
   #replyText: string;
   #onRateLimit?: (senderInboxId: string) => void;
-  #timestamps = new Map<string, number[]>();
+  #windows = new Map<string, SenderWindow>();
 
   constructor(config: RateLimiterConfig = {}) {
     this.#maxMessages = config.maxMessages ?? 10;
@@ -41,51 +47,52 @@ export class RateLimiter<ContentTypes = unknown> {
     this.#onRateLimit = config.onRateLimit;
   }
 
-  #isAllowed(senderInboxId: string): boolean {
+  #checkAndRecord(senderInboxId: string): "allowed" | "limited" | "limited-already-replied" {
     const now = Date.now();
-    const cutoff = now - this.#windowMs;
+    let window = this.#windows.get(senderInboxId);
 
-    let entries = this.#timestamps.get(senderInboxId);
-
-    if (entries) {
-      // Remove timestamps outside the current window
-      entries = entries.filter((ts) => ts > cutoff);
-    } else {
-      entries = [];
+    if (!window || now - window.windowStart >= this.#windowMs) {
+      this.#windows.set(senderInboxId, { count: 1, windowStart: now, replied: false });
+      return "allowed";
     }
 
-    if (entries.length >= this.#maxMessages) {
-      this.#timestamps.set(senderInboxId, entries);
-      return false;
+    window.count++;
+
+    if (window.count <= this.#maxMessages) {
+      return "allowed";
     }
 
-    entries.push(now);
-    this.#timestamps.set(senderInboxId, entries);
-    return true;
+    if (window.replied) {
+      return "limited-already-replied";
+    }
+
+    window.replied = true;
+    return "limited";
   }
 
   /** Remove all tracked sender state */
   reset(): void {
-    this.#timestamps.clear();
+    this.#windows.clear();
   }
 
   /** Remove tracked state for a specific sender */
   resetSender(senderInboxId: string): void {
-    this.#timestamps.delete(senderInboxId);
+    this.#windows.delete(senderInboxId);
   }
 
   middleware(): AgentMiddleware<ContentTypes> {
     return async (ctx, next) => {
       const senderId = ctx.message.senderInboxId;
+      const result = this.#checkAndRecord(senderId);
 
-      if (this.#isAllowed(senderId)) {
+      if (result === "allowed") {
         await next();
         return;
       }
 
       this.#onRateLimit?.(senderId);
 
-      if (this.#behavior === "reply") {
+      if (this.#behavior === "reply" && result === "limited") {
         await ctx.sendTextReply(this.#replyText);
       }
     };
