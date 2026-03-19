@@ -6506,7 +6506,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
-    "@xmtp/node-bindings": "npm:1.10.0-dev.2334796"
+    "@xmtp/node-bindings": "npm:1.10.0-dev.a7179df"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6657,17 +6657,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:1.10.0":
-  version: 1.10.0
-  resolution: "@xmtp/node-bindings@npm:1.10.0"
-  checksum: 10/63ab1b66c0f837f030d12a7c6ead06ee68cdf48cca091aaea35614d6d61fd6b86d11562dc553444de4641f0b970098a74b0f01c9501dd64160c9f975b6dec601
-  languageName: node
-  linkType: hard
-
-"@xmtp/node-bindings@npm:1.10.0-dev.2334796":
-  version: 1.10.0-dev.2334796
-  resolution: "@xmtp/node-bindings@npm:1.10.0-dev.2334796"
-  checksum: 10/8f9a7c1c6b75a5c84ee104b82b8e14513fd7fb4a07353b04eb5cb4f7d1f9c63fbd9d10e3d6575d4716ebd1380b7b078b583d4c2cc95baebb723568496cee51c6
+"@xmtp/node-bindings@npm:1.10.0-dev.a7179df":
+  version: 1.10.0-dev.a7179df
+  resolution: "@xmtp/node-bindings@npm:1.10.0-dev.a7179df"
+  checksum: 10/97ff9d5e4676892c18e513ce245a37a46d1a82208bbc2ffd75af93845daae3cf6b79b6967b77404b2d314bd96b880842ba075cf13e78b8a56d5ec2a44dfc1b40
   languageName: node
   linkType: hard
 
@@ -6706,7 +6699,7 @@ __metadata:
     "@types/node": "npm:^24.10.9"
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/node-bindings": "npm:1.10.0"
+    "@xmtp/node-bindings": "npm:1.10.0-dev.a7179df"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
