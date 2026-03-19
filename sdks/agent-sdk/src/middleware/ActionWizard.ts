@@ -35,6 +35,7 @@ type ActionWizardSession = {
   answers: Record<string, string>;
   conversation: Conversation;
   createdAt: number;
+  lastActivityAt: number;
 };
 
 type ActionWizardCompleteHandler<ContentTypes> = (
@@ -147,11 +148,13 @@ export class ActionWizard<ContentTypes = unknown> {
       : ctx.conversation;
 
     const key = ActionWizard.sessionKey(conversation.id, senderInboxId);
+    const now = Date.now();
     this.#sessions.set(key, {
       currentStepIndex: 0,
       answers: {},
       conversation,
-      createdAt: Date.now(),
+      createdAt: now,
+      lastActivityAt: now,
     });
     await this.#sendCurrentStep(key);
   }
@@ -201,6 +204,7 @@ export class ActionWizard<ContentTypes = unknown> {
     const session = this.#sessions.get(key);
     if (!session) return;
 
+    session.lastActivityAt = Date.now();
     session.currentStepIndex++;
 
     const isComplete = session.currentStepIndex >= this.#steps.length;
@@ -234,7 +238,7 @@ export class ActionWizard<ContentTypes = unknown> {
         return;
       }
 
-      if (Date.now() - session.createdAt > this.#sessionTimeoutMs) {
+      if (Date.now() - session.lastActivityAt > this.#sessionTimeoutMs) {
         await this.#handleCancel(key, ctx);
         await next();
         return;
