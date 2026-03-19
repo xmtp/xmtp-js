@@ -34,6 +34,7 @@ type ActionWizardSession = {
   currentStepIndex: number;
   answers: Record<string, string>;
   conversation: Conversation;
+  createdAt: number;
 };
 
 type ActionWizardCompleteHandler<ContentTypes> = (
@@ -59,6 +60,8 @@ export type ActionWizardOptions = {
   dm?: boolean;
   /** Enable a cancel button on each select step. Set to `true` for the default label, or pass options to customize. */
   cancel?: boolean | ActionWizardCancelOptions;
+  /** Maximum time in milliseconds a session can remain idle before it is automatically expired. Defaults to 30 minutes. */
+  sessionTimeoutMs?: number;
 };
 
 /**
@@ -75,6 +78,7 @@ export class ActionWizard<ContentTypes = unknown> {
   #id: string;
   #dm: boolean;
   #cancelLabel: string | undefined;
+  #sessionTimeoutMs: number;
   #steps: ActionWizardStep[] = [];
   #sessions = new Map<string, ActionWizardSession>();
   #completeHandler?: ActionWizardCompleteHandler<ContentTypes>;
@@ -83,6 +87,7 @@ export class ActionWizard<ContentTypes = unknown> {
   constructor(id: string, options?: ActionWizardOptions) {
     this.#id = id;
     this.#dm = options?.dm ?? false;
+    this.#sessionTimeoutMs = options?.sessionTimeoutMs ?? 30 * 60 * 1000;
     if (options?.cancel) {
       this.#cancelLabel =
         typeof options.cancel === "object"
@@ -146,6 +151,7 @@ export class ActionWizard<ContentTypes = unknown> {
       currentStepIndex: 0,
       answers: {},
       conversation,
+      createdAt: Date.now(),
     });
     await this.#sendCurrentStep(key);
   }
@@ -224,6 +230,12 @@ export class ActionWizard<ContentTypes = unknown> {
       const session = this.#sessions.get(key);
 
       if (!session) {
+        await next();
+        return;
+      }
+
+      if (Date.now() - session.createdAt > this.#sessionTimeoutMs) {
+        await this.#handleCancel(key, ctx);
         await next();
         return;
       }
