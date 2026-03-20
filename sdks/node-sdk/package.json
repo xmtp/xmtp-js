@@ -49,8 +49,8 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@xmtp/content-type-primitives": "3.0.1",
-    "@xmtp/node-bindings": "1.10.0-dev.bc71dcc"
+    "@xmtp/content-type-primitives": "workspace:^",
+    "@xmtp/node-bindings": "1.10.0-dev.97e86c6"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",

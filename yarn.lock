@@ -6489,7 +6489,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
-    "@xmtp/node-bindings": "npm:1.10.0-dev.bc71dcc"
+    "@xmtp/node-bindings": "npm:1.10.0-dev.97e86c6"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6640,10 +6640,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:1.10.0-dev.bc71dcc":
-  version: 1.10.0-dev.bc71dcc
-  resolution: "@xmtp/node-bindings@npm:1.10.0-dev.bc71dcc"
-  checksum: 10/15ddfa7a31566ee4fc0b136e1f6543a343782c0fb58c216cf337683b45ac2242b1584ceca9d5aa55564c33506d209312099ca52da9136c21e2f0f3244b65ab18
+"@xmtp/node-bindings@npm:1.10.0-dev.97e86c6":
+  version: 1.10.0-dev.97e86c6
+  resolution: "@xmtp/node-bindings@npm:1.10.0-dev.97e86c6"
+  checksum: 10/8bd73b8a482d75bad6fd358edc8e4a9329d69b60600c55e2b7bae06701a11a4cec98c7575fe676c1495841d80c93a64a5492341a621eb9af097d696bf0bf6eca
   languageName: node
   linkType: hard
 
@@ -6674,8 +6674,8 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
     "@vitest/coverage-v8": "npm:^4.0.18"
-    "@xmtp/content-type-primitives": "npm:3.0.1"
-    "@xmtp/node-bindings": "npm:1.10.0-dev.bc71dcc"
+    "@xmtp/content-type-primitives": "workspace:^"
+    "@xmtp/node-bindings": "npm:1.10.0-dev.97e86c6"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
