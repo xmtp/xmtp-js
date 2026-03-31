@@ -459,6 +459,7 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     return this.#worker.action("client.registerIdentity", {
       signer,
       signatureRequestId,
+      waitForRegistrationVisible: this.#options?.waitForRegistrationVisible,
     });
   }
 

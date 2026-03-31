@@ -63,6 +63,7 @@ export type {
   TransactionMetadata,
   TransactionReference,
   UserPreferenceUpdate,
+  VisibilityConfirmationOptions,
   WalletCall,
   WalletSendCalls,
 } from "@xmtp/node-bindings";

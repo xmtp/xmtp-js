@@ -5,6 +5,7 @@ import type {
   GroupSyncSummary,
   Identifier,
   KeyPackageStatus,
+  WasmVisibilityConfirmationOptions,
 } from "@xmtp/wasm-bindings";
 import type { ClientOptions } from "@/types/options";
 import type { SafeSigner } from "@/utils/signer";
@@ -112,6 +113,7 @@ export type ClientAction =
       data: {
         signer: SafeSigner;
         signatureRequestId: string;
+        waitForRegistrationVisible?: WasmVisibilityConfirmationOptions;
       };
     }
   | {

@@ -17,6 +17,7 @@ import type {
   RemoteAttachment,
   TransactionReference,
   WalletSendCalls,
+  WasmVisibilityConfirmationOptions,
 } from "@xmtp/wasm-bindings";
 import type { DecodedMessage } from "@/DecodedMessage";
 
@@ -119,6 +120,13 @@ export type OtherOptions = {
    * Disable automatic registration when creating a client
    */
   disableAutoRegister?: boolean;
+  /**
+   * Options for waiting until client registration is visible on the network.
+   *
+   * When set, `registerIdentity` will wait for the specified quorum of nodes
+   * to confirm the registration before resolving.
+   */
+  waitForRegistrationVisible?: WasmVisibilityConfirmationOptions;
 };
 
 export type ClientOptions = (NetworkOptions | { backend: Backend }) &

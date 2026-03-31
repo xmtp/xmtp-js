@@ -62,6 +62,7 @@ export type {
   TransactionMetadata,
   TransactionReference,
   UserPreferenceUpdate,
+  WasmVisibilityConfirmationOptions,
   WalletCall,
   WalletSendCalls,
 } from "@xmtp/wasm-bindings";

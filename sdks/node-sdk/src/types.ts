@@ -14,6 +14,7 @@ import {
   type ReadReceipt,
   type RemoteAttachment,
   type TransactionReference,
+  type VisibilityConfirmationOptions,
   type WalletSendCalls,
 } from "@xmtp/node-bindings";
 import type { DecodedMessage } from "@/DecodedMessage";
@@ -136,6 +137,13 @@ export type OtherOptions = {
    * (default: undefined = 1)
    */
   nonce?: bigint;
+  /**
+   * Options for waiting until client registration is visible on the network.
+   *
+   * When set, `registerIdentity` will wait for the specified quorum of nodes
+   * to confirm the registration before resolving.
+   */
+  waitForRegistrationVisible?: VisibilityConfirmationOptions;
 };
 
 export type ClientOptions = (NetworkOptions | { backend: Backend }) &
