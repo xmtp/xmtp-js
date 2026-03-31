@@ -13,6 +13,7 @@ on:
       - ".changeset/*.md"
       - ".cursor/**"
       - ".github/**"
+      - ".devcontainer/**"
       - "!.github/workflows/node-sdk.yml"
       - "!.github/workflows/content-types.yml"
       - ".vscode/**"
