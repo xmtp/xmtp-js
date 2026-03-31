@@ -9,7 +9,11 @@ import {
   type KeyPackageStatus,
   type SignatureRequestHandle,
 } from "@xmtp/wasm-bindings";
-import type { ClientOptions, XmtpEnv } from "@/types/options";
+import type {
+  ClientOptions,
+  VisibilityConfirmationOptions,
+  XmtpEnv,
+} from "@/types/options";
 import { createClient } from "@/utils/createClient";
 import type { SafeSigner } from "@/utils/signer";
 import { WorkerConversations } from "@/WorkerConversations";
@@ -148,9 +152,13 @@ export class WorkerClient {
   async registerIdentity(
     signer: SafeSigner,
     signatureRequest: SignatureRequestHandle,
+    visibilityConfirmationOptions?: VisibilityConfirmationOptions,
   ) {
     await this.addSignature(signatureRequest, signer);
-    await this.#client.registerIdentity(signatureRequest);
+    await this.#client.registerIdentity(
+      signatureRequest,
+      visibilityConfirmationOptions,
+    );
   }
 
   async getInboxIdByIdentifier(identifier: Identifier) {
