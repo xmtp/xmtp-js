@@ -10,7 +10,7 @@ import {
   type StreamCallback,
   type StreamFunction,
 } from "@/utils/streams";
-import { sleep } from "@test/helpers";
+import { sleep, waitFor } from "@test/helpers";
 
 describe("createStream", () => {
   describe("basic functionality", () => {
@@ -658,11 +658,11 @@ describe("createStream", () => {
         retryAttempts: 3,
       });
 
-      await sleep(100);
+      // Wait for all retries to complete instead of using a fixed sleep
+      await waitFor(() => onRetrySpy.mock.calls.length >= 3);
       await stream.end();
 
       // onRetry should be called with (currentAttempt, maxAttempts)
-      // At minimum, the first 3 attempts should have occurred
       expect(onRetrySpy).toHaveBeenCalledWith(1, 3);
       expect(onRetrySpy).toHaveBeenCalledWith(2, 3);
       expect(onRetrySpy).toHaveBeenCalledWith(3, 3);
@@ -690,7 +690,8 @@ describe("createStream", () => {
         retryAttempts: 2,
       });
 
-      await sleep(200);
+      // Wait for retries to exhaust and StreamFailedError to be reported
+      await waitFor(() => onErrorSpy.mock.calls.length > 1);
       await stream.end();
 
       // onError should be called multiple times
