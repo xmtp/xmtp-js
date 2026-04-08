@@ -23,7 +23,7 @@
     "@prisma/client": "^6.19.2",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.2.1",
+    "express-rate-limit": "^8.2.2",
     "helmet": "^8.1.0",
     "pinata": "^2.5.3",
     "prisma": "^6.19.2",
