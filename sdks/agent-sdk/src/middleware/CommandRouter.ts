@@ -105,10 +105,16 @@ export class CommandRouter<ContentTypes = unknown> {
     if (command.startsWith("/")) {
       const entry = this.#commandMap.get(command);
       if (entry) {
-        // Create a new context with modified content (everything after the command)
+        // Pass only the arguments (everything after the command) to the handler,
+        // then restore the original content so downstream middleware sees the full message.
         const argsText = parts.slice(1).join(" ");
+        const originalContent = ctx.message.content;
         ctx.message.content = argsText;
-        await entry.handler(ctx);
+        try {
+          await entry.handler(ctx);
+        } finally {
+          ctx.message.content = originalContent;
+        }
         return true;
       }
     }
