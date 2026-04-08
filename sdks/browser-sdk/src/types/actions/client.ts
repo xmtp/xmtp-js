@@ -180,6 +180,23 @@ export type ClientAction =
       };
     }
   | {
+      action: "client.fetchLatestInboxUpdatesCount";
+      id: string;
+      result: Record<string, number>;
+      data: {
+        inboxIds: string[];
+        refreshFromNetwork: boolean;
+      };
+    }
+  | {
+      action: "client.fetchOwnInboxUpdatesCount";
+      id: string;
+      result: number;
+      data: {
+        refreshFromNetwork: boolean;
+      };
+    }
+  | {
       action: "client.getInboxIdByIdentifier";
       id: string;
       result: string | undefined;

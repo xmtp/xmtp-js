@@ -40,6 +40,9 @@ export const InboxTools: React.FC = () => {
     error: memberIdError,
   } = useMemberId();
   const [installations, setInstallations] = useState<Installation[]>([]);
+  const [inboxUpdatesCount, setInboxUpdatesCount] = useState<number | null>(
+    null,
+  );
   const [selectedInstallationIds, setSelectedInstallationIds] = useState<
     string[]
   >([]);
@@ -52,7 +55,7 @@ export const InboxTools: React.FC = () => {
     ephemeralAccountEnabled,
     setEphemeralAccountEnabled,
   } = useSettings();
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(1);
 
   const handleFindInstallations = useCallback(async () => {
     if (!isValidInboxId(inboxId)) {
@@ -73,6 +76,26 @@ export const InboxTools: React.FC = () => {
             Number(b.clientTimestampNs ?? 0) - Number(a.clientTimestampNs ?? 0),
         ),
       );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [inboxId, sdkEnv, gatewayHost]);
+
+  const handleFetchInboxUpdatesCount = useCallback(async () => {
+    if (!isValidInboxId(inboxId)) {
+      return;
+    }
+    setLoading(true);
+    setInboxUpdatesCount(null);
+    try {
+      const inboxUpdatesCounts = await Client.fetchLatestInboxUpdatesCount(
+        [inboxId],
+        sdkEnv,
+        gatewayHost,
+      );
+      setInboxUpdatesCount(inboxUpdatesCounts.get(inboxId) ?? 0);
     } catch (error) {
       console.error(error);
     } finally {
@@ -141,11 +164,13 @@ export const InboxTools: React.FC = () => {
       setEphemeralAccountEnabled(false);
     }
     setMemberId("");
+    setInboxUpdatesCount(null);
     setInstallations([]);
     setSelectedInstallationIds([]);
   }, [
     isConnected,
     disconnect,
+    setInboxUpdatesCount,
     setEphemeralAccountEnabled,
     setMemberId,
     setInstallations,
@@ -154,23 +179,17 @@ export const InboxTools: React.FC = () => {
 
   useEffect(() => {
     if (!isValidInboxId(inboxId)) {
+      setInboxUpdatesCount(null);
       setInstallations([]);
       setSelectedInstallationIds([]);
     }
   }, [inboxId]);
 
   useEffect(() => {
+    setInboxUpdatesCount(null);
     setInstallations([]);
     setSelectedInstallationIds([]);
   }, [sdkEnv]);
-
-  useEffect(() => {
-    if (isConnected || ephemeralAccountEnabled) {
-      setActive(1);
-    } else {
-      setActive(0);
-    }
-  }, [isConnected, ephemeralAccountEnabled]);
 
   return (
     <>
@@ -213,14 +232,21 @@ export const InboxTools: React.FC = () => {
           </Stepper.Step>
           <Stepper.Step label="Manage installations" allowStepSelect={false}>
             <Stack gap="md" py="md">
-              <Group justify="space-between" align="center">
-                <ConnectedAddress
-                  size="sm"
-                  address={address ?? ephemeralAddress}
-                  onClick={handleDisconnectWallet}
-                />
-                <NetworkSelect />
-              </Group>
+              {address || ephemeralAddress ? (
+                <Group justify="space-between" align="center">
+                  <ConnectedAddress
+                    size="sm"
+                    address={address ?? ephemeralAddress}
+                    onClick={handleDisconnectWallet}
+                  />
+                  <NetworkSelect />
+                </Group>
+              ) : (
+                <Group justify="space-between" align="flex-start">
+                  <WalletConnect />
+                  <NetworkSelect />
+                </Group>
+              )}
               <Stack gap="xs" mb="md">
                 <Group justify="space-between" align="center">
                   <Text size="sm" pl={4}>
@@ -248,15 +274,31 @@ export const InboxTools: React.FC = () => {
                     }}>
                     Use wallet address
                   </Button>
-                  <Button
-                    disabled={!isValidInboxId(inboxId)}
-                    onClick={() => {
-                      void handleFindInstallations();
-                    }}>
-                    Find installations
-                  </Button>
+                  <Group gap="xs">
+                    <Button
+                      variant="default"
+                      disabled={!isValidInboxId(inboxId)}
+                      onClick={() => {
+                        void handleFetchInboxUpdatesCount();
+                      }}>
+                      Check updates count
+                    </Button>
+                    <Button
+                      disabled={!isValidInboxId(inboxId)}
+                      onClick={() => {
+                        void handleFindInstallations();
+                      }}>
+                      Find installations
+                    </Button>
+                  </Group>
                 </Group>
               </Stack>
+              <Title order={4}>Inbox updates count</Title>
+              <Text>
+                {inboxUpdatesCount === null
+                  ? "No count fetched"
+                  : inboxUpdatesCount.toString()}
+              </Text>
               <Title order={4}>Installations</Title>
               <Stack gap="md">
                 {installations.length === 0 && (
