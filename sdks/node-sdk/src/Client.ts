@@ -1,9 +1,11 @@
+import { randomBytes } from "node:crypto";
 import { type ContentCodec } from "@xmtp/content-type-primitives";
 import {
   applySignatureRequest,
   Backend,
   BackupElementSelectionOption,
   fetchInboxStatesByInboxIds,
+  IdentifierKind,
   isAddressAuthorized as isAddressAuthorizedBinding,
   isInstallationAuthorized as isInstallationAuthorizedBinding,
   revokeInstallationsSignatureRequest,
@@ -49,6 +51,21 @@ const resolveBackend = async (
     return envOrBackend;
   }
   return createBackend({ env: envOrBackend, gatewayHost });
+};
+
+const createEphemeralIdentifier = (): Identifier => ({
+  identifier: `0x${randomBytes(20).toString("hex")}`,
+  identifierKind: IdentifierKind.Ethereum,
+});
+
+const toInboxUpdatesCountMap = (
+  value: Map<string, number> | Record<string, number>,
+) => {
+  if (value instanceof Map) {
+    return value;
+  }
+
+  return new Map(Object.entries(value));
 };
 
 /**
@@ -709,6 +726,42 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
+   * Fetches the latest inbox updates count for the specified inbox IDs
+   *
+   * @param inboxIds - The inbox IDs to check
+   * @param refreshFromNetwork - Whether to refresh from the network
+   * @returns Map of inbox IDs to their updates count
+   * @throws {ClientNotInitializedError} if the client is not initialized
+   */
+  async fetchLatestInboxUpdatesCount(
+    inboxIds: string[],
+    _refreshFromNetwork = true,
+  ) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    const result = await this.#client.fetchInboxUpdatesCount(inboxIds, true);
+
+    return toInboxUpdatesCountMap(result);
+  }
+
+  /**
+   * Fetches the latest inbox updates count for the client's inbox
+   *
+   * @param refreshFromNetwork - Whether to refresh from the network
+   * @returns The latest inbox updates count
+   * @throws {ClientNotInitializedError} if the client is not initialized
+   */
+  async fetchOwnInboxUpdatesCount(_refreshFromNetwork = true) {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+
+    return this.#client.fetchOwnInboxUpdatesCount(true);
+  }
+
+  /**
    * Fetches the key package statuses from the network for the specified
    * installation IDs
    *
@@ -819,6 +872,59 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   ) {
     const backend = await resolveBackend(envOrBackend, gatewayHost);
     return fetchInboxStatesByInboxIds(backend, inboxIds);
+  }
+
+  /**
+   * Fetches the latest inbox updates count for the specified inbox IDs
+   * without a client
+   *
+   * @param inboxIds - The inbox IDs to check
+   * @param backend - Optional `Backend` instance created with `createBackend()`
+   * @param refreshFromNetwork - Whether to refresh from the network
+   * @returns Map of inbox IDs to their updates count
+   */
+  static async fetchLatestInboxUpdatesCount(
+    inboxIds: string[],
+    backendOrEnv?: Backend | XmtpEnv,
+    refreshFromNetwork?: boolean,
+  ): Promise<Map<string, number>>;
+  /**
+   * Fetches the latest inbox updates count for the specified inbox IDs
+   * without a client
+   *
+   * @param inboxIds - The inbox IDs to check
+   * @param env - The environment to use
+   * @param gatewayHost - Optional gateway host
+   * @param refreshFromNetwork - Whether to refresh from the network
+   * @returns Map of inbox IDs to their updates count
+   * @deprecated Pass a `Backend` instance created with `createBackend()` instead
+   * of `XmtpEnv` and `gatewayHost`.
+   */
+  static async fetchLatestInboxUpdatesCount(
+    inboxIds: string[],
+    env?: XmtpEnv,
+    gatewayHost?: string,
+    refreshFromNetwork?: boolean,
+  ): Promise<Map<string, number>>;
+  static async fetchLatestInboxUpdatesCount(
+    inboxIds: string[],
+    envOrBackend?: XmtpEnv | Backend,
+    gatewayHostOrRefresh?: string | boolean,
+    _refreshFromNetwork = true,
+  ) {
+    const gatewayHost =
+      typeof gatewayHostOrRefresh === "string"
+        ? gatewayHostOrRefresh
+        : undefined;
+    const backend = await resolveBackend(envOrBackend, gatewayHost);
+    const { client } = await createClient(createEphemeralIdentifier(), {
+      backend,
+      dbPath: null,
+      disableDeviceSync: true,
+    });
+    const result = await client.fetchInboxUpdatesCount(inboxIds, true);
+
+    return toInboxUpdatesCountMap(result);
   }
 
   /**
