@@ -22,6 +22,19 @@ type TestClientOptions = NetworkOptions &
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+export const waitFor = async (
+  condition: () => boolean,
+  { timeout = 2000, interval = 10 } = {},
+) => {
+  const start = Date.now();
+  while (!condition()) {
+    if (Date.now() - start > timeout) {
+      throw new Error(`waitFor timed out after ${timeout}ms`);
+    }
+    await sleep(interval);
+  }
+};
+
 export const createSigner = () => {
   const signer = createEOASigner();
   const identifier = signer.getIdentifier() as Identifier;
