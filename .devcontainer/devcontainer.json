@@ -1,0 +1,23 @@
+{
+  "name": "xmtp-js",
+  "build": {
+    "context": "..",
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false,
+      "dockerDashComposeVersion": "v2"
+    },
+    "ghcr.io/devcontainers-extra/features/graphite-cli:1": {}
+  },
+  "postCreateCommand": "corepack install && yarn install",
+  "containerEnv": {
+    "COREPACK_ENABLE_STRICT": "0"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+    }
+  }
+}
