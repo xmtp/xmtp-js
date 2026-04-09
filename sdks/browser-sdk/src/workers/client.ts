@@ -304,6 +304,21 @@ self.onmessage = async (
         postMessage({ id, action, result });
         break;
       }
+      case "client.fetchLatestInboxUpdatesCount": {
+        const result = await client.fetchLatestInboxUpdatesCount(
+          data.refreshFromNetwork,
+          data.inboxIds,
+        );
+        postMessage({ id, action, result });
+        break;
+      }
+      case "client.fetchOwnInboxUpdatesCount": {
+        const result = await client.fetchOwnInboxUpdatesCount(
+          data.refreshFromNetwork,
+        );
+        postMessage({ id, action, result });
+        break;
+      }
       case "client.getInboxIdByIdentifier": {
         const result = await client.getInboxIdByIdentifier(data.identifier);
         postMessage({ id, action, result });

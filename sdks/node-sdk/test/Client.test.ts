@@ -541,6 +541,43 @@ describe("Client", () => {
     ]);
   });
 
+  it("should get latest inbox updates count from inbox IDs without a client", async () => {
+    const { signer } = createSigner();
+    const client = await createRegisteredClient(signer);
+    const inboxUpdatesCounts = await Client.fetchLatestInboxUpdatesCount(
+      [client.inboxId],
+      "local",
+    );
+    expect(inboxUpdatesCounts.get(client.inboxId)).toBeTypeOf("number");
+
+    const freshInboxUpdatesCounts = await Client.fetchLatestInboxUpdatesCount(
+      [client.inboxId],
+      "local",
+      true,
+    );
+    expect(freshInboxUpdatesCounts.get(client.inboxId)).toBeTypeOf("number");
+  });
+
+  it("should get own inbox updates count from a client", async () => {
+    const { signer } = createSigner();
+    const client = await createRegisteredClient(signer);
+    const inboxUpdatesCounts = await client.fetchLatestInboxUpdatesCount([
+      client.inboxId,
+    ]);
+    const ownInboxUpdatesCount = await client.fetchOwnInboxUpdatesCount();
+    expect(inboxUpdatesCounts.get(client.inboxId)).toBe(ownInboxUpdatesCount);
+
+    const explicitFreshInboxUpdatesCounts =
+      await client.fetchLatestInboxUpdatesCount([client.inboxId], true);
+    expect(explicitFreshInboxUpdatesCounts.get(client.inboxId)).toBeTypeOf(
+      "number",
+    );
+
+    const explicitFreshOwnInboxUpdatesCount =
+      await client.fetchOwnInboxUpdatesCount(true);
+    expect(explicitFreshOwnInboxUpdatesCount).toBeTypeOf("number");
+  });
+
   it("should transfer an identifier to a new inbox", async () => {
     // original signer
     const { signer, identifier } = createSigner();

@@ -91,6 +91,22 @@ export class WorkerClient {
     >;
   }
 
+  async fetchLatestInboxUpdatesCount(
+    refreshFromNetwork: boolean,
+    inboxIds: string[],
+  ) {
+    const result = (await this.#client.fetchLatestInboxUpdatesCount(
+      refreshFromNetwork,
+      inboxIds,
+    )) as Map<string, number> | Record<string, number>;
+
+    return result instanceof Map ? Object.fromEntries(result) : result;
+  }
+
+  async fetchOwnInboxUpdatesCount(refreshFromNetwork: boolean) {
+    return this.#client.fetchOwnInboxUpdatesCount(refreshFromNetwork);
+  }
+
   async addSignature(
     signatureRequest: SignatureRequestHandle,
     signer: SafeSigner,
