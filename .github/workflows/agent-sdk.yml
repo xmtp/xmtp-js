@@ -58,8 +58,16 @@ jobs:
         run: yarn turbo run test --filter='./sdks/agent-sdk'
 
   build:
-    name: Build
-    runs-on: warp-ubuntu-latest-x64-8x
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: ubuntu
+            runner: warp-ubuntu-latest-x64-8x
+          - os: macos
+            runner: macos-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
