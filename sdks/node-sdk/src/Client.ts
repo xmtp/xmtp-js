@@ -508,7 +508,10 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     }
 
     await this.unsafe_addSignature(signatureRequest);
-    await this.#client?.registerIdentity(signatureRequest);
+    await this.#client?.registerIdentity(
+      signatureRequest,
+      this.#options?.waitForRegistrationVisible,
+    );
   }
 
   /**
