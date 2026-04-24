@@ -541,6 +541,29 @@ describe("Client", () => {
     ]);
   });
 
+  it("should get latest inbox updates count from inbox IDs without a client", async () => {
+    const { signer } = createSigner();
+    const client = await createRegisteredClient(signer);
+    const inboxUpdatesCounts = await Client.fetchLatestInboxUpdatesCount(
+      [client.inboxId],
+      "local",
+    );
+    expect(inboxUpdatesCounts.get(client.inboxId)).toBeTypeOf("number");
+  });
+
+  it("should get own inbox updates count from a client", async () => {
+    const { signer } = createSigner();
+    const client = await createRegisteredClient(signer);
+    const inboxUpdatesCounts = await client.fetchLatestInboxUpdatesCount([
+      client.inboxId,
+    ]);
+    const ownInboxUpdatesCount = await client.fetchOwnInboxUpdatesCount();
+    expect(inboxUpdatesCounts.get(client.inboxId)).toBe(ownInboxUpdatesCount);
+
+    expect(inboxUpdatesCounts.get(client.inboxId)).toBeTypeOf("number");
+    expect(ownInboxUpdatesCount).toBeTypeOf("number");
+  });
+
   it("should transfer an identifier to a new inbox", async () => {
     // original signer
     const { signer, identifier } = createSigner();

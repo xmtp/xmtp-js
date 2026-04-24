@@ -2,6 +2,7 @@ import { type ContentCodec } from "@xmtp/content-type-primitives";
 import {
   Backend,
   BackupElementSelectionOption,
+  IdentifierKind,
   LogLevel,
   type ArchiveMetadata,
   type ArchiveOptions,
@@ -22,6 +23,7 @@ import type {
   XmtpEnv,
 } from "@/types/options";
 import { createBackend } from "@/utils/createBackend";
+import { createClient as createLowLevelClient } from "@/utils/createClient";
 import {
   AccountAlreadyAssociatedError,
   InboxReassignError,
@@ -49,6 +51,28 @@ const resolveBackend = async (
     return envOrBackend;
   }
   return createBackend({ env: envOrBackend, gatewayHost });
+};
+
+const createEphemeralIdentifier = (): Identifier => {
+  const bytes = new Uint8Array(20);
+  globalThis.crypto.getRandomValues(bytes);
+
+  return {
+    identifier: `0x${Array.from(bytes, (byte) =>
+      byte.toString(16).padStart(2, "0"),
+    ).join("")}`,
+    identifierKind: IdentifierKind.Ethereum,
+  };
+};
+
+const toInboxUpdatesCountMap = (
+  value: Map<string, number> | Record<string, number>,
+) => {
+  if (value instanceof Map) {
+    return value;
+  }
+
+  return new Map(Object.entries(value));
 };
 
 /**
@@ -720,6 +744,32 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
+   * Fetches the latest inbox updates count for the specified inbox IDs
+   *
+   * @param inboxIds - The inbox IDs to check
+   * @returns Map of inbox IDs to their updates count
+   */
+  async fetchLatestInboxUpdatesCount(inboxIds: string[]) {
+    const result = await this.#worker.action(
+      "client.fetchLatestInboxUpdatesCount",
+      {
+        inboxIds,
+      },
+    );
+
+    return toInboxUpdatesCountMap(result);
+  }
+
+  /**
+   * Fetches the latest inbox updates count for the client's inbox
+   *
+   * @returns The latest inbox updates count
+   */
+  async fetchOwnInboxUpdatesCount() {
+    return this.#worker.action("client.fetchOwnInboxUpdatesCount", {});
+  }
+
+  /**
    * Checks if the specified identifiers can be messaged
    *
    * @param identifiers - The identifiers to check
@@ -759,6 +809,60 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       );
     }
     return canMessageMap;
+  }
+
+  /**
+   * Fetches the latest inbox updates count for the specified inbox IDs
+   * without a client
+   *
+   * @param inboxIds - The inbox IDs to check
+   * @param backend - Optional `Backend` instance created with `createBackend()`
+   * @returns Map of inbox IDs to their updates count
+   */
+  static async fetchLatestInboxUpdatesCount(
+    inboxIds: string[],
+    backendOrEnv?: Backend | XmtpEnv,
+  ): Promise<Map<string, number>>;
+  /**
+   * Fetches the latest inbox updates count for the specified inbox IDs
+   * without a client
+   *
+   * @param inboxIds - The inbox IDs to check
+   * @param env - Optional XMTP environment
+   * @param gatewayHost - Optional gateway host
+   * @returns Map of inbox IDs to their updates count
+   * @deprecated Pass a `Backend` instance created with `createBackend()` instead
+   * of `XmtpEnv` and `gatewayHost`.
+   */
+  static async fetchLatestInboxUpdatesCount(
+    inboxIds: string[],
+    env?: XmtpEnv,
+    gatewayHost?: string,
+  ): Promise<Map<string, number>>;
+  static async fetchLatestInboxUpdatesCount(
+    inboxIds: string[],
+    envOrBackend?: XmtpEnv | Backend,
+    gatewayHost?: string,
+  ) {
+    const backend = await resolveBackend(envOrBackend, gatewayHost);
+    const { client } = await createLowLevelClient(createEphemeralIdentifier(), {
+      backend,
+      dbPath: null,
+      disableDeviceSync: true,
+    });
+    // The wasm-bindings Client holds WASM-linear-memory allocations that are
+    // not reclaimed by the JS GC. Free the ephemeral client in finally so the
+    // allocation is released even if the fetch rejects.
+    try {
+      const result = (await client.fetchLatestInboxUpdatesCount(
+        true,
+        inboxIds,
+      )) as Record<string, number> | Map<string, number>;
+
+      return toInboxUpdatesCountMap(result);
+    } finally {
+      client.free();
+    }
   }
 
   /**

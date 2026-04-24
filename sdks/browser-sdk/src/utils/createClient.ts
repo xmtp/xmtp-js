@@ -9,6 +9,12 @@ import {
 import type { ClientOptions, NetworkOptions } from "@/types/options";
 import { createBackend, envToString } from "@/utils/createBackend";
 
+type CreateClientOptions = ClientOptions extends infer T
+  ? T extends ClientOptions
+    ? Omit<T, "codecs">
+    : never
+  : never;
+
 const networkOptionKeys = [
   "env",
   "apiUrl",
@@ -21,7 +27,7 @@ const hasBackend = (options: object): options is { backend: Backend } => {
 };
 
 const resolveBackend = async (
-  options?: Omit<ClientOptions, "codecs">,
+  options?: CreateClientOptions,
 ): Promise<Backend> => {
   if (!options) {
     return createBackend();
@@ -48,7 +54,7 @@ const resolveBackend = async (
 
 export const createClient = async (
   identifier: Identifier,
-  options?: Omit<ClientOptions, "codecs">,
+  options?: CreateClientOptions,
 ) => {
   const backend = await resolveBackend(options);
 
