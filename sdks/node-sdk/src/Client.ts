@@ -903,6 +903,11 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     gatewayHost?: string,
   ) {
     const backend = await resolveBackend(envOrBackend, gatewayHost);
+    // The node-bindings Client is a napi-rs class with no explicit close/free
+    // method. Release is non-deterministic: once this reference goes out of
+    // scope, JS GC will eventually invoke the Rust Drop impl and reclaim the
+    // underlying resources. If this becomes a bottleneck, switch to an
+    // explicit disposal API if/when the bindings expose one.
     const { client } = await createClient(createEphemeralIdentifier(), {
       backend,
       dbPath: null,

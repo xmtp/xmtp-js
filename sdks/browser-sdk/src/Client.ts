@@ -850,12 +850,19 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
       dbPath: null,
       disableDeviceSync: true,
     });
-    const result = (await client.fetchLatestInboxUpdatesCount(
-      true,
-      inboxIds,
-    )) as Record<string, number> | Map<string, number>;
+    // The wasm-bindings Client holds WASM-linear-memory allocations that are
+    // not reclaimed by the JS GC. Free the ephemeral client in finally so the
+    // allocation is released even if the fetch rejects.
+    try {
+      const result = (await client.fetchLatestInboxUpdatesCount(
+        true,
+        inboxIds,
+      )) as Record<string, number> | Map<string, number>;
 
-    return toInboxUpdatesCountMap(result);
+      return toInboxUpdatesCountMap(result);
+    } finally {
+      client.free();
+    }
   }
 
   /**
