@@ -204,7 +204,7 @@ export const InboxTools: React.FC = () => {
         }
         footer={
           <Group justify="flex-end" p="md" flex={1}>
-            {!(address || ephemeralAddress) && (
+            {!(address || ephemeralAccountEnabled) && (
               <Text size="sm" c="dimmed">
                 Wallet connection required
               </Text>
@@ -232,7 +232,7 @@ export const InboxTools: React.FC = () => {
           </Stepper.Step>
           <Stepper.Step label="Manage installations" allowStepSelect={false}>
             <Stack gap="md" py="md">
-              {address || ephemeralAddress ? (
+              {address || ephemeralAccountEnabled ? (
                 <Group justify="space-between" align="center">
                   <ConnectedAddress
                     size="sm"
