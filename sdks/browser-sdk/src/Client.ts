@@ -747,18 +747,13 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * Fetches the latest inbox updates count for the specified inbox IDs
    *
    * @param inboxIds - The inbox IDs to check
-   * @param refreshFromNetwork - Whether to refresh from the network
    * @returns Map of inbox IDs to their updates count
    */
-  async fetchLatestInboxUpdatesCount(
-    inboxIds: string[],
-    _refreshFromNetwork = true,
-  ) {
+  async fetchLatestInboxUpdatesCount(inboxIds: string[]) {
     const result = await this.#worker.action(
       "client.fetchLatestInboxUpdatesCount",
       {
         inboxIds,
-        refreshFromNetwork: true,
       },
     );
 
@@ -768,13 +763,10 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   /**
    * Fetches the latest inbox updates count for the client's inbox
    *
-   * @param refreshFromNetwork - Whether to refresh from the network
    * @returns The latest inbox updates count
    */
-  async fetchOwnInboxUpdatesCount(_refreshFromNetwork = true) {
-    return this.#worker.action("client.fetchOwnInboxUpdatesCount", {
-      refreshFromNetwork: true,
-    });
+  async fetchOwnInboxUpdatesCount() {
+    return this.#worker.action("client.fetchOwnInboxUpdatesCount", {});
   }
 
   /**
@@ -825,13 +817,11 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    *
    * @param inboxIds - The inbox IDs to check
    * @param backend - Optional `Backend` instance created with `createBackend()`
-   * @param refreshFromNetwork - Whether to refresh from the network
    * @returns Map of inbox IDs to their updates count
    */
   static async fetchLatestInboxUpdatesCount(
     inboxIds: string[],
     backendOrEnv?: Backend | XmtpEnv,
-    refreshFromNetwork?: boolean,
   ): Promise<Map<string, number>>;
   /**
    * Fetches the latest inbox updates count for the specified inbox IDs
@@ -840,7 +830,6 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
    * @param inboxIds - The inbox IDs to check
    * @param env - Optional XMTP environment
    * @param gatewayHost - Optional gateway host
-   * @param refreshFromNetwork - Whether to refresh from the network
    * @returns Map of inbox IDs to their updates count
    * @deprecated Pass a `Backend` instance created with `createBackend()` instead
    * of `XmtpEnv` and `gatewayHost`.
@@ -849,18 +838,12 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
     inboxIds: string[],
     env?: XmtpEnv,
     gatewayHost?: string,
-    refreshFromNetwork?: boolean,
   ): Promise<Map<string, number>>;
   static async fetchLatestInboxUpdatesCount(
     inboxIds: string[],
     envOrBackend?: XmtpEnv | Backend,
-    gatewayHostOrRefresh?: string | boolean,
-    _refreshFromNetwork = true,
+    gatewayHost?: string,
   ) {
-    const gatewayHost =
-      typeof gatewayHostOrRefresh === "string"
-        ? gatewayHostOrRefresh
-        : undefined;
     const backend = await resolveBackend(envOrBackend, gatewayHost);
     const { client } = await createLowLevelClient(createEphemeralIdentifier(), {
       backend,

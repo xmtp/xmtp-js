@@ -187,16 +187,13 @@ export type ClientAction =
       result: Record<string, number>;
       data: {
         inboxIds: string[];
-        refreshFromNetwork: boolean;
       };
     }
   | {
       action: "client.fetchOwnInboxUpdatesCount";
       id: string;
       result: number;
-      data: {
-        refreshFromNetwork: boolean;
-      };
+      data: Record<string, never>;
     }
   | {
       action: "client.getInboxIdByIdentifier";

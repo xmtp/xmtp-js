@@ -549,13 +549,6 @@ describe("Client", () => {
       "local",
     );
     expect(inboxUpdatesCounts.get(client.inboxId)).toBeTypeOf("number");
-
-    const freshInboxUpdatesCounts = await Client.fetchLatestInboxUpdatesCount(
-      [client.inboxId],
-      "local",
-      true,
-    );
-    expect(freshInboxUpdatesCounts.get(client.inboxId)).toBeTypeOf("number");
   });
 
   it("should get own inbox updates count from a client", async () => {
@@ -567,15 +560,8 @@ describe("Client", () => {
     const ownInboxUpdatesCount = await client.fetchOwnInboxUpdatesCount();
     expect(inboxUpdatesCounts.get(client.inboxId)).toBe(ownInboxUpdatesCount);
 
-    const explicitFreshInboxUpdatesCounts =
-      await client.fetchLatestInboxUpdatesCount([client.inboxId], true);
-    expect(explicitFreshInboxUpdatesCounts.get(client.inboxId)).toBeTypeOf(
-      "number",
-    );
-
-    const explicitFreshOwnInboxUpdatesCount =
-      await client.fetchOwnInboxUpdatesCount(true);
-    expect(explicitFreshOwnInboxUpdatesCount).toBeTypeOf("number");
+    expect(inboxUpdatesCounts.get(client.inboxId)).toBeTypeOf("number");
+    expect(ownInboxUpdatesCount).toBeTypeOf("number");
   });
 
   it("should transfer an identifier to a new inbox", async () => {

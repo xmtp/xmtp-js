@@ -94,20 +94,17 @@ export class WorkerClient {
     >;
   }
 
-  async fetchLatestInboxUpdatesCount(
-    refreshFromNetwork: boolean,
-    inboxIds: string[],
-  ) {
+  async fetchLatestInboxUpdatesCount(inboxIds: string[]) {
     const result = (await this.#client.fetchLatestInboxUpdatesCount(
-      refreshFromNetwork,
+      true,
       inboxIds,
     )) as Map<string, number> | Record<string, number>;
 
     return result instanceof Map ? Object.fromEntries(result) : result;
   }
 
-  async fetchOwnInboxUpdatesCount(refreshFromNetwork: boolean) {
-    return this.#client.fetchOwnInboxUpdatesCount(refreshFromNetwork);
+  async fetchOwnInboxUpdatesCount() {
+    return this.#client.fetchOwnInboxUpdatesCount(true);
   }
 
   async addSignature(
