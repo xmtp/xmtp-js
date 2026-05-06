@@ -6533,7 +6533,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:6.0.0"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6552,7 +6552,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:6.0.0"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6571,7 +6571,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:6.0.0"
     "@xmtp/proto": "npm:3.78.0"
     "@xmtp/rollup-plugin-resolve-extensions": "npm:^1.0.1"
     rimraf: "npm:^6.1.2"
@@ -6593,7 +6593,7 @@ __metadata:
     "@xmtp/content-type-primitives": "npm:^2.0.2"
     "@xmtp/content-type-remote-attachment": "workspace:^"
     "@xmtp/content-type-text": "workspace:^"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:6.0.0"
     "@xmtp/proto": "npm:3.78.0"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
@@ -6629,7 +6629,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:6.0.0"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6647,7 +6647,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
     "@xmtp/content-type-primitives": "npm:^2.0.2"
-    "@xmtp/node-sdk": "workspace:^"
+    "@xmtp/node-sdk": "npm:6.0.0"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6656,6 +6656,13 @@ __metadata:
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
+
+"@xmtp/node-bindings@npm:1.10.0":
+  version: 1.10.0
+  resolution: "@xmtp/node-bindings@npm:1.10.0"
+  checksum: 10/63ab1b66c0f837f030d12a7c6ead06ee68cdf48cca091aaea35614d6d61fd6b86d11562dc553444de4641f0b970098a74b0f01c9501dd64160c9f975b6dec601
+  languageName: node
+  linkType: hard
 
 "@xmtp/node-bindings@npm:1.10.0-dev.ae5ffba":
   version: 1.10.0-dev.ae5ffba
@@ -6668,6 +6675,16 @@ __metadata:
   version: 1.8.0
   resolution: "@xmtp/node-bindings@npm:1.8.0"
   checksum: 10/bd9678d21f5e2ab12350ad12f500d2e7d9b4b7c479e38d4ddc45c5691d226460b2aa024c1eed21934d63ea600103dd0e267d04a4b25972b6c7cb68bc2045a892
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-sdk@npm:6.0.0":
+  version: 6.0.0
+  resolution: "@xmtp/node-sdk@npm:6.0.0"
+  dependencies:
+    "@xmtp/content-type-primitives": "npm:3.0.0"
+    "@xmtp/node-bindings": "npm:1.10.0"
+  checksum: 10/937e082c75ff6937d256fcc7be828e358b5aeb6a0569ae07b9f160d653f4149567c5f8addaf00061252e6021e67d8c5cdf5d726aed0cfb330d5b2a1ae15b5a32
   languageName: node
   linkType: hard
 
