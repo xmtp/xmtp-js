@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-reply",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "An XMTP content type to support replying to a message",
   "keywords": [
     "xmtp",
@@ -72,7 +72,7 @@
     "@types/node": "^24.10.9",
     "@xmtp/content-type-remote-attachment": "workspace:^",
     "@xmtp/content-type-text": "workspace:^",
-    "@xmtp/node-sdk": "4.6.0",
+    "@xmtp/node-sdk": "6.0.1",
     "rimraf": "^6.1.2",
     "rollup": "^4.59.0",
     "rollup-plugin-dts": "^6.3.0",

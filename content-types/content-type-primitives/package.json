@@ -1,6 +1,6 @@
 {
   "name": "@xmtp/content-type-primitives",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Primitives for building custom XMTP content types",
   "keywords": [
     "xmtp",
@@ -61,13 +61,11 @@
       "last 3 safari versions"
     ]
   },
-  "dependencies": {
-    "@xmtp/node-bindings": "1.10.0-dev.ae5ffba"
-  },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/node": "^24.10.9",
+    "@xmtp/node-bindings": "1.10.0-dev.ae5ffba",
     "rimraf": "^6.1.2",
     "rollup": "^4.59.0",
     "rollup-plugin-dts": "^6.3.0",
