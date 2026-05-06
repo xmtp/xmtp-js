@@ -6386,7 +6386,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
     "@vitest/coverage-v8": "npm:^4.0.18"
-    "@xmtp/content-type-primitives": "npm:3.0.2"
+    "@xmtp/content-type-primitives": "npm:3.0.1"
     "@xmtp/node-sdk": "workspace:^"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6499,7 +6499,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/content-type-primitives@npm:3.0.2, @xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
+"@xmtp/content-type-primitives@npm:3.0.1":
+  version: 3.0.1
+  resolution: "@xmtp/content-type-primitives@npm:3.0.1"
+  dependencies:
+    "@xmtp/node-bindings": "npm:1.9.1"
+  checksum: 10/6d505df0a36f66c42ca699bda3b1599eb2128f003cfb27ee90e2e30636f49b2532a2e93b7a587ac83d9c1502c2cb88cb2e179ae5b877bc1a083e8d2c487ee86a
+  languageName: node
+  linkType: hard
+
+"@xmtp/content-type-primitives@npm:^2.0.2":
+  version: 2.0.3
+  resolution: "@xmtp/content-type-primitives@npm:2.0.3"
+  dependencies:
+    "@xmtp/proto": "npm:3.78.0"
+  checksum: 10/effd1a6790acb01093a497ac55f34281e3f60b75f7289375da2abb0cd764f791fb58a040a00b40a125b857e4174e985bb92d83454d0de78c52a4e711cece9f1e
+  languageName: node
+  linkType: hard
+
+"@xmtp/content-type-primitives@workspace:^, @xmtp/content-type-primitives@workspace:content-types/content-type-primitives":
   version: 0.0.0-use.local
   resolution: "@xmtp/content-type-primitives@workspace:content-types/content-type-primitives"
   dependencies:
@@ -6515,15 +6533,6 @@ __metadata:
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
-
-"@xmtp/content-type-primitives@npm:^2.0.2":
-  version: 2.0.3
-  resolution: "@xmtp/content-type-primitives@npm:2.0.3"
-  dependencies:
-    "@xmtp/proto": "npm:3.78.0"
-  checksum: 10/effd1a6790acb01093a497ac55f34281e3f60b75f7289375da2abb0cd764f791fb58a040a00b40a125b857e4174e985bb92d83454d0de78c52a4e711cece9f1e
-  languageName: node
-  linkType: hard
 
 "@xmtp/content-type-reaction@workspace:content-types/content-type-reaction":
   version: 0.0.0-use.local
@@ -6675,6 +6684,13 @@ __metadata:
   version: 1.8.0
   resolution: "@xmtp/node-bindings@npm:1.8.0"
   checksum: 10/bd9678d21f5e2ab12350ad12f500d2e7d9b4b7c479e38d4ddc45c5691d226460b2aa024c1eed21934d63ea600103dd0e267d04a4b25972b6c7cb68bc2045a892
+  languageName: node
+  linkType: hard
+
+"@xmtp/node-bindings@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@xmtp/node-bindings@npm:1.9.1"
+  checksum: 10/2393a08c5a8d0bc6a3c18ff7d83010cc0d26fc4a9b3774541f209764e0f0e7201a33c9c5abbca495beaf63e2fd00852c0c05fa150025e524f072957daf06a9b0
   languageName: node
   linkType: hard
 

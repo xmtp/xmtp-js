@@ -67,7 +67,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xmtp/content-type-primitives": "3.0.2",
+    "@xmtp/content-type-primitives": "3.0.1",
     "@xmtp/node-sdk": "workspace:^",
     "ts-retry-promise": "^0.8.1",
     "viem": "^2.37.6"
