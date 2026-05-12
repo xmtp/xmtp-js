@@ -1,5 +1,6 @@
 import {
   contentTypeReaction,
+  contentTypeRemoteAttachment,
   contentTypeReply,
   contentTypeText,
   DeliveryStatus,
@@ -9,10 +10,11 @@ import {
   type DecodedMessage,
   type EnrichedReply,
   type Reaction,
+  type RemoteAttachment,
 } from "@xmtp/browser-sdk";
 import { type ContentTypeId } from "@xmtp/content-type-primitives";
 import { describe, expect, it } from "vitest";
-import { stringify } from "./messages";
+import { isActionable, isRemoteAttachment, stringify } from "./messages";
 
 const createDecodedMessage = <T>(
   content: T,
@@ -96,5 +98,27 @@ describe("stringify", () => {
       fallback,
     );
     expect(stringify(decodedMessage)).toBe(fallback);
+  });
+});
+
+describe("isRemoteAttachment", () => {
+  it("recognizes remote static attachment messages", async () => {
+    const content: RemoteAttachment = {
+      contentDigest: "digest",
+      contentLength: 42,
+      filename: "image.png",
+      nonce: new Uint8Array([1]),
+      salt: new Uint8Array([2]),
+      secret: new Uint8Array([3]),
+      scheme: "https://",
+      url: "https://example.com/image.png",
+    };
+    const decodedMessage = createDecodedMessage(
+      content,
+      await contentTypeRemoteAttachment(),
+    );
+
+    expect(isRemoteAttachment(decodedMessage)).toBe(true);
+    expect(isActionable(decodedMessage)).toBe(true);
   });
 });
