@@ -292,13 +292,12 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
         // member updates
         if (conversation) {
           const isActive = await conversation.isActive();
-          // ensure group is active before syncing
           if (isActive) {
             await conversation.sync();
+            const members = await conversation.members();
+            const updatedMembers = new Map(members.map((m) => [m.inboxId, m]));
+            newMembers.set(message.conversationId, updatedMembers);
           }
-          const members = await conversation.members();
-          const updatedMembers = new Map(members.map((m) => [m.inboxId, m]));
-          newMembers.set(message.conversationId, updatedMembers);
         }
 
         // update metadata state
@@ -374,13 +373,14 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
           const conversation = state.conversations.get(message.conversationId);
           if (conversation) {
             const isActive = await conversation.isActive();
-            // ensure group is active before syncing
             if (isActive) {
               await conversation.sync();
+              const members = await conversation.members();
+              const updatedMembers = new Map(
+                members.map((m) => [m.inboxId, m]),
+              );
+              newMembers.set(message.conversationId, updatedMembers);
             }
-            const members = await conversation.members();
-            const updatedMembers = new Map(members.map((m) => [m.inboxId, m]));
-            newMembers.set(message.conversationId, updatedMembers);
           }
 
           // metadata updates
