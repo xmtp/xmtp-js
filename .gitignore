@@ -75,3 +75,11 @@ sdks/js-sdk/bench/results
 # local database files
 **/*.db3*
 
+.direnv
+.direnv/**
+**/.direnv/**
+result
+result/**
+result-*
+result-*/**
+**/result-*/**
