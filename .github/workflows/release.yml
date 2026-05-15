@@ -153,3 +153,204 @@ jobs:
       - name: Publish
         working-directory: ./sdks/${{ inputs.prerelease_sdk }}
         run: npm publish --tag ${{ inputs.prerelease_tag }}
+
+  auto-prerelease-bindings:
+    name: Auto Prerelease (Bindings) — detect
+    # NOTE: github.actor on push events is the user who merged the PR, not the
+    # commit author. We filter on head_commit.author.name so a human-merged
+    # Renovate PR still triggers publish. Confirmed against this repo's
+    # existing Dependabot squash-merges (which preserve bot authorship).
+    if: >
+      github.event_name == 'push' &&
+      github.event.head_commit.author.name == 'renovate[bot]' &&
+      contains(github.event.head_commit.message, 'xmtp bindings')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.detect.outputs.changed }}
+      sdks: ${{ steps.detect.outputs.sdks }}
+      node_bindings: ${{ steps.detect.outputs.node_bindings }}
+      wasm_bindings: ${{ steps.detect.outputs.wasm_bindings }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Detect bindings bump
+        id: detect
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const cp = require('child_process');
+            const VERSION_RE = /^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$/;
+
+            const readDep = (rev, path, key) => {
+              try {
+                const json = rev === 'HEAD'
+                  ? fs.readFileSync(path, 'utf8')
+                  : cp.execFileSync('git', ['show', `${rev}:${path}`], { encoding: 'utf8' });
+                return JSON.parse(json).dependencies?.[key] ?? '';
+              } catch {
+                return '';
+              }
+            };
+
+            const diff = (path, key) => {
+              const before = readDep('HEAD^', path, key);
+              const after  = readDep('HEAD',  path, key);
+              if (before === after || !after) return '';
+              if (!VERSION_RE.test(after)) {
+                core.setFailed(`malformed version '${after}' for ${key} in ${path}`);
+                throw new Error('halt');
+              }
+              return after;
+            };
+
+            const nodeBindings = diff('sdks/node-sdk/package.json', '@xmtp/node-bindings');
+            if (nodeBindings) {
+              // primitives must also bump to the same version; missing or
+              // mismatched is an inconsistent partial bump.
+              const primitives = diff('content-types/content-type-primitives/package.json', '@xmtp/node-bindings');
+              if (primitives !== nodeBindings) {
+                core.setFailed(`node-bindings version mismatch: node-sdk=${nodeBindings}, primitives=${primitives || '<unchanged>'}`);
+                throw new Error('halt');
+              }
+            }
+            const wasmBindings = diff('sdks/browser-sdk/package.json', '@xmtp/wasm-bindings');
+
+            const sdks = [
+              ...(nodeBindings ? ['node-sdk'] : []),
+              ...(wasmBindings ? ['browser-sdk'] : []),
+            ];
+            core.setOutput('changed', sdks.length > 0 ? 'true' : 'false');
+            core.setOutput('node_bindings', nodeBindings);
+            core.setOutput('wasm_bindings', wasmBindings);
+            core.setOutput('sdks', JSON.stringify(sdks));
+      - name: Summary
+        run: |
+          {
+            echo "### Bindings detection"
+            echo "- changed: ${{ steps.detect.outputs.changed }}"
+            echo "- node_bindings: ${{ steps.detect.outputs.node_bindings }}"
+            echo "- wasm_bindings: ${{ steps.detect.outputs.wasm_bindings }}"
+            echo "- sdks: ${{ steps.detect.outputs.sdks }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  auto-prerelease-publish:
+    name: Auto Prerelease (Bindings) — publish ${{ matrix.sdk }}
+    needs: auto-prerelease-bindings
+    if: needs.auto-prerelease-bindings.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: ${{ fromJSON(needs.auto-prerelease-bindings.outputs.sdks) }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ".node-version"
+          cache: "yarn"
+        env:
+          SKIP_YARN_COREPACK_CHECK: "1"
+      - name: Enable corepack
+        run: corepack enable
+      - name: Update npm to latest
+        run: npm install -g npm@latest
+      - name: Install dependencies
+        run: yarn
+      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
+        run: npm audit signatures
+
+      - name: Compute SDK version
+        id: version
+        uses: actions/github-script@v8
+        env:
+          SDK: ${{ matrix.sdk }}
+          NODE_BINDINGS: ${{ needs.auto-prerelease-bindings.outputs.node_bindings }}
+          WASM_BINDINGS: ${{ needs.auto-prerelease-bindings.outputs.wasm_bindings }}
+        with:
+          script: |
+            const fs = require('fs');
+            const VERSION_RE = /^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$/;
+
+            const sdk = process.env.SDK;
+            const bindings = sdk === 'node-sdk' ? process.env.NODE_BINDINGS : process.env.WASM_BINDINGS;
+            if (!bindings) {
+              core.info(`No bindings version for ${sdk}; skipping.`);
+              core.setOutput('sdk_version', '');
+              return;
+            }
+            const dash = bindings.indexOf('-');
+            if (dash < 0) {
+              core.info(`Bindings ${bindings} is stable; skipping publish.`);
+              core.setOutput('sdk_version', '');
+              return;
+            }
+
+            const pkgPath = `sdks/${sdk}/package.json`;
+            let pkg;
+            try {
+              pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+            } catch (err) {
+              core.setFailed(`could not read ${pkgPath}: ${err.message}`);
+              return;
+            }
+            const sdkBase = (pkg.version || '').split('-')[0];
+            if (!sdkBase) {
+              core.setFailed(`could not read .version from ${pkgPath}`);
+              return;
+            }
+            const sdkVersion = `${sdkBase}-${bindings.slice(dash + 1)}`;
+            if (!VERSION_RE.test(sdkVersion)) {
+              core.setFailed(`computed sdk_version '${sdkVersion}' is malformed`);
+              return;
+            }
+            core.setOutput('sdk_version', sdkVersion);
+
+      - if: steps.version.outputs.sdk_version != ''
+        run: yarn lint
+      - if: steps.version.outputs.sdk_version != ''
+        run: yarn typecheck
+      - if: steps.version.outputs.sdk_version != ''
+        run: ./dev/up
+      - if: steps.version.outputs.sdk_version != ''
+        run: sleep 5s
+      - if: steps.version.outputs.sdk_version != ''
+        working-directory: ./sdks/${{ matrix.sdk }}
+        run: yarn test
+      - if: steps.version.outputs.sdk_version != ''
+        working-directory: ./sdks/${{ matrix.sdk }}
+        run: yarn version ${{ steps.version.outputs.sdk_version }}
+      - if: steps.version.outputs.sdk_version != ''
+        working-directory: ./sdks/${{ matrix.sdk }}
+        run: yarn build
+      - if: steps.version.outputs.sdk_version != ''
+        working-directory: ./sdks/${{ matrix.sdk }}
+        # Auth is inherited from the workflow environment (OIDC via
+        # id-token: write, matching the existing prerelease job's pattern).
+        # If npm auth needs an explicit token in the future, set
+        # NODE_AUTH_TOKEN here and add registry-url to setup-node above.
+        run: npm publish --tag dev
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Nightly Publish (${{ matrix.sdk }})"
+            if [[ -z "${{ steps.version.outputs.sdk_version }}" ]]; then
+              echo "- **Skipped**: bindings version was stable, not a nightly"
+            else
+              echo "- **SDK**: @xmtp/${{ matrix.sdk }}"
+              echo "- **Version**: ${{ steps.version.outputs.sdk_version }}"
+              echo "- **Tag**: dev"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
