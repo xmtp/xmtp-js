@@ -12,7 +12,7 @@
       "groupName": "xmtp bindings",
       "groupSlug": "xmtp-bindings",
       "commitMessageTopic": "xmtp bindings",
-      "followTag": "dev",
+      "followTag": "nightly",
       "respectLatest": false,
       "automerge": false,
       "rangeStrategy": "pin"
