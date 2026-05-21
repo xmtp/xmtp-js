@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["npm"],
+  "dependencyDashboard": true,
+  "labels": ["dependencies", "bindings", "renovate"],
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 1,
+  "packageRules": [
+    {
+      "matchPackageNames": ["@xmtp/node-bindings", "@xmtp/wasm-bindings"],
+      "groupName": "xmtp bindings",
+      "groupSlug": "xmtp-bindings",
+      "commitMessageTopic": "xmtp bindings",
+      "followTag": "dev",
+      "respectLatest": false,
+      "automerge": false,
+      "rangeStrategy": "pin"
+    },
+    {
+      "matchPackageNames": [
+        "*",
+        "!@xmtp/node-bindings",
+        "!@xmtp/wasm-bindings"
+      ],
+      "enabled": false
+    }
+  ]
+}
