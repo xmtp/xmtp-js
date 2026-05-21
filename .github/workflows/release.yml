@@ -339,7 +339,7 @@ jobs:
         # id-token: write, matching the existing prerelease job's pattern).
         # If npm auth needs an explicit token in the future, set
         # NODE_AUTH_TOKEN here and add registry-url to setup-node above.
-        run: npm publish --tag dev
+        run: npm publish --tag nightly
 
       - name: Summary
         if: always()
@@ -351,6 +351,6 @@ jobs:
             else
               echo "- **SDK**: @xmtp/${{ matrix.sdk }}"
               echo "- **Version**: ${{ steps.version.outputs.sdk_version }}"
-              echo "- **Tag**: dev"
+              echo "- **Tag**: nightly"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
