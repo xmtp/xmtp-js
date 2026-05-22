@@ -61,7 +61,7 @@
   },
   "dependencies": {
     "@xmtp/content-type-primitives": "3.0.0",
-    "@xmtp/wasm-bindings": "1.10.0-nightly.20260515.55ad124"
+    "@xmtp/wasm-bindings": "1.11.0-nightly.20260522.3d3b1e2"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
