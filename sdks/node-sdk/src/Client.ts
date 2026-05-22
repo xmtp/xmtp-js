@@ -297,6 +297,25 @@ export class Client<ContentTypes = ExtractCodecContentTypes> {
   }
 
   /**
+   * Cleanly shuts down the client: cancels in-flight workers and detached
+   * streams, then releases the database connection.
+   *
+   * This is idempotent — calling it more than once resolves without error.
+   * Await this before deleting the database file or dropping the client
+   * reference to avoid log noise from background tasks running against a
+   * closed database.
+   *
+   * @throws {ClientNotInitializedError} if the client is not initialized
+   * @returns Promise that resolves when the client has shut down
+   */
+  async close() {
+    if (!this.#client) {
+      throw new ClientNotInitializedError();
+    }
+    return this.#client.close();
+  }
+
+  /**
    * Adds a signature to a signature request using the client's signer (or the
    * provided signer)
    *
