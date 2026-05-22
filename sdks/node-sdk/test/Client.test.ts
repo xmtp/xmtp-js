@@ -499,6 +499,9 @@ describe("Client", () => {
     await expect(async () =>
       client.fetchInboxIdByIdentifier(createIdentifier(createUser())),
     ).rejects.toThrow(new ClientNotInitializedError());
+    await expect(async () => client.close()).rejects.toThrow(
+      new ClientNotInitializedError(),
+    );
     expect(() => client.signWithInstallationKey("gm1")).toThrow(
       new ClientNotInitializedError(),
     );
@@ -515,6 +518,14 @@ describe("Client", () => {
       new ClientNotInitializedError(),
     );
     expect(() => client.isRegistered).toThrow(new ClientNotInitializedError());
+  });
+
+  it("should close the client idempotently", async () => {
+    const { signer } = createSigner();
+    const client = await createClient(signer);
+    await client.close();
+    // a second call must resolve without throwing
+    await expect(client.close()).resolves.not.toThrow();
   });
 
   it("should get inbox states from inbox IDs without a client", async () => {
