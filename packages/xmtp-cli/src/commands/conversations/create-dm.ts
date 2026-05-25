@@ -1,5 +1,6 @@
 import { Args, Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
+import { validateIdentifier } from "../../utils/client.js";
 import { identifierKindMap } from "../../utils/enums.js";
 
 export default class ConversationsCreateDm extends BaseCommand {
@@ -50,9 +51,12 @@ Returns the DM's ID and details.`;
     const { args, flags } = await this.parse(ConversationsCreateDm);
     const client = await this.initClient();
 
+    const identifierKind = identifierKindMap[flags["identifier-kind"]];
+    validateIdentifier(args.identifier, identifierKind);
+
     const identifier = {
       identifier: args.identifier.toLowerCase(),
-      identifierKind: identifierKindMap[flags["identifier-kind"]],
+      identifierKind,
     };
 
     const dm = await client.conversations.createDmWithIdentifier(identifier);

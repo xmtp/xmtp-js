@@ -5,6 +5,7 @@ import {
   type CreateGroupOptions,
 } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
+import { validateIdentifier } from "../../utils/client.js";
 
 export default class ConversationsCreateGroup extends BaseCommand {
   static description = `Create a new group conversation.
@@ -88,10 +89,13 @@ Returns the new group's ID and details.`;
 
     const client = await this.initClient();
 
-    const identifierObjects = identifiers.map((id) => ({
-      identifier: id.toLowerCase(),
-      identifierKind: IdentifierKind.Ethereum,
-    }));
+    const identifierObjects = identifiers.map((id) => {
+      validateIdentifier(id, IdentifierKind.Ethereum);
+      return {
+        identifier: id.toLowerCase(),
+        identifierKind: IdentifierKind.Ethereum,
+      };
+    });
 
     const permissionsMap: Record<string, GroupPermissionsOptions> = {
       "all-members": GroupPermissionsOptions.Default,

@@ -1,6 +1,7 @@
 import { Args } from "@oclif/core";
 import { IdentifierKind } from "@xmtp/node-sdk";
 import { BaseCommand } from "../../baseCommand.js";
+import { validateIdentifier } from "../../utils/client.js";
 import { requireGroup } from "../../utils/conversation.js";
 
 export default class ConversationRemoveMembers extends BaseCommand {
@@ -64,10 +65,13 @@ Requires appropriate permissions to remove members (based on group settings).`;
       this.error(`Conversation not found: ${args.id}`);
     }
 
-    const identifiers = addresses.map((address) => ({
-      identifier: address.toLowerCase(),
-      identifierKind: IdentifierKind.Ethereum,
-    }));
+    const identifiers = addresses.map((address) => {
+      validateIdentifier(address, IdentifierKind.Ethereum);
+      return {
+        identifier: address.toLowerCase(),
+        identifierKind: IdentifierKind.Ethereum,
+      };
+    });
 
     const group = requireGroup(conversation);
     await group.removeMembersByIdentifiers(identifiers);
