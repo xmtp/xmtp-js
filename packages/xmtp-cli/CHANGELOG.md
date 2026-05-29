@@ -1,5 +1,12 @@
 # @xmtp/cli
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [ca2e81c]
+  - @xmtp/node-sdk@6.1.0
+
 ## 0.2.0
 
 - Added default app version

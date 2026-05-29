@@ -1,5 +1,12 @@
 # @xmtp/agent-sdk
 
+## 2.3.1
+
+### Patch Changes
+
+- Updated dependencies [ca2e81c]
+  - @xmtp/node-sdk@6.1.0
+
 ## 2.3.0
 
 ### Minor Changes
