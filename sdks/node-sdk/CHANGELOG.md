@@ -1,5 +1,11 @@
 # @xmtp/node-sdk
 
+## 6.1.0
+
+### Minor Changes
+
+- ca2e81c: Added `Client.close()` for clean shutdown. It cancels in-flight workers and detached streams, then releases the database connection. The method is idempotent — await it before deleting the database file or dropping the client reference to avoid log noise from background tasks running against a closed database.
+
 ## 6.0.0
 
 This release includes a performance fix, a breaking change to history sync, and new methods for manual archive management. Update as soon as possible to take advantage of these enhancements and fixes.
