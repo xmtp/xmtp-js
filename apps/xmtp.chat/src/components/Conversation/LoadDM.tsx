@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { useClient } from "@/contexts/XMTPContext";
+import { isGetInboxIdsRequestError } from "@/helpers/errors";
 import { isValidName, resolveNameQuery } from "@/helpers/names";
 import { isValidEthereumAddress } from "@/helpers/strings";
 import { useSettings } from "@/hooks/useSettings";
@@ -93,8 +94,10 @@ export const LoadDM: React.FC = () => {
 
         navigateToHome("Error loading DM, redirecting...");
 
-        // rethrow error for error modal
-        throw e;
+        if (!isGetInboxIdsRequestError(e)) {
+          // rethrow unhandled errors for error modal
+          throw e;
+        }
       }
     };
 
