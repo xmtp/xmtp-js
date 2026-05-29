@@ -37,6 +37,7 @@ import {
 import { App } from "@/components/App/App";
 import { XMTPProvider } from "@/contexts/XMTPContext";
 import { queryClient } from "@/helpers/queries";
+import { shouldIgnoreError } from "@/helpers/sentry";
 
 Sentry.init({
   dsn: "https://ba2f58ad2e3d5fd09cd8aa36038b950f@o4504757119680512.ingest.us.sentry.io/4510308912005120",
@@ -47,6 +48,17 @@ Sentry.init({
   replaysSessionSampleRate: 0,
   sendDefaultPii: false,
   tracesSampleRate: 0,
+  beforeSend: (event, hint) => {
+    if (
+      shouldIgnoreError(hint.originalException) ||
+      event.exception?.values?.some((exception) =>
+        shouldIgnoreError(exception.value),
+      )
+    ) {
+      return null;
+    }
+    return event;
+  },
 });
 
 export const config = createConfig({
