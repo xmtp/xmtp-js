@@ -50,19 +50,26 @@ export class CommandRouter<ContentTypes = unknown> {
     return Array.from(this.#commandMap.keys());
   }
 
-  command(command: string, handler: AgentMessageHandler<SupportedType>): this;
   command(
-    command: string,
+    command: string | string[],
+    handler: AgentMessageHandler<SupportedType>,
+  ): this;
+  command(
+    command: string | string[],
     description: string,
     handler: AgentMessageHandler<SupportedType>,
   ): this;
   command(
-    command: string,
+    command: string | string[],
     handlerOrDescription: AgentMessageHandler<SupportedType> | string,
     handler?: AgentMessageHandler<SupportedType>,
   ): this {
-    if (!command.startsWith("/")) {
-      throw new Error('Command must start with "/"');
+    const commands = Array.isArray(command) ? command : [command];
+
+    for (const cmd of commands) {
+      if (!cmd.startsWith("/")) {
+        throw new Error('Command must start with "/"');
+      }
     }
 
     let resolvedHandler: AgentMessageHandler<SupportedType>;
@@ -80,10 +87,15 @@ export class CommandRouter<ContentTypes = unknown> {
       resolvedHandler = handler;
     }
 
-    this.#commandMap.set(command.toLowerCase(), {
+    const entry: CommandEntry = {
       handler: resolvedHandler,
       description,
-    });
+    };
+
+    for (const cmd of commands) {
+      this.#commandMap.set(cmd.toLowerCase(), entry);
+    }
+
     return this;
   }
 
