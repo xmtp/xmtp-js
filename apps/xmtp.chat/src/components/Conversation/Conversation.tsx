@@ -39,6 +39,7 @@ export const Conversation: React.FC<ConversationProps> = ({
   useEffect(() => {
     const loadMessages = async () => {
       await sync(true);
+      await conversation.sendReadReceipt();
     };
     void loadMessages();
   }, [conversationId]);
