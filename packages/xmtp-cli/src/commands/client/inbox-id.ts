@@ -1,5 +1,6 @@
 import { Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
+import { validateIdentifier } from "../../utils/client.js";
 import { identifierKindMap } from "../../utils/enums.js";
 
 export default class ClientInboxId extends BaseCommand {
@@ -51,8 +52,11 @@ Returns null if the identifier has no associated inbox ID (not registered).`;
     const { flags } = await this.parse(ClientInboxId);
     const client = await this.initClient();
 
+    const identifierKind = identifierKindMap[flags.kind];
+    validateIdentifier(flags.identifier, identifierKind);
+
     const identifier = {
-      identifierKind: identifierKindMap[flags.kind],
+      identifierKind,
       identifier: flags.identifier.toLowerCase(),
     };
 

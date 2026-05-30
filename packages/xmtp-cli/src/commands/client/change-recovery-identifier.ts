@@ -1,5 +1,6 @@
 import { Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
+import { validateIdentifier } from "../../utils/client.js";
 import { identifierKindMap } from "../../utils/enums.js";
 
 export default class ClientChangeRecoveryIdentifier extends BaseCommand {
@@ -55,9 +56,12 @@ The recovery identifier must be an Ethereum address.`;
     const { flags } = await this.parse(ClientChangeRecoveryIdentifier);
     const client = await this.initClient();
 
+    const identifierKind = identifierKindMap[flags.kind];
+    validateIdentifier(flags.identifier, identifierKind);
+
     // Build identifier before confirming so invalid input fails fast
     const identifier = {
-      identifierKind: identifierKindMap[flags.kind],
+      identifierKind,
       identifier: flags.identifier.toLowerCase(),
     };
 

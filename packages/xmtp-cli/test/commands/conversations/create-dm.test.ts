@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createRegisteredIdentity,
+  createTestIdentity,
   parseJsonOutput,
   runWithIdentity,
 } from "../../helpers.js";
@@ -126,6 +127,22 @@ describe("conversations create-dm", () => {
     ]);
 
     expect(result.exitCode).not.toBe(0);
+  });
+
+  it("fails with an invalid ethereum address", async () => {
+    // Note: Use createTestIdentity so it validates fast locally and does not
+    // hit the docker network limit when running isolated testing
+    const sender = createTestIdentity();
+
+    const result = await runWithIdentity(sender, [
+      "conversations",
+      "create-dm",
+      "invalid-address",
+      "--json",
+    ]);
+
+    expect(result.exitCode).not.toBe(0);
+    expect(result.stderr).toContain("Invalid Ethereum address");
   });
 
   it("both parties can see the DM", async () => {
