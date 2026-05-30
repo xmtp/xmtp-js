@@ -17,13 +17,16 @@ import {
 describe("AttachmentUtil", () => {
   const testUrl = "https://localhost/test_file";
   let mockFetch: Mock;
-
+  let originalFetch: typeof global.fetch;
+  
   beforeEach(() => {
+    originalFetch = global.fetch;
     mockFetch = vi.fn();
     global.fetch = mockFetch;
   });
-
+  
   afterEach(() => {
+    global.fetch = originalFetch;
     vi.restoreAllMocks();
   });
 
