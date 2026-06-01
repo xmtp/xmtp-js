@@ -280,6 +280,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
+            const cp = require('child_process');
             const VERSION_RE = /^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$/;
 
             const sdk = process.env.SDK;
@@ -304,11 +305,46 @@ jobs:
               core.setFailed(`could not read ${pkgPath}: ${err.message}`);
               return;
             }
-            const sdkBase = (pkg.version || '').split('-')[0];
-            if (!sdkBase) {
+            const releasedBase = (pkg.version || '').split('-')[0];
+            if (!releasedBase) {
               core.setFailed(`could not read .version from ${pkgPath}`);
               return;
             }
+
+            // Prefer the next PLANNED version (from pending changesets) over the
+            // last released version, so nightlies preview the upcoming release
+            // instead of trailing it. `changeset status` reports the calculated
+            // newVersion without consuming changesets or mutating files.
+            //
+            // Caveats handled below:
+            //  - `--output` is resolved relative to the repo root; absolute paths
+            //    are ignored, so we use a repo-relative filename.
+            //  - The command prints monorepo dependency-consistency warnings to
+            //    stderr but still exits 0; a real failure (no changesets, etc.) is
+            //    treated as "nothing planned" and falls back to the released base.
+            //  - `releases[]` also contains phantom patch bumps for packages
+            //    touched only by `updateInternalDependencies` cascade
+            //    (changesets: []). Only a release with a non-empty `changesets`
+            //    array reflects a genuine pending change, so we require that.
+            const sdkPkgName = pkg.name;
+            let plannedBase = '';
+            const statusFile = 'cs-status.json';
+            try {
+              cp.execFileSync('yarn', ['changeset', 'status', `--output=${statusFile}`], { stdio: 'ignore' });
+              const status = JSON.parse(fs.readFileSync(statusFile, 'utf8'));
+              const release = (status.releases || []).find((r) => r.name === sdkPkgName);
+              if (release && Array.isArray(release.changesets) && release.changesets.length > 0 && release.newVersion) {
+                plannedBase = release.newVersion.split('-')[0];
+              }
+            } catch (err) {
+              core.info(`changeset status unavailable (${err.message}); using released base.`);
+            } finally {
+              try { fs.unlinkSync(statusFile); } catch {}
+            }
+
+            const sdkBase = plannedBase || releasedBase;
+            core.info(`${sdkPkgName} base: ${sdkBase} (planned=${plannedBase || '<none>'}, released=${releasedBase})`);
+
             const sdkVersion = `${sdkBase}-${bindings.slice(dash + 1)}`;
             if (!VERSION_RE.test(sdkVersion)) {
               core.setFailed(`computed sdk_version '${sdkVersion}' is malformed`);
