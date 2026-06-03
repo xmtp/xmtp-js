@@ -6414,7 +6414,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@web/rollup-plugin-copy": "npm:^0.5.1"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/wasm-bindings": "npm:1.11.0-nightly.20260602.7c72fff"
+    "@xmtp/wasm-bindings": "npm:1.11.0-nightly.20260603.89c3fc3"
     playwright: "npm:^1.58.0"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6506,7 +6506,7 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@types/node": "npm:^24.10.9"
-    "@xmtp/node-bindings": "npm:1.11.0-nightly.20260602.7c72fff"
+    "@xmtp/node-bindings": "npm:1.11.0-nightly.20260603.89c3fc3"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
@@ -6657,10 +6657,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xmtp/node-bindings@npm:1.11.0-nightly.20260602.7c72fff":
-  version: 1.11.0-nightly.20260602.7c72fff
-  resolution: "@xmtp/node-bindings@npm:1.11.0-nightly.20260602.7c72fff"
-  checksum: 10/483f6aef6d995370693af9a2fffdf0fbe05e3bde642f5c32b8af378243b526f7d5cefd0c1cc06ecf57ebe39fd3661f8187eb5e942e23f4e10fdec26b1892d6bb
+"@xmtp/node-bindings@npm:1.11.0-nightly.20260603.89c3fc3":
+  version: 1.11.0-nightly.20260603.89c3fc3
+  resolution: "@xmtp/node-bindings@npm:1.11.0-nightly.20260603.89c3fc3"
+  checksum: 10/ce98b6a1b2c94026a0b4b57e687d7e87acca7f859dec21410a22c854e93298b488ebc33e260d6b560f8fdbadee39947712d6ec22a33766f71b611dd339f4ae28
   languageName: node
   linkType: hard
 
@@ -6699,7 +6699,7 @@ __metadata:
     "@types/node": "npm:^24.10.9"
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@xmtp/content-type-primitives": "npm:3.0.0"
-    "@xmtp/node-bindings": "npm:1.11.0-nightly.20260602.7c72fff"
+    "@xmtp/node-bindings": "npm:1.11.0-nightly.20260603.89c3fc3"
     fast-glob: "npm:^3.3.3"
     rimraf: "npm:^6.1.2"
     rollup: "npm:^4.59.0"
@@ -6740,10 +6740,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmtp/wasm-bindings@npm:1.11.0-nightly.20260602.7c72fff":
-  version: 1.11.0-nightly.20260602.7c72fff
-  resolution: "@xmtp/wasm-bindings@npm:1.11.0-nightly.20260602.7c72fff"
-  checksum: 10/9c4b8364563d6d6d01e95d822b98dc6233eb0f547375a0dacbf84d4e026a20283016085740ecc9eeadab09a76e7b727f0f9dd9a336855f53c2229243d53906eb
+"@xmtp/wasm-bindings@npm:1.11.0-nightly.20260603.89c3fc3":
+  version: 1.11.0-nightly.20260603.89c3fc3
+  resolution: "@xmtp/wasm-bindings@npm:1.11.0-nightly.20260603.89c3fc3"
+  checksum: 10/a328ae3e123910f1bdd7edab97f41f97609156a7a4ce418fbe9652866057856245c78347516aa69073eb5a731d8463fabeb2744975a052829256a1ea17b7b795
   languageName: node
   linkType: hard
 

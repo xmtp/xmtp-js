@@ -62,7 +62,7 @@
     ]
   },
   "dependencies": {
-    "@xmtp/node-bindings": "1.11.0-nightly.20260602.7c72fff"
+    "@xmtp/node-bindings": "1.11.0-nightly.20260603.89c3fc3"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
