@@ -1,5 +1,13 @@
 # @xmtp/browser-sdk
 
+## 7.1.0
+
+### Minor Changes
+
+- 615d4e7: Exposed background worker scheduler tuning on the client.
+
+  `ClientOptions` now accepts `workerConfig` (a `WorkerConfigOptions` with default/per-worker intervals, jitter, and disabled workers), and the `WorkerKind`, `WorkerConfigOptions`, and `WorkerIntervalOverride` types are re-exported for use with it.
+
 ## 7.0.0
 
 This release includes a performance fix, a breaking change to history sync, and new methods for manual archive management. Update as soon as possible to take advantage of these enhancements and fixes.
