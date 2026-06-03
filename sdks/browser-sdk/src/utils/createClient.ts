@@ -86,6 +86,7 @@ export const createClient = async (
     dbPath,
     options?.dbEncryptionKey,
     deviceSyncMode,
+    options?.workerConfig,
     isLogging
       ? {
           structured: options.structuredLogging ?? false,

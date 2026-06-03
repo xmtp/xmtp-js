@@ -64,6 +64,8 @@ export type {
   UserPreferenceUpdate,
   WalletCall,
   WalletSendCalls,
+  WorkerConfigOptions,
+  WorkerIntervalOverride,
 } from "@xmtp/wasm-bindings";
 export {
   ActionStyle,
@@ -87,6 +89,7 @@ export {
   ReactionAction,
   ReactionSchema,
   SortDirection,
+  WorkerKind,
 } from "@xmtp/wasm-bindings";
 export * from "./utils/signer";
 export * from "./utils/errors";

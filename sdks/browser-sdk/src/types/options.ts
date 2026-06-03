@@ -18,6 +18,7 @@ import type {
   TransactionReference,
   WalletSendCalls,
   WasmVisibilityConfirmationOptions,
+  WorkerConfigOptions,
 } from "@xmtp/wasm-bindings";
 import type { DecodedMessage } from "@/DecodedMessage";
 
@@ -118,6 +119,14 @@ export type OtherOptions = {
    * Logging level
    */
   loggingLevel?: LogLevel;
+  /**
+   * Tuning for the background worker scheduler (intervals, jitter, per-worker
+   * overrides, and disabled workers). All fields are optional; omitting this
+   * object preserves the default worker behavior.
+   *
+   * Intervals are specified in nanoseconds.
+   */
+  workerConfig?: WorkerConfigOptions;
   /**
    * Disable automatic registration when creating a client
    */
