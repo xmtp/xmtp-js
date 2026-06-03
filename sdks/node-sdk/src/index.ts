@@ -66,6 +66,8 @@ export type {
   VisibilityConfirmationOptions,
   WalletCall,
   WalletSendCalls,
+  WorkerConfigOptions,
+  WorkerIntervalOverride,
 } from "@xmtp/node-bindings";
 export {
   ActionStyle,
@@ -102,6 +104,7 @@ export {
   encodeTransactionReference,
   encodeWalletSendCalls,
   encryptAttachment,
+  flushTelemetry,
   GroupMembershipState,
   GroupMessageKind,
   GroupPermissionsOptions,
@@ -116,4 +119,5 @@ export {
   ReactionAction,
   ReactionSchema,
   SortDirection,
+  WorkerKind,
 } from "@xmtp/node-bindings";

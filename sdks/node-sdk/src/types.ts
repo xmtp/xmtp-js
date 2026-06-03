@@ -16,6 +16,7 @@ import {
   type TransactionReference,
   type VisibilityConfirmationOptions,
   type WalletSendCalls,
+  type WorkerConfigOptions,
 } from "@xmtp/node-bindings";
 import type { DecodedMessage } from "@/DecodedMessage";
 import type { HexString } from "./utils/validation";
@@ -128,6 +129,29 @@ export type OtherOptions = {
    * Logging level
    */
   loggingLevel?: LogLevel;
+  /**
+   * OTLP endpoint (e.g. `"http://collector:4317"`) for exporting telemetry
+   * spans. When set (and the binding is built with the `otel` feature), spans
+   * are exported via OTLP to this endpoint, where a downstream OpenTelemetry
+   * Collector can derive metrics from them.
+   *
+   * Call {@link flushTelemetry} on graceful shutdown to flush buffered spans.
+   */
+  otelEndpoint?: string;
+  /**
+   * Resource attributes attached to all exported telemetry spans
+   * (e.g. `{ "service.instance.id": "herald-7", "deployment.environment": "prod" }`).
+   * Use these to attribute telemetry to its source.
+   */
+  resourceAttributes?: Record<string, string>;
+  /**
+   * Tuning for the background worker scheduler (intervals, jitter, per-worker
+   * overrides, and disabled workers). All fields are optional; omitting this
+   * object preserves the default worker behavior.
+   *
+   * Intervals are specified in nanoseconds.
+   */
+  workerConfig?: WorkerConfigOptions;
   /**
    * Disable automatic registration when creating a client
    */

@@ -1,6 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { IdentifierKind } from "@xmtp/node-bindings";
+import {
+  flushTelemetry,
+  IdentifierKind,
+  LogLevel,
+  WorkerKind,
+} from "@xmtp/node-bindings";
 import { uint8ArrayToHex } from "uint8array-extras";
 import { describe, expect, it } from "vitest";
 import { Client } from "@/Client";
@@ -42,6 +47,36 @@ describe("Client", () => {
       nonce: 2n,
     });
     expect(client3.inboxId).not.toEqual(client.inboxId);
+  });
+
+  it("should create a client with worker config and logging options", async () => {
+    const { signer } = createSigner();
+    const workerConfig = {
+      defaultIntervalNs: 60_000_000_000n,
+      jitterNs: 1_000_000_000n,
+      workerIntervalsNs: [
+        { kind: WorkerKind.DeviceSync, intervalNs: 30_000_000_000n },
+      ],
+      disabledWorkers: [WorkerKind.KeyPackageCleaner],
+    };
+    const client = await createClient(signer, {
+      loggingLevel: LogLevel.Off,
+      structuredLogging: true,
+      otelEndpoint: "http://collector:4317",
+      resourceAttributes: { "service.instance.id": "test-instance" },
+      workerConfig,
+    });
+    expect(client.inboxId).toBeDefined();
+    expect(client.options?.workerConfig).toEqual(workerConfig);
+    expect(client.options?.otelEndpoint).toBe("http://collector:4317");
+    expect(client.options?.resourceAttributes).toEqual({
+      "service.instance.id": "test-instance",
+    });
+
+    // flushTelemetry is a process-global no-op when telemetry is not enabled
+    expect(() => {
+      flushTelemetry();
+    }).not.toThrow();
   });
 
   it("should create a client without a signer", async () => {

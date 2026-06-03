@@ -77,6 +77,8 @@ export const createClient = async (
   const logOptions: LogOptions = {
     structured: options?.structuredLogging ?? false,
     level: options?.loggingLevel ?? LogLevel.Off,
+    otelEndpoint: options?.otelEndpoint,
+    resourceAttributes: options?.resourceAttributes,
   };
   const deviceSyncWorkerMode = options?.disableDeviceSync
     ? SyncWorkerMode.Disabled
@@ -95,6 +97,7 @@ export const createClient = async (
     inboxId,
     identifier,
     deviceSyncWorkerMode,
+    options?.workerConfig,
     logOptions,
     undefined, // allowOffline
     options?.nonce,
