@@ -24,7 +24,7 @@
     "@sentry/react": "^10.36.0",
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-virtual": "^3.13.18",
-    "@xmtp/browser-sdk": "workspace:^",
+    "@xmtp/browser-sdk": "7.0.0-dev.b5cdc06",
     "@xmtp/content-type-primitives": "workspace:^",
     "date-fns": "^4.1.0",
     "pinata": "^2.5.3",

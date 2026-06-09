@@ -18,10 +18,19 @@
       "rangeStrategy": "pin"
     },
     {
+      "matchPackageNames": ["@xmtp/node-sdk", "@xmtp/browser-sdk"],
+      "groupName": "xmtp sdks",
+      "groupSlug": "xmtp-sdks",
+      "commitMessageTopic": "xmtp sdks",
+      "rangeStrategy": "bump"
+    },
+    {
       "matchPackageNames": [
         "*",
         "!@xmtp/node-bindings",
-        "!@xmtp/wasm-bindings"
+        "!@xmtp/wasm-bindings",
+        "!@xmtp/node-sdk",
+        "!@xmtp/browser-sdk"
       ],
       "enabled": false
     }
