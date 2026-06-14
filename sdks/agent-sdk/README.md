@@ -89,7 +89,7 @@ Subscribe only to what you need using Node’s `EventEmitter` interface. Events 
 - `attachment` – an incoming [remote attachment message](https://docs.xmtp.org/agents/content-types/attachments#how-remote-attachments-work)
 - `group-update` – an incoming [group update](https://docs.xmtp.org/agents/content-types/group-updates#listen-for-group-updates) (like name change, member update, etc.)
 - `inline-attachment` – an incoming inline attachment (small files sent directly in the message)
-- `intent` – an incoming [intent message](https://docs.xmtp.org/agents/content-types/intents) (user's response to an actions message)
+- `intent` – an incoming [intent message](https://docs.xmtp.org/chat-apps/content-types/intents) (user's response to an actions message)
 - `leave-request` – an incoming leave request from a member wanting to leave a group
 - `markdown` – an incoming [markdown-formatted](https://docs.xmtp.org/agents/content-types/markdown) text message
 - `message` – all messages that are not having a [custom content type](https://docs.xmtp.org/agents/content-types/content-types#custom-content-types)
@@ -466,8 +466,8 @@ console.log(agent.libxmtpVersion);
 
 ## Debugging
 
-- [Debug an agent](https://docs.xmtp.org/agents/debug-agents)
-- [Further debugging info](https://docs.xmtp.org/inboxes/debug-your-app#debug-your-inbox-app)
+- [Debug an agent](https://docs.xmtp.org/agents/deploy/debug-agents)
+- [Further debugging info](https://docs.xmtp.org/chat-apps/debug/debug-your-app)
 
 ## Contributing / Feedback
 
