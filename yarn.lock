@@ -6395,7 +6395,7 @@ __metadata:
     tsx: "npm:^4.21.0"
     typescript: "npm:^5.9.3"
     viem: "npm:^2.37.6"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vite-tsconfig-paths: "npm:^6.0.4"
     vitest: "npm:^4.0.18"
   languageName: unknown
@@ -6421,7 +6421,7 @@ __metadata:
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
     typescript: "npm:^5.9.3"
     viem: "npm:^2.44.4"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vite-tsconfig-paths: "npm:^6.0.4"
     vitest: "npm:^4.0.18"
   peerDependencies:
@@ -6468,7 +6468,7 @@ __metadata:
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     typescript: "npm:^5.9.3"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
@@ -6485,7 +6485,7 @@ __metadata:
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     typescript: "npm:^5.9.3"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
@@ -6511,7 +6511,7 @@ __metadata:
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     typescript: "npm:^5.9.3"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
@@ -6539,7 +6539,7 @@ __metadata:
     rollup-plugin-dts: "npm:^6.3.0"
     typescript: "npm:^5.9.3"
     viem: "npm:^2.44.4"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
@@ -6557,7 +6557,7 @@ __metadata:
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     typescript: "npm:^5.9.3"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
@@ -6578,7 +6578,7 @@ __metadata:
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     typescript: "npm:^5.9.3"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
@@ -6599,7 +6599,7 @@ __metadata:
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     typescript: "npm:^5.9.3"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
@@ -6616,7 +6616,7 @@ __metadata:
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     typescript: "npm:^5.9.3"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
@@ -6634,7 +6634,7 @@ __metadata:
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     typescript: "npm:^5.9.3"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
@@ -6652,7 +6652,7 @@ __metadata:
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     typescript: "npm:^5.9.3"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
@@ -6709,7 +6709,7 @@ __metadata:
     typescript: "npm:^5.9.3"
     uint8array-extras: "npm:^1.5.0"
     viem: "npm:^2.44.4"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vite-tsconfig-paths: "npm:^6.0.4"
     vitest: "npm:^4.0.18"
   languageName: unknown
@@ -6783,7 +6783,7 @@ __metadata:
     typescript: "npm:^5.9.3"
     uint8array-extras: "npm:^1.5.0"
     viem: "npm:^2.44.4"
-    vite: "npm:^7.3.1"
+    vite: "npm:^7.3.5"
     vite-tsconfig-paths: "npm:^6.0.4"
     vitest: "npm:^4.0.18"
     wagmi: "npm:^2.19.5"
@@ -15257,7 +15257,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:*, vite@npm:^6.0.0 || ^7.0.0, vite@npm:^7.3.1":
+"vite@npm:*, vite@npm:^6.0.0 || ^7.0.0":
   version: 7.3.1
   resolution: "vite@npm:7.3.1"
   dependencies:
@@ -15309,6 +15309,61 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 10/62e48ffa4283b688f0049005405a004447ad38ffc99a0efea4c3aa9b7eed739f7402b43f00668c0ee5a895b684dc953d62f0722d8a92c5b2f6c95f051bceb208
+  languageName: node
+  linkType: hard
+
+"vite@npm:^7.3.5":
+  version: 7.3.5
+  resolution: "vite@npm:7.3.5"
+  dependencies:
+    esbuild: "npm:^0.27.0"
+    fdir: "npm:^6.5.0"
+    fsevents: "npm:~2.3.3"
+    picomatch: "npm:^4.0.3"
+    postcss: "npm:^8.5.6"
+    rollup: "npm:^4.43.0"
+    tinyglobby: "npm:^0.2.15"
+  peerDependencies:
+    "@types/node": ^20.19.0 || >=22.12.0
+    jiti: ">=1.21.0"
+    less: ^4.0.0
+    lightningcss: ^1.21.0
+    sass: ^1.70.0
+    sass-embedded: ^1.70.0
+    stylus: ">=0.54.8"
+    sugarss: ^5.0.0
+    terser: ^5.16.0
+    tsx: ^4.8.1
+    yaml: ^2.4.2
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    jiti:
+      optional: true
+    less:
+      optional: true
+    lightningcss:
+      optional: true
+    sass:
+      optional: true
+    sass-embedded:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+    tsx:
+      optional: true
+    yaml:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 10/2e1337510d6b81948b035f8b096c9be22daf1101fc52ad3d06cad9e090057ba1c1396e5e12cbaac2485f9c6cdcc854f978fe862280bdfe1a9a4149c60734c125
   languageName: node
   linkType: hard
 
