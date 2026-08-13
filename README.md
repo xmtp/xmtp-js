@@ -1,4 +1,9 @@
-This is the official repository for XMTP client SDKs and content types for browsers and Node, written in TypeScript.
+> [!IMPORTANT]
+> **XMTP SDK development has moved.** The `agent-sdk`, `node-sdk`, and `browser-sdk` packages now live in [`xmtp/libxmtp`](https://github.com/xmtp/libxmtp) under [`sdks/js/`](https://github.com/xmtp/libxmtp/tree/main/sdks/js) and are built and released from there. Please file SDK issues and open SDK pull requests at [`xmtp/libxmtp`](https://github.com/xmtp/libxmtp/issues).
+>
+> This repository remains active and continues to host the `@xmtp/content-type-*` packages, the [xmtp.chat](https://xmtp.chat/) app, and `xmtp-cli`.
+
+This repository hosts XMTP content types, the [xmtp.chat](https://xmtp.chat/) web app, and `xmtp-cli`, written in TypeScript. The XMTP JavaScript/TypeScript SDKs now live in [`xmtp/libxmtp`](https://github.com/xmtp/libxmtp).
 
 To learn more about the contents of this repository, see this README and the READMEs provided in each workspace directory.
 
@@ -19,9 +24,11 @@ XMTP offers SDKs for a variety of use cases. Whether you're building a chat app,
 
 ### SDKs
 
-- [`agent-sdk`](sdks/agent-sdk): XMTP agent SDK for Node
-- [`browser-sdk`](sdks/browser-sdk): XMTP client SDK for browsers
-- [`node-sdk`](sdks/node-sdk): XMTP client SDK for Node
+The XMTP SDKs have moved to [`xmtp/libxmtp`](https://github.com/xmtp/libxmtp):
+
+- [`agent-sdk`](https://github.com/xmtp/libxmtp/tree/main/sdks/js/agent-sdk): XMTP agent SDK for Node
+- [`browser-sdk`](https://github.com/xmtp/libxmtp/tree/main/sdks/js/browser-sdk): XMTP client SDK for browsers
+- [`node-sdk`](https://github.com/xmtp/libxmtp/tree/main/sdks/js/node-sdk): XMTP client SDK for Node
 
 ### Content types
 
