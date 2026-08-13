@@ -24,7 +24,7 @@ export const isText = (m: DecodedMessage): m is DecodedMessage<string> =>
 export const isRemoteAttachment = (
   m: DecodedMessage,
 ): m is DecodedMessage<RemoteAttachment> =>
-  m.contentType.typeId === "staticRemoteAttachment";
+  m.contentType.typeId === "remoteStaticAttachment";
 
 export const stringify = (message: DecodedMessage): string => {
   switch (true) {
