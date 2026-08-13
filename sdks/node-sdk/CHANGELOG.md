@@ -1,5 +1,14 @@
 # @xmtp/node-sdk
 
+## 6.1.0
+
+### Minor Changes
+
+- ca2e81c: Added `Client.close()` for clean shutdown. It cancels in-flight workers and detached streams, then releases the database connection. The method is idempotent — await it before deleting the database file or dropping the client reference to avoid log noise from background tasks running against a closed database.
+- 615d4e7: Exposed background worker scheduler tuning and OpenTelemetry logging options on the client.
+
+  `ClientOptions` now accepts `workerConfig` (a `WorkerConfigOptions` with default/per-worker intervals, jitter, and disabled workers), `otelEndpoint`, and `resourceAttributes`. The `flushTelemetry` function and the `WorkerKind`, `WorkerConfigOptions`, and `WorkerIntervalOverride` types are re-exported for use with these options. Call `flushTelemetry()` on graceful shutdown to flush buffered telemetry spans when an `otelEndpoint` is configured.
+
 ## 6.0.0
 
 This release includes a performance fix, a breaking change to history sync, and new methods for manual archive management. Update as soon as possible to take advantage of these enhancements and fixes.
