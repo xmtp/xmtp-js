@@ -7,7 +7,7 @@ import {
   type NetworkOptions,
   type Signer,
 } from "@xmtp/node-sdk";
-import { isHex, toBytes } from "viem";
+import { isAddress, isHex, toBytes } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import type { XmtpConfig } from "./config.js";
 
@@ -64,6 +64,15 @@ export function hexToBytes(value: string): Uint8Array {
     throw new Error(`Invalid hex string: ${value}`);
   }
   return toBytes(hex);
+}
+
+export function validateIdentifier(
+  identifier: string,
+  kind: IdentifierKind,
+): void {
+  if (kind === IdentifierKind.Ethereum && !isAddress(identifier)) {
+    throw new Error(`Invalid Ethereum address: ${identifier}`);
+  }
 }
 
 export async function createClient(config: XmtpConfig): Promise<Client> {

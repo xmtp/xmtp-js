@@ -1,5 +1,6 @@
 import { Flags } from "@oclif/core";
 import { BaseCommand } from "../../baseCommand.js";
+import { validateIdentifier } from "../../utils/client.js";
 import { identifierKindMap } from "../../utils/enums.js";
 
 export default class ClientRemoveAccount extends BaseCommand {
@@ -56,9 +57,12 @@ this client's inbox.`;
     const { flags } = await this.parse(ClientRemoveAccount);
     const client = await this.initClient();
 
+    const identifierKind = identifierKindMap[flags.kind];
+    validateIdentifier(flags.identifier, identifierKind);
+
     // Build identifier before confirming so invalid input fails fast
     const identifier = {
-      identifierKind: identifierKindMap[flags.kind],
+      identifierKind,
       identifier: flags.identifier.toLowerCase(),
     };
 
