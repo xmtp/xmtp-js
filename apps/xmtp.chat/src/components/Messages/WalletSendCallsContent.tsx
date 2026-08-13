@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useChainId, useSendTransaction, useSwitchChain } from "wagmi";
 import { useConversationContext } from "@/contexts/ConversationContext";
 import { useClient } from "@/contexts/XMTPContext";
+import { parseWalletSendCallsChainId } from "@/helpers/walletSendCalls";
 import { useSettings } from "@/hooks/useSettings";
 
 export type WalletSendCallsContentProps = {
@@ -21,7 +22,7 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
   const { ephemeralAccountEnabled } = useSettings();
 
   const handleSubmit = useCallback(async () => {
-    const chainId = parseInt(content.chainId, 16);
+    const chainId = parseWalletSendCallsChainId(content.chainId);
     if (chainId !== wagmiChainId) {
       console.log(
         `Current Chain Id (${wagmiChainId}) doesn't match; switching to Chain Id ${chainId}.`,
@@ -55,7 +56,14 @@ export const WalletSendCallsContent: React.FC<WalletSendCallsContentProps> = ({
       }
       await conversation.sendTransactionReference(transactionReference);
     }
-  }, [content, sendTransactionAsync, client, conversationId]);
+  }, [
+    client,
+    content,
+    conversationId,
+    sendTransactionAsync,
+    switchChainAsync,
+    wagmiChainId,
+  ]);
 
   return (
     <Box flex="flex">
