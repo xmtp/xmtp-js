@@ -1,6 +1,7 @@
+import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
-import { cwd, env, loadEnvFile } from "node:process";
+import { cwd, env, parseEnv as parseDotenv } from "node:process";
 import type { XmtpEnv } from "@xmtp/node-sdk";
 
 export const DEFAULT_HOME_DIR = join(homedir(), ".xmtp");
@@ -41,39 +42,42 @@ function parseLogLevel(value: string | undefined): XmtpConfig["logLevel"] {
     : undefined;
 }
 
-export function loadConfig(envFile?: string): XmtpConfig {
-  // Load .env file using Node's built-in mechanism (Node 20.12+)
+export async function loadConfig(envFile?: string): Promise<XmtpConfig> {
+  // Parse the selected .env file without mutating process.env.
   // Priority: explicit --env-file > .env in cwd > ~/.xmtp/.env
+  let fileValues: NodeJS.Dict<string> = {};
   if (envFile) {
     try {
-      loadEnvFile(resolve(envFile));
+      fileValues = parseDotenv(await readFile(resolve(envFile), "utf8"));
     } catch (error) {
       throw new Error(`Failed to load env file: ${envFile}`, { cause: error });
     }
   } else {
     try {
-      loadEnvFile(resolve(cwd(), ".env"));
+      fileValues = parseDotenv(await readFile(resolve(cwd(), ".env"), "utf8"));
     } catch {
       try {
-        loadEnvFile(DEFAULT_ENV_PATH);
+        fileValues = parseDotenv(await readFile(DEFAULT_ENV_PATH, "utf8"));
       } catch {
         // Silently ignore if neither file exists
       }
     }
   }
 
+  const values = { ...env, ...fileValues };
+
   return {
-    walletKey: env.XMTP_WALLET_KEY,
-    dbEncryptionKey: env.XMTP_DB_ENCRYPTION_KEY,
-    dbPath: env.XMTP_DB_PATH,
-    env: parseEnv(env.XMTP_ENV),
-    gatewayHost: env.XMTP_GATEWAY_HOST,
-    logLevel: parseLogLevel(env.XMTP_LOG_LEVEL),
+    walletKey: values.XMTP_WALLET_KEY,
+    dbEncryptionKey: values.XMTP_DB_ENCRYPTION_KEY,
+    dbPath: values.XMTP_DB_PATH,
+    env: parseEnv(values.XMTP_ENV),
+    gatewayHost: values.XMTP_GATEWAY_HOST,
+    logLevel: parseLogLevel(values.XMTP_LOG_LEVEL),
     structuredLogging:
-      env.XMTP_STRUCTURED_LOGGING === "true" ? true : undefined,
+      values.XMTP_STRUCTURED_LOGGING === "true" ? true : undefined,
     disableDeviceSync:
-      env.XMTP_DISABLE_DEVICE_SYNC === "true" ? true : undefined,
-    appVersion: env.XMTP_APP_VERSION,
+      values.XMTP_DISABLE_DEVICE_SYNC === "true" ? true : undefined,
+    appVersion: values.XMTP_APP_VERSION,
   };
 }
 
