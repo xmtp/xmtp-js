@@ -18,12 +18,18 @@ import {
   sortConversations,
   sortMessages,
 } from "@/stores/inbox/utils";
-import { profilesStore } from "@/stores/profiles";
+import { combineProfiles, profilesStore } from "@/stores/profiles";
 
 export type ConversationMetadata = {
   name?: string;
   description?: string;
   imageUrl?: string;
+};
+
+export const getDmConversationName = (member: GroupMember) => {
+  const address = getMemberAddress(member);
+  const profiles = profilesStore.getState().getProfiles(address);
+  return combineProfiles(address, profiles).displayName ?? address;
 };
 
 // alias types for clarity
@@ -122,16 +128,9 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
           (m) => m.inboxId !== conversation.addedByInboxId,
         );
         if (member) {
-          const profiles = profilesStore
-            .getState()
-            .getProfiles(getMemberAddress(member));
-          let displayName = member.inboxId;
-          if (profiles.length > 0) {
-            displayName = profiles[0].displayName ?? displayName;
-          }
           // update metadata state
           newMetadata.set(conversation.id, {
-            name: displayName,
+            name: getDmConversationName(member),
           });
         }
       }
@@ -214,16 +213,9 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
             (m) => m.inboxId !== conversation.addedByInboxId,
           );
           if (member) {
-            const profiles = profilesStore
-              .getState()
-              .getProfiles(getMemberAddress(member));
-            let displayName = member.inboxId;
-            if (profiles.length > 0) {
-              displayName = profiles[0].displayName ?? displayName;
-            }
             // update metadata state
             newMetadata.set(conversation.id, {
-              name: displayName,
+              name: getDmConversationName(member),
             });
           }
         }
