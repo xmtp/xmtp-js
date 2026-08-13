@@ -7,7 +7,7 @@ export class LimitedMap<K, V> {
   }
 
   set(key: K, value: V) {
-    if (this.#map.size >= this.#limit) {
+    if (!this.#map.has(key) && this.#map.size >= this.#limit) {
       const it = this.#map.keys().next();
       if (!it.done) {
         this.#map.delete(it.value);
