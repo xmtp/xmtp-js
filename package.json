@@ -19,10 +19,10 @@
     "lint": "yarn build && eslint .",
     "publish": "yarn build && changeset publish",
     "reset": "yarn clean && yarn && yarn build",
-    "test": "FORCE_COLOR=1 turbo run test",
+    "test": "turbo run test",
     "test:setup": "./dev/up",
     "test:teardown": "./dev/down",
-    "typecheck": "FORCE_COLOR=1 turbo run typecheck"
+    "typecheck": "turbo run typecheck"
   },
   "dependencies": {
     "@changesets/changelog-git": "^0.2.1",
