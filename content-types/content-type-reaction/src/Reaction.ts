@@ -73,9 +73,12 @@ export class ReactionCodec implements ContentCodec<
 
     // First try to decode it in the canonical form.
     try {
-      const reaction = JSON.parse(decodedContent) as Reaction;
-      const { action, reference, referenceInboxId, schema, content } = reaction;
-      return { action, reference, referenceInboxId, schema, content };
+      const parsed: unknown = JSON.parse(decodedContent);
+      if (typeof parsed === "object" && parsed !== null) {
+        const { action, reference, referenceInboxId, schema, content } =
+          parsed as Reaction;
+        return { action, reference, referenceInboxId, schema, content };
+      }
     } catch {
       // ignore, fall through to legacy decoding
     }

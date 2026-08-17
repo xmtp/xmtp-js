@@ -87,6 +87,26 @@ describe("ReactionContentType", () => {
     expect(legacy.schema).toBe("shortcode");
   });
 
+  it("decodes legacy reactions with numeric content", () => {
+    const codec = new ReactionCodec();
+
+    const legacyEncoded: EncodedContent<LegacyReactionParameters> = {
+      type: ContentTypeReaction,
+      parameters: {
+        action: "added",
+        reference: "abc123",
+        schema: "shortcode",
+        encoding: "UTF-8",
+      },
+      content: new TextEncoder().encode("5"),
+    };
+
+    const legacy = codec.decode(legacyEncoded);
+    expect(legacy.action).toBe("added");
+    expect(legacy.reference).toBe("abc123");
+    expect(legacy.schema).toBe("shortcode");
+    expect(legacy.content).toBe("5");
+  });
   it("can send a reaction", async () => {
     const signer1 = createSigner();
     const client1 = await Client.create(signer1, {
