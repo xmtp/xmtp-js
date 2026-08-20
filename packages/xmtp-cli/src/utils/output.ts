@@ -100,7 +100,7 @@ function formatTable(rows: Record<string, unknown>[], prefix = ""): string {
     return "";
   }
 
-  const keys = Object.keys(rows[0]);
+  const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))];
   const widths = keys.map((key) =>
     Math.max(key.length, ...rows.map((row) => stringifyValue(row[key]).length)),
   );
