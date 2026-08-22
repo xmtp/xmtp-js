@@ -90,6 +90,7 @@ export const createStream = async <T = unknown, V = T>(
   options?: StreamOptions<T, V>,
 ) => {
   const {
+    onEnd,
     onError,
     onFail,
     onRestart,
@@ -167,6 +168,7 @@ export const createStream = async <T = unknown, V = T>(
       // when the async stream is done, end the stream
       asyncStream.onDone = () => {
         streamCloser.end();
+        onEnd?.();
       };
       // stream restarted, call the onRestart callback
       onRestart?.();
@@ -198,6 +200,7 @@ export const createStream = async <T = unknown, V = T>(
     // when the async stream is done, end the stream
     asyncStream.onDone = () => {
       streamCloser.end();
+      onEnd?.();
     };
   } catch (error) {
     onError?.(error as Error);
