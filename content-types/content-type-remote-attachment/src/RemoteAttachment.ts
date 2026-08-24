@@ -144,7 +144,14 @@ export class RemoteAttachmentCodec implements ContentCodec<
   }
 
   encode(content: RemoteAttachment) {
-    if (!content.url.startsWith("https")) {
+    let protocol: string;
+    try {
+      protocol = new URL(content.url).protocol;
+    } catch {
+      throw new Error("scheme must be https");
+    }
+
+    if (protocol !== "https:") {
       throw new Error("scheme must be https");
     }
 
