@@ -43,4 +43,28 @@ describe("ContentTypeText", () => {
     };
     expect(() => codec.decode(ec)).toThrow("unrecognized encoding UTF-16");
   });
+
+  it("should correctly handle emojis and complex unicode characters", () => {
+    const codec = new TextCodec();
+    const complexText = "Hello XMTP! 🚀 Web3 Messaging 🔒- مرحبا - 👾";
+    const encoded = codec.encode(complexText);
+    const decoded = codec.decode(encoded);
+    expect(decoded).toBe(complexText);
+  });
+
+  it("should handle empty strings correctly", () => {
+    const codec = new TextCodec();
+    const emptyText = "";
+    const encoded = codec.encode(emptyText);
+    const decoded = codec.decode(encoded);
+    expect(decoded).toBe("");
+  });
+
+  it("should correctly encode and decode very long strings", () => {
+    const codec = new TextCodec();
+    const longText = "a".repeat(100000);
+    const encoded = codec.encode(longText);
+    const decoded = codec.decode(encoded);
+    expect(decoded).toBe(longText);
+  });
 });
