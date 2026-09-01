@@ -29,16 +29,31 @@ export function formatIdentifierKind(kind: IdentifierKind): string {
   }
 }
 
-export function formatTimestampNs(ns: bigint | string | undefined): string {
-  if (ns === undefined) {
+export function formatTimestampNs(
+  ns: bigint | string | number | null | undefined,
+): string {
+  if (ns === undefined || ns === null || ns === "") {
     return "Unknown";
   }
-  const ms = Number(BigInt(ns) / BigInt(1_000_000));
-  const date = new Date(ms);
-  return date
-    .toISOString()
-    .replace("T", " ")
-    .replace(/\.\d{3}Z$/, "");
+  try {
+    const ms =
+      typeof ns === "number"
+        ? ns
+        : Number(BigInt(ns) / BigInt(1_000_000));
+    if (Number.isNaN(ms)) {
+      return "Unknown";
+    }
+    const date = new Date(ms);
+    if (Number.isNaN(date.getTime())) {
+      return "Unknown";
+    }
+    return date
+      .toISOString()
+      .replace("T", " ")
+      .replace(/\.\d{3}Z$/, "");
+  } catch {
+    return "Unknown";
+  }
 }
 
 export function formatHuman(data: unknown, indent = 0): string {
