@@ -95,28 +95,17 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
     sortedConversations: [],
     sortedMessages: new Map(),
     addConversation: async (conversation: Conversation<ContentTypes>) => {
-      const state = get();
-      // update conversations state
-      const newConversations = new Map(state.conversations);
-      newConversations.set(conversation.id, conversation);
-      // update members state
       const members = await conversation.members();
-      const newMembers = new Map(state.members);
-      newMembers.set(
-        conversation.id,
-        new Map(members.map((m) => [m.inboxId, m])),
-      );
-      const newPermissions = new Map(state.permissions);
-      const newMetadata = new Map(state.metadata);
+      let permissions: SafeConversation["permissions"] | undefined;
+      let metadata: ConversationMetadata | undefined;
+
       if (conversation instanceof Group) {
-        // update permissions state
-        newPermissions.set(conversation.id, await conversation.permissions());
-        // update metadata state
-        newMetadata.set(conversation.id, {
+        permissions = await conversation.permissions();
+        metadata = {
           name: conversation.name,
           description: conversation.description,
           imageUrl: conversation.imageUrl,
-        });
+        };
       } else if (conversation instanceof Dm) {
         const member = members.find(
           (m) => m.inboxId !== conversation.addedByInboxId,
@@ -129,27 +118,47 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
           if (profiles.length > 0) {
             displayName = profiles[0].displayName ?? displayName;
           }
-          // update metadata state
-          newMetadata.set(conversation.id, {
-            name: displayName,
-          });
+          metadata = { name: displayName };
         }
       }
-      // update last message state
+
       const lastMessage = await conversation.lastMessage();
-      const newLastMessages = new Map(state.lastMessages);
-      newLastMessages.set(conversation.id, lastMessage);
-      set({
-        conversations: newConversations,
-        lastCreatedAt: getLastCreatedAt(conversation, state.lastCreatedAt),
-        lastMessages: newLastMessages,
-        members: newMembers,
-        metadata: newMetadata,
-        permissions: newPermissions,
-        sortedConversations: sortConversations(
-          newConversations,
-          newLastMessages,
-        ),
+
+      set((state) => {
+        const newConversations = new Map(state.conversations);
+        newConversations.set(conversation.id, conversation);
+
+        const newMembers = new Map(state.members);
+        newMembers.set(
+          conversation.id,
+          new Map(members.map((m) => [m.inboxId, m])),
+        );
+
+        const newPermissions = new Map(state.permissions);
+        if (permissions) {
+          newPermissions.set(conversation.id, permissions);
+        }
+
+        const newMetadata = new Map(state.metadata);
+        if (metadata) {
+          newMetadata.set(conversation.id, metadata);
+        }
+
+        const newLastMessages = new Map(state.lastMessages);
+        newLastMessages.set(conversation.id, lastMessage);
+
+        return {
+          conversations: newConversations,
+          lastCreatedAt: getLastCreatedAt(conversation, state.lastCreatedAt),
+          lastMessages: newLastMessages,
+          members: newMembers,
+          metadata: newMetadata,
+          permissions: newPermissions,
+          sortedConversations: sortConversations(
+            newConversations,
+            newLastMessages,
+          ),
+        };
       });
     },
     addConversations: async (conversations: Conversation<ContentTypes>[]) => {
@@ -254,88 +263,90 @@ export const inboxStore = createStore<InboxState & InboxActions>()(
       conversationId: string,
       message: DecodedMessage<ContentTypes>,
     ) => {
-      const state = get();
-      const conversation = state.conversations.get(conversationId);
-      // update messages state
-      const newMessagesState = new Map(state.messages);
-      const conversationMessages =
-        newMessagesState.get(conversationId) ||
-        new Map<string, DecodedMessage<ContentTypes>>();
-      const newMessages = new Map(conversationMessages);
-      newMessages.set(message.id, message);
-      newMessagesState.set(conversationId, newMessages);
+      const isGroupUpdated = contentTypesAreEqual(
+        message.contentType,
+        await contentTypeGroupUpdated(),
+      );
+      let updatedMembers: Map<InboxId, GroupMember> | undefined;
+      let metadataUpdates: ConversationMetadata | undefined;
 
-      // update last sent at and last message states
-      const newLastSentAt = new Map(state.lastSentAt);
-      const newLastMessages = new Map(state.lastMessages);
-      if (isLastSentAt(message, state.lastSentAt.get(conversationId))) {
-        newLastSentAt.set(conversationId, message.sentAtNs);
-        newLastMessages.set(conversationId, message);
-      }
-
-      // update sorted messages state
-      const newSortedMessages = new Map(state.sortedMessages);
-      newSortedMessages.set(conversationId, sortMessages(newMessages));
-
-      const newMembers = new Map(state.members);
-      const newMetadata = new Map(state.metadata);
-
-      // check for updated members and metadata
-      if (
-        contentTypesAreEqual(
-          message.contentType,
-          await contentTypeGroupUpdated(),
-        )
-      ) {
+      if (isGroupUpdated) {
+        const conversation = get().conversations.get(conversationId);
         const groupUpdated = message.content as GroupUpdated;
 
-        // member updates
         if (conversation) {
           const isActive = await conversation.isActive();
-          // ensure group is active before syncing
           if (isActive) {
             await conversation.sync();
           }
           const members = await conversation.members();
-          const updatedMembers = new Map(members.map((m) => [m.inboxId, m]));
-          newMembers.set(message.conversationId, updatedMembers);
+          updatedMembers = new Map(members.map((m) => [m.inboxId, m]));
         }
 
-        // update metadata state
-        const metadataUpdates: ConversationMetadata = {};
+        const updates: ConversationMetadata = {};
         groupUpdated.metadataFieldChanges.forEach((change) => {
           switch (change.fieldName) {
             case "group_name":
-              metadataUpdates.name = change.newValue;
+              updates.name = change.newValue;
               break;
             case "description":
-              metadataUpdates.description = change.newValue;
+              updates.description = change.newValue;
               break;
             case "group_image_url_square":
-              metadataUpdates.imageUrl = change.newValue;
+              updates.imageUrl = change.newValue;
               break;
           }
         });
-        if (Object.keys(metadataUpdates).length > 0) {
+        if (Object.keys(updates).length > 0) {
+          metadataUpdates = updates;
+        }
+      }
+
+      set((state) => {
+        const newMessagesState = new Map(state.messages);
+        const conversationMessages =
+          newMessagesState.get(conversationId) ||
+          new Map<string, DecodedMessage<ContentTypes>>();
+        const newMessages = new Map(conversationMessages);
+        newMessages.set(message.id, message);
+        newMessagesState.set(conversationId, newMessages);
+
+        const newLastSentAt = new Map(state.lastSentAt);
+        const newLastMessages = new Map(state.lastMessages);
+        if (isLastSentAt(message, state.lastSentAt.get(conversationId))) {
+          newLastSentAt.set(conversationId, message.sentAtNs);
+          newLastMessages.set(conversationId, message);
+        }
+
+        const newSortedMessages = new Map(state.sortedMessages);
+        newSortedMessages.set(conversationId, sortMessages(newMessages));
+
+        const newMembers = new Map(state.members);
+        if (updatedMembers) {
+          newMembers.set(message.conversationId, updatedMembers);
+        }
+
+        const newMetadata = new Map(state.metadata);
+        if (metadataUpdates) {
           const existingMetadata = newMetadata.get(message.conversationId);
           newMetadata.set(message.conversationId, {
             ...existingMetadata,
             ...metadataUpdates,
           });
         }
-      }
 
-      set({
-        lastMessages: newLastMessages,
-        lastSentAt: newLastSentAt,
-        members: newMembers,
-        messages: newMessagesState,
-        metadata: newMetadata,
-        sortedConversations: sortConversations(
-          state.conversations,
-          newLastMessages,
-        ),
-        sortedMessages: newSortedMessages,
+        return {
+          lastMessages: newLastMessages,
+          lastSentAt: newLastSentAt,
+          members: newMembers,
+          messages: newMessagesState,
+          metadata: newMetadata,
+          sortedConversations: sortConversations(
+            state.conversations,
+            newLastMessages,
+          ),
+          sortedMessages: newSortedMessages,
+        };
       });
     },
     addMessages: async (
