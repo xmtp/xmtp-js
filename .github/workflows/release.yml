@@ -72,8 +72,10 @@ jobs:
           SKIP_YARN_COREPACK_CHECK: "1"
       - name: Enable corepack
         run: corepack enable
-      - name: Update npm to latest
-        run: npm install -g npm@latest
+      # OIDC trusted publishing needs npm >= 11.5.1. Pinned to major 11 because
+      # npm 12 requires node >= 24.15, newer than the .node-version pin.
+      - name: Update npm
+        run: npm install -g npm@11
       - name: Install dependencies
         run: yarn
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
@@ -109,8 +111,9 @@ jobs:
           SKIP_YARN_COREPACK_CHECK: "1"
       - name: Enable corepack
         run: corepack enable
-      - name: Update npm to latest
-        run: npm install -g npm@latest
+      # See the release job: npm 12 does not support the .node-version pin.
+      - name: Update npm
+        run: npm install -g npm@11
       - name: Update dependency version
         if: ${{ github.event.inputs.prerelease_dependency_version != '' }}
         working-directory: ./sdks/${{ inputs.prerelease_sdk }}
