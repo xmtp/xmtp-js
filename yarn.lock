@@ -6387,7 +6387,7 @@ __metadata:
     "@types/node": "npm:^24.10.9"
     "@vitest/coverage-v8": "npm:^4.0.18"
     "@xmtp/content-type-primitives": "npm:3.0.1"
-    "@xmtp/node-sdk": "npm:6.0.0"
+    "@xmtp/node-sdk": "npm:6.1.1"
     rollup: "npm:^4.59.0"
     rollup-plugin-dts: "npm:^6.3.0"
     rollup-plugin-tsconfig-paths: "npm:^1.5.2"
@@ -6671,6 +6671,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmtp/node-bindings@npm:1.11.1":
+  version: 1.11.1
+  resolution: "@xmtp/node-bindings@npm:1.11.1"
+  checksum: 10/a9e316c225f506061f1b886f1580a0235509722161fa6af82341c8a70d78a6bc522ce6fd28c5e904da02f22b5db4dd9c9bc840975aa1306cffc67cd85884eaeb
+  languageName: node
+  linkType: hard
+
 "@xmtp/node-bindings@npm:1.6.8":
   version: 1.6.8
   resolution: "@xmtp/node-bindings@npm:1.6.8"
@@ -6721,6 +6728,16 @@ __metadata:
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
+
+"@xmtp/node-sdk@npm:6.1.1":
+  version: 6.1.1
+  resolution: "@xmtp/node-sdk@npm:6.1.1"
+  dependencies:
+    "@xmtp/content-type-primitives": "npm:3.0.0"
+    "@xmtp/node-bindings": "npm:1.11.1"
+  checksum: 10/152ee3c9fa213054051eae232f4d12f105edaaf6605262d66ace23e9473a9f19cb7566f20bb74dc15d0cc9d0170cefc20ecb1c752611ce04fef5c9cfd7a2bf13
+  languageName: node
+  linkType: hard
 
 "@xmtp/proto@npm:3.78.0":
   version: 3.78.0
